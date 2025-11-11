@@ -1,0 +1,146 @@
+// src/pages/AuthSuccessPage/AuthSuccessPage.module.scss
+
+// Variáveis de Cor (ajuste conforme seu design system)
+$primary-color: #007bff;
+$success-color: #28a745;
+$error-color: #dc3545;
+$light-gray-bg: #f4f7f6;
+$white-bg: #ffffff;
+$text-dark: #333;
+$text-light: #666;
+
+.authSuccessPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh; // Para cobrir viewports de mobile
+  background-color: $light-gray-bg;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: $white-bg;
+  border-radius: 12px;
+  padding: 32px 24px; // Mais padding vertical no mobile
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+// Responsividade
+@media (min-width: 768px) {
+  .container {
+    padding: 48px 40px;
+  }
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: $text-dark;
+  margin: 20px 0 8px 0;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: $text-light;
+  margin: 0;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+// Estilos de Erro
+.apiError {
+  color: $error-color;
+  font-weight: 500;
+}
+
+.formError {
+  color: $error-color;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+// Botão de Voltar (para erros)
+.backButton {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background-color: $primary-color;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: darken($primary-color, 10%);
+  }
+}
+
+// Spinner
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid $primary-color;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Animação de Sucesso
+.successIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 2;
+  stroke: $success-color;
+  stroke-miterlimit: 10;
+  animation: scale 0.3s ease-in-out;
+}
+
+.successIconCircle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  stroke: $success-color;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  animation-delay: 0.3s;
+}
+
+.successIconCheck {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  animation-delay: 0.8s;
+}
+
+@keyframes scale {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes stroke {
+  100% { stroke-dashoffset: 0; }
+}

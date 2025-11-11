@@ -1,0 +1,60 @@
+# ==================================
+# Arquivos de Build (Maven/Gradle)
+# ==================================
+target/
+build/
+dist/
+out/
+*.jar
+*.war
+*.ear
+
+# Exceção para o Maven Wrapper (que DEVE ir para o Git)
+!/mvnw.jar
+!/gradle-wrapper.jar
+
+# ==================================
+# Arquivos de IDE (IntelliJ, VSCode, STS, NetBeans)
+# ==================================
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+
+# Eclipse / STS (Spring Tool Suite)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+# ==================================
+# Outros
+# ==================================
+# Arquivos de Log
+*.log
+logs/
+
+# Arquivos de Segredos (Correto!)
+.env
+*.env
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.tmp

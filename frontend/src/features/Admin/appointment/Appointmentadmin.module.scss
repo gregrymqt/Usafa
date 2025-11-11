@@ -1,0 +1,174 @@
+/* Variáveis */
+$danger-color: #ef4444; // red-500
+$text-color: #1f2937; // gray-800
+$text-light: #6b7280; // gray-500
+$border-color: #e5e7eb; // gray-200
+$card-bg: #ffffff;
+$status-agendada-bg: #eff6ff; // blue-50
+$status-agendada-text: #2563eb; // blue-700
+$status-concluida-bg: #f0fdf4; // green-50
+$status-concluida-text: #16a34a; // green-700
+$status-cancelada-bg: #fef2f2; // red-50
+$status-cancelada-text: #dc2626; // red-700
+
+/* Estados (Loading, Empty, Error) */
+.adminContent {
+  padding-top: 1.5rem;
+}
+
+.loading,
+.error,
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: $text-light;
+  font-size: 1.125rem;
+}
+.error {
+  color: $danger-color;
+}
+
+/* Lista de Cards de Consulta */
+.appointmentList {
+  display: grid;
+  gap: 1rem;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card de Consulta (Mobile-first) */
+.appointmentCard {
+  background-color: $card-bg;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem; // 12px
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column; // Garante que o footer fique embaixo
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 1.5rem;
+}
+
+.cardInfo {
+  h3 {
+    font-size: 1.125rem; // 18px
+    font-weight: 600;
+    color: $text-color;
+    margin: 0;
+  }
+  p {
+    font-size: 0.875rem; // 14px
+    color: $text-light;
+    margin: 0.25rem 0 0 0;
+  }
+}
+
+.cardBody {
+  padding: 0 1.5rem 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: $text-color;
+  flex-grow: 1; // Faz o corpo crescer
+  p {
+    margin: 0;
+  }
+}
+
+.cardFooter {
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid $border-color;
+  background-color: #f9fafb; // gray-50
+}
+
+/* Badge de Status */
+.statusBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem; // 12px
+  font-weight: 600;
+  border-radius: 9999px; // Pill
+  text-transform: uppercase;
+
+  &.statusAgendada {
+    background-color: $status-agendada-bg;
+    color: $status-agendada-text;
+  }
+  &.statusConcluída {
+    background-color: $status-concluida-bg;
+    color: $status-concluida-text;
+  }
+  &.statusCancelada {
+    background-color: $status-cancelada-bg;
+    color: $status-cancelada-text;
+  }
+}
+
+/* Menu de Ações (Kebab) - Idêntico ao DoctorAdmin */
+.actionMenu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: $text-light;
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: $text-color;
+  }
+}
+
+.actionIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.actionDropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  width: 10rem;
+  background-color: $card-bg;
+  border-radius: 0.5rem;
+  border: 1px solid $border-color;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: $text-color;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  &.deleteItem {
+    color: $danger-color;
+    &:hover {
+      background-color: #fef2f2;
+    }
+  }
+}

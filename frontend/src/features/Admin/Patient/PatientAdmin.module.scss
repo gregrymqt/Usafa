@@ -1,0 +1,142 @@
+/* Variáveis (copiadas de DoctorAdmin para consistência) */
+$primary-color: #3b82f6;
+$danger-color: #ef4444;
+$text-color: #1f2937;
+$text-light: #6b7280;
+$border-color: #e5e7eb;
+$card-bg: #ffffff;
+
+/* Removemos os estilos de placeholder */
+
+/* Conteúdo (Loading, Erro, Lista) */
+.adminContent {
+  padding-top: 1.5rem; // Espaçamento do topo (antes era do placeholder)
+  
+  .loading,
+  .error,
+  .empty {
+    text-align: center;
+    padding: 2rem;
+    color: $text-light;
+    font-size: 1.125rem;
+  }
+  .error {
+    color: $danger-color;
+  }
+}
+
+/* Lista de Cards */
+.patientList {
+  display: grid;
+  gap: 1rem;
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Card (Mobile-first) */
+.patientCard {
+  background-color: $card-bg;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem; // 12px
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 1.5rem;
+}
+
+.cardInfo {
+  h3 {
+    font-size: 1.25rem; // 20px
+    font-weight: 600;
+    color: $text-color; // Paciente não tem cor primária no nome (diferente do Doutor)
+    margin: 0;
+  }
+  p {
+    font-size: 0.875rem; // 14px
+    color: $text-light;
+    margin: 0.25rem 0 0 0;
+  }
+}
+
+.cardBody {
+  border-top: 1px solid $border-color;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: $text-color;
+  p {
+    margin: 0.5rem 0;
+    strong {
+      color: $text-light;
+    }
+  }
+}
+
+/* Menu de Ações (Kebab) - Idêntico aos outros */
+.actionMenu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: $text-light;
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: $text-color;
+  }
+}
+
+.actionIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.actionDropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  width: 10rem;
+  background-color: $card-bg;
+  border-radius: 0.5rem;
+  border: 1px solid $border-color;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: $text-color;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  &.deleteItem {
+    color: $danger-color;
+    &:hover {
+      background-color: #fef2f2;
+    }
+  }
+}

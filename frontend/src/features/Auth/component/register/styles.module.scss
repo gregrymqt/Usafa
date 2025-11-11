@@ -1,0 +1,112 @@
+/* Importando e estendendo os estilos base para manter a consistência */
+@import '../styles.module.scss';
+
+.registerPage {
+  @extend .loginPage; // Herda todo o estilo da página de login
+}
+
+.formWrapper {
+  @extend .formWrapper; // Herda o wrapper do formulário
+}
+
+.title {
+  @extend .title;
+}
+
+.subtitle {
+  @extend .subtitle;
+}
+
+.errorMessage {
+  @extend .errorMessage;
+}
+
+/* Estilos específicos para o formulário de registro */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 500;
+    color: #4a5568;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+    }
+
+    &:disabled {
+      background-color: #f7fafc;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.loginLink {
+  @extend .signupLink; // Herda o estilo do link da página de login
+}
+
+/* --- Estilos para a caixa de validação da senha (UX) --- */
+.validationBox {
+  background-color: #f7fafc; // gray-100
+  border: 1px solid #e2e8f0; // gray-200
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin-top: -0.5rem; // Puxa para mais perto do campo de senha
+  font-size: 0.875rem; // 14px
+
+  p {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    color: #4a5568; // gray-700
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem; // 6px
+    transition: color 0.3s;
+  }
+
+  .invalid {
+    color: #a0aec0; // gray-500
+  }
+
+  .valid {
+    color: #38a169; // green-600
+    font-weight: 500;
+  }
+}
+
+/* Ajustes para telas pequenas (Mobile-first já está implícito nos estilos acima) */
+@media (max-width: 480px) {
+  .formWrapper {
+    padding: 1.5rem;
+    border: none;
+    box-shadow: none;
+  }
+
+  .title {
+    font-size: 1.875rem; // 30px
+  }
+}

@@ -1,0 +1,61 @@
+// Importações de fontes ou resets podem vir aqui
+// @import url('https_...);
+
+.consulta-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; // 32px
+  padding: 1.5rem; // 24px
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: #f7fafc; // Fundo levemente cinza
+}
+
+// Layout para desktop
+@media (min-width: 1024px) {
+  .consulta-page {
+    flex-direction: row; // Lado a lado
+    padding: 2rem;
+    
+    // O formulário (Parte 2)
+    > :last-child {
+      flex: 0 0 400px; // Largura fixa para o formulário
+      align-self: flex-start; // Alinha no topo
+      position: sticky; // Fica preso ao rolar
+      top: 2rem;
+    }
+
+    // A tabela (Parte 1)
+    > :first-child {
+      flex: 1; // Ocupa o resto do espaço
+    }
+  }
+}
+
+// Mensagem de sucesso (Pós-modal)
+.success-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2f855a; // Verde escuro
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  z-index: 2000;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

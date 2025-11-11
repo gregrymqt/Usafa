@@ -1,0 +1,21 @@
+.aboutSection {
+  padding: 3rem 1rem;
+  background-color: #005a8d; // Um azul institucional
+  color: #ffffff;
+  text-align: center;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+}

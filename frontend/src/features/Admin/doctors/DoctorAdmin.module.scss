@@ -1,0 +1,150 @@
+/* Variáveis de Cor (Exemplo) */
+$primary-color: #3b82f6; // blue-500
+$primary-hover: #2563eb; // blue-700
+$danger-color: #ef4444; // red-500
+$danger-hover: #dc2626; // red-700
+$text-color: #1f2937; // gray-800
+$text-light: #6b7280; // gray-500
+$bg-color: #f9fafb; // gray-50
+$border-color: #e5e7eb; // gray-200
+$card-bg: #ffffff;
+
+/* Removemos o .adminPage */
+
+/* Removemos o .adminHeader */
+
+/* Removemos o .title */
+
+/* Removemos o .addButton */
+
+/* Conteúdo (Loading, Erro, Lista) */
+.adminContent {
+  .loading,
+  .error,
+  .empty {
+    text-align: center;
+    padding: 2rem;
+    color: $text-light;
+    font-size: 1.125rem;
+  }
+  .error {
+    color: $danger-color;
+  }
+}
+
+/* Lista de Cards */
+.doctorList {
+  display: grid;
+  gap: 1rem;
+  // Para desktop, podemos usar colunas
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Card (Mobile-first) */
+.doctorCard {
+  background-color: $card-bg;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem; // 12px
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 1.5rem;
+}
+
+.cardInfo {
+  h3 {
+    font-size: 1.25rem; // 20px
+    font-weight: 600;
+    color: $primary-color;
+    margin: 0;
+  }
+  p {
+    font-size: 0.875rem; // 14px
+    color: $text-light;
+    margin: 0.25rem 0 0 0;
+  }
+}
+
+.cardBody {
+  border-top: 1px solid $border-color;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: $text-color;
+  p {
+    margin: 0.5rem 0;
+    strong {
+      color: $text-light;
+    }
+  }
+}
+
+/* Menu de Ações (Kebab) */
+.actionMenu {
+  position: relative;
+  flex-shrink: 0; // Impede que o menu encolha
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 9999px; // Círculo
+  cursor: pointer;
+  color: $text-light;
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6; // gray-100
+    color: $text-color;
+  }
+}
+
+.actionIcon {
+  width: 1.5rem; // 24px
+  height: 1.5rem;
+}
+
+.actionDropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  width: 10rem; // 160px
+  background-color: $card-bg;
+  border-radius: 0.5rem;
+  border: 1px solid $border-color;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  overflow: hidden; // Para garantir os cantos arredondados nos itens
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: $text-color;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f9fafb; // gray-50
+  }
+
+  &.deleteItem {
+    color: $danger-color;
+    &:hover {
+      background-color: #fef2f2; // red-50
+    }
+  }
+}
