@@ -1,12 +1,5 @@
 import api from '../../../shared/services/api'; 
-// Removido: import type { AxiosResponse } from 'axios';
-
-// A interface permanece a mesma
-export interface ServicePic {
-  id: string;
-  url: string;
-  title: string;
-}
+import type { ServicePic } from '../types/home.type';
 
 /**
  * Busca fotos da API real com paginação (usando fetch).

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import AuthForm, {
-  type FormField,
-} from '../../../components/Form/AuthForm';
+
 import type { NewPatientData, Patient } from '../types/patient.types';
 import styles from './PatientForm.module.scss';
+import AuthForm from '../../../../components/Form/AuthForm';
+import type { FormField } from '../../../../components/Form/types/form.type';
 
 // Helper para formatar data (API envia ISO, input 'date' usa YYYY-MM-DD)
 const formatDateForInput = (isoDate: string): string => {
@@ -11,6 +11,7 @@ const formatDateForInput = (isoDate: string): string => {
   try {
     return isoDate.split('T')[0];
   } catch (e) {
+    console.log('Error ao formatar a data', e)
     return '';
   }
 };
@@ -98,6 +99,7 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         value: birthDate,
         onChange: (val) => setBirthDate(val as string),
         required: true,
+        placeholder: '', // <--- CORREÇÃO AQUI
       },
     ],
     [name, email, cpf, phone, birthDate]

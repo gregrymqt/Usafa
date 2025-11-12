@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 // Importando o AuthForm
-import AuthForm, {
-  type FormField,
-} from '../../../components/Form/AuthForm';
-import type { AppointmentFormData } from '../types/appointment.types';
+
 import styles from './AppointmentForm.module.scss';
+import AuthForm from '../../../../components/Form/AuthForm';
+import type { FormField } from '../../../../components/Form/types/form.type';
+import type { AppointmentFormData } from '../types/appointment.type';
 
 // Opções que o formulário precisará (virão dos hooks no futuro)
 export interface FormSelectOption {

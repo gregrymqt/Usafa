@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { type UserData } from '../types';
-import AuthForm, { type InputField } from '../../../components/Form/AuthForm';
+import AuthForm from '../../../components/Form/AuthForm';
 import { type UserProfileUpdateDTO } from '../hooks/userHook';
+import type { InputField } from '../../../components/Form/types/form.type';
 
 interface ProfileUpdateFormProps {
   // O usuário atual, vindo do hook

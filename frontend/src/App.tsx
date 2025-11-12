@@ -17,6 +17,7 @@ import Home from './pages/Home.tsx';
 import Profile from './features/Profile/index.tsx';
 import AuthRoutes from './features/Auth/routes/authRoutes.tsx';
 import Consulta from './pages/Consulta.tsx';
+import AdminDashboard from './pages/AdminDashboard.tsx';
 
 function App() {
   return (

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { type ServicePic, SearchPics } from "../services/api";
+import { SearchPics } from "../services/api";
+import type { ServicePic } from "../types/home.type";
 
 export const useInfiniteScroll = () => {
   const [items, setItems] = useState<ServicePic[]>([]);
@@ -32,7 +33,7 @@ export const useInfiniteScroll = () => {
   // Efeito para carregar os itens iniciais
   useEffect(() => {
     loadMore();
-  }, [loadMore]); // Executa apenas na montagem inicial
+  }, []); // Executa apenas na montagem inicial
 
   // Efeito para detectar quando o usuário chega ao final da página
   useEffect(() => {

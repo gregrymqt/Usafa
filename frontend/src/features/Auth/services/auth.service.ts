@@ -1,5 +1,4 @@
 import api from '../../../shared/services/api';
-// Removido: import type { AxiosError } from 'axios';
 import type { LoginCredentials, RegisterData, UpdateUserData, UserSession } from '../types/auth.types';
 
 /**

@@ -7,6 +7,7 @@ import type {
 } from '../types/patient.types';
 import * as patientService from '../services/patient.service';
 import { showErrorToast, showSuccessToast } from '../../utils/adminUtils';
+import { ApiError } from '../../../../shared';
 
 /**
  * Converte a data do formulário (YYYY-MM-DD) para ISO string UTC.
@@ -31,9 +32,11 @@ export const usePatients = () => {
     try {
       const data = await patientService.getPatients();
       setPatients(data);
-    } catch (err: any) {
+    } catch (err) {
+      if(err instanceof ApiError){
       setError(err.message);
       showErrorToast('Não foi possível carregar os pacientes.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -55,14 +58,18 @@ export const usePatients = () => {
       const newPatient = await patientService.createPatient(apiData);
       setPatients((prev) => [newPatient, ...prev]);
       showSuccessToast('Paciente cadastrado com sucesso!');
-    } catch (err: any)
+    } catch (err){
+      if(err instanceof ApiError){
       setError(err.message);
       showErrorToast(`Falha ao cadastrar paciente: ${err.message}`);
       throw err; // Propaga o erro para o formulário
+      }
     } finally {
       setIsLoading(false);
     }
   };
+  
+  
 
   /**
    * Remove um paciente.
@@ -73,9 +80,11 @@ export const usePatients = () => {
       await patientService.deletePatient(id);
       setPatients((prev) => prev.filter((p) => p.id !== id));
       showSuccessToast('Paciente deletado com sucesso.');
-    } catch (err: any) {
+    } catch (err) {
+      if(err instanceof ApiError){
       setError(err.message);
       showErrorToast(`Falha ao deletar paciente: ${err.message}`);
+      }
     }
   };
 
@@ -100,14 +109,17 @@ export const usePatients = () => {
         prev.map((p) => (p.id === id ? updatedPatient : p))
       );
       showSuccessToast('Paciente atualizado com sucesso!');
-    } catch (err: any) {
+    } catch (err) {
+      if(err instanceof ApiError){
       setError(err.message);
       showErrorToast(`Falha ao atualizar paciente: ${err.message}`);
       throw err; // Propaga o erro
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
 
   // Efeito inicial para carregar os dados
   useEffect(() => {

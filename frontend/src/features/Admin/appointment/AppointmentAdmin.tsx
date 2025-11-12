@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import type { Appointment } from '../types/appointment.types';
-import { showDeleteConfirm } from '../../../utils/adminUtils';
 import styles from './AppointmentAdmin.module.scss';
+import { showDeleteConfirm } from '../utils/adminUtils';
+import type { Appointment } from './types/appointment.type';
 
 // --- Ícones (copiados do DoctorAdmin para consistência) ---
 const ActionsIcon = () => (
@@ -96,6 +96,7 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
         minute: '2-digit',
       });
     } catch (e) {
+      console.error('Erro ao formatar data:', e);
       return isoString; // Fallback
     }
   };

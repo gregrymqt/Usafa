@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import type { Patient } from '../types/patient.types';
-import { showDeleteConfirm } from '../../../utils/adminUtils';
+
 import styles from './PatientAdmin.module.scss';
+import { showDeleteConfirm } from '../utils/adminUtils';
+import type { Patient } from './types/patient.types';
 
 // --- Ícones (copiados do DoctorAdmin para consistência) ---
 const ActionsIcon = () => (
