@@ -8,5 +8,7 @@ public record ResponseDTO(
     String name, 
     String email, 
     String cep,
+    String phone,
+    String birthDate,
     List<String> roles // <-- ADICIONE
 ) {}

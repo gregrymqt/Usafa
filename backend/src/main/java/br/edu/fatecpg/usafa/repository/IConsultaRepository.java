@@ -27,4 +27,8 @@ public interface IConsultaRepository extends JpaRepository<Consulta, Long> {
     boolean existsByMedicoAndDiaAndHorario(Medico medico, LocalDate dia, LocalTime horario);
 
     void deleteByPublicId(String publicId); // Mais eficiente que buscar e depois deletar
+
+    boolean existsByPublicId(String publicId);
+
+    boolean existsByUser(User user);
 }

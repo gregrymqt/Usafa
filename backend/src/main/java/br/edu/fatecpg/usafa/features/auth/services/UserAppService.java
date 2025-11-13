@@ -24,6 +24,8 @@ import br.edu.fatecpg.usafa.repository.IRolesRepository;
 import br.edu.fatecpg.usafa.repository.IUserRepository;
 import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections; // 3. Importar
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +80,10 @@ public class UserAppService implements IUserAppService {
                 userDetails.getName(),
                 userDetails.getEmail(),
                 userDetails.getCep(),
+                userDetails.getPhone(),
+                (userDetails.getBirthDate() != null)
+                                    ? userDetails.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
+                                    : null,
                 roles // <-- PREENCHIDO
         );
     }
@@ -97,7 +103,9 @@ public class UserAppService implements IUserAppService {
                 null,
                 null,
                 data.cpf(),
-                data.cep());
+                data.cep(),
+                data.phone(),
+                LocalDate.parse(data.birthDate().substring(0, 10))); // Extrai "YYYY-MM-DD" e converte
 
         // 5. Atribui a role padrão (agora implementado)
         assignDefaultRole(newUser);
@@ -119,6 +127,10 @@ public class UserAppService implements IUserAppService {
                 savedUser.getName(),
                 savedUser.getEmail(),
                 savedUser.getCep(),
+                savedUser.getPhone(),
+               (savedUser.getBirthDate() != null)
+                                    ? savedUser.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
+                                    : null,
                 roles // <-- PREENCHIDO
         );
     }
@@ -127,21 +139,34 @@ public class UserAppService implements IUserAppService {
     @Override
     public ResponseGoogleDTO processGoogleLogin(LoginGoogleRequestDTO googleUser) {
         Optional<User> existingUserOpt = userRepository.findByEmail(googleUser.email());
-
         User userToSave;
-        boolean isNewUser = false; // Flag para o frontend (CPF/CEP)
+        boolean isNewUser = false;
+        boolean needsCompletion = false; // <-- NOSSO NOVO FLAG
 
         if (existingUserOpt.isPresent()) {
-            // Usuário já existe
+            // --- USUÁRIO EXISTENTE ---
             userToSave = existingUserOpt.get();
             userToSave.setName(googleUser.name());
             userToSave.setPicture(googleUser.picture());
             if (userToSave.getGoogleId() == null) {
                 userToSave.setGoogleId(googleUser.googleId());
+                }
+
+            // --- LÓGICA DE VALIDAÇÃO (NOVA) ---
+            // Verifica se o usuário EXISTENTE não preencheu os dados
+            if (userToSave.getCpf() == null || userToSave.getCpf().isBlank() ||
+                userToSave.getCep() == null || userToSave.getCep().isBlank() ||
+                userToSave.getPhone() == null || userToSave.getPhone().isBlank() ||
+                userToSave.getBirthDate() == null) {
+                
+                needsCompletion = true; // <-- AVISA O FRONT-END
             }
+
         } else {
-            // Usuário novo
-            isNewUser = true; // <-- AVISA QUE É NOVO
+            // --- USUÁRIO NOVO ---
+            isNewUser = true;
+            needsCompletion = true; // <-- Um usuário novo SEMPRE precisa completar
+            
             userToSave = new User();
             userToSave.setName(googleUser.name());
             userToSave.setEmail(googleUser.email());
@@ -152,22 +177,22 @@ public class UserAppService implements IUserAppService {
         }
 
         User savedUser = userRepository.save(userToSave);
-
-        // Gera o token (que agora terá a ROLE_USER)
+         // Gera o token (que agora terá a ROLE_USER)
         String token = jwtUtils.generateToken(savedUser);
-
         // Pega as roles (para o DTO)
         List<String> roles = savedUser.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        // 9. Retorna o DTO do Google (modificado para incluir o que precisamos)
+        // 9. Retorna o DTO do Google (MODIFICADO)
         return new ResponseGoogleDTO(
                 token,
                 savedUser.getPublicId().toString(),
                 roles,
-                isNewUser // <-- Retorna se é novo
-        );
+                isNewUser,
+                needsCompletion // <-- RETORNA O NOVO FLAG
+        
+);
     }
 
     @Async
@@ -195,6 +220,10 @@ public class UserAppService implements IUserAppService {
                             savedUser.getName(),
                             savedUser.getEmail(),
                             savedUser.getCep(),
+                            savedUser.getPhone(),
+                           (savedUser.getBirthDate() != null)
+                                        ? savedUser.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
+                                        : null,
                             roles // <-- PREENCHIDO
                     );
                 });

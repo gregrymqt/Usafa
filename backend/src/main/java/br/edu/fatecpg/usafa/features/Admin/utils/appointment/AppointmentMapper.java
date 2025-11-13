@@ -41,7 +41,7 @@ public class AppointmentMapper {
 
         // Exemplo SEM mappers (como estava antes)
         PatientResponseDto patientDto = new PatientResponseDto();
-        patientDto.setId(consulta.getUser().getPublicId());
+        patientDto.setId(consulta.getUser().getPublicId().toString());
         patientDto.setName(consulta.getUser().getName());
         patientDto.setEmail(consulta.getUser().getEmail());
         patientDto.setCpf(consulta.getUser().getCpf());

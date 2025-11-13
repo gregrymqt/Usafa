@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router-dom';
 
 // 4. Importa os estilos
 import styles from './AuthSuccessPage.module.scss';
-import AuthForm, { type FormField } from '../../../../components/Form/AuthForm';
-import { validateCpf, validateCep } from '../../../../shared/utils/validators';
+import AuthForm from '../../../../components/Form/AuthForm';
+import type { FormField } from '../../../../components/Form/types/form.type';
+import { validateCpf, validateCep, validatePhone } from '../../../../shared/utils/validators';
 import { useAuthSuccess } from '../../hooks/useAuthSuccess';
+
 
 
 /**
@@ -23,6 +25,9 @@ const AuthSuccessPage: React.FC = () => {
   // 6. Estado local para os campos do formulário Google
   const [cpf, setCpf] = useState('');
   const [cep, setCep] = useState('');
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+
   const [formError, setFormError] = useState<string | null>(null);
 
   // 7. Lógica de submit para o formulário Google
@@ -38,8 +43,16 @@ const AuthSuccessPage: React.FC = () => {
       setFormError('Por favor, insira um CEP válido (8 dígitos).');
       return;
     }
+    if (!validatePhone(phone)) {
+      setFormError('Por favor, insira um telefone válido.');
+      return;
+    }
+    if (!birthDate) {
+      setFormError('Por favor, insira sua data de nascimento.');
+      return;
+    }
 
-    await handleGoogleFormSubmit({ cpf, cep });
+    await handleGoogleFormSubmit({ cpf, cep, phone, birthDate });
   };
 
   // 8. Define os campos para o AuthForm genérico
@@ -63,6 +76,28 @@ const AuthSuccessPage: React.FC = () => {
       placeholder: '00000-000',
       value: cep,
       onChange: (val) => setCep(val as string), // Ajuste para o tipo
+      required: true,
+      autoComplete: 'off',
+    },
+    {
+      elementType: 'input',
+      type: 'tel',
+      name: 'phone',
+      label: 'Telefone',
+      placeholder: '(00) 00000-0000',
+      value: phone,
+      onChange: (val) => setPhone(val as string),
+      required: true,
+      autoComplete: 'off',
+    },
+    {
+      elementType: 'input',
+      type: 'date', // Tipo 'date' para facilitar a seleção
+      name: 'birthDate',
+      label: 'Data de Nascimento',
+      placeholder: 'DD/MM/AAAA',
+      value: birthDate,
+      onChange: (val) => setBirthDate(val as string),
       required: true,
       autoComplete: 'off',
     },

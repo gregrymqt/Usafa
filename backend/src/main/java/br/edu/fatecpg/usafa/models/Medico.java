@@ -14,6 +14,12 @@ public class Medico {
     private String publicId;
     private String nome;
 
+    @Column(unique = true, nullable = false)
+    private String email; // <-- ADICIONAR
+
+    @Column(unique = true, nullable = false)
+    private String crm; // <-- ADICIONAR
+
     // --- RELACIONAMENTO ADICIONADO ---
     // Esta é a "especialidade" do médico.
     // Múltiplos médicos podem ter o mesmo TipoConsulta (especialidade).

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from './styles.module.scss';
-import { useRegister } from '../../hooks/useRegister';
-import type { FormField } from '../../../../components/Form/AuthForm';
 import AuthForm from '../../../../components/Form/AuthForm';
+import type { FormField } from '../../../../components/Form/types/form.type';
+import { useRegister } from '../../hooks/useRegister';
 
 
 // Componente auxiliar movido para fora para maior clareza
@@ -27,6 +27,10 @@ const Register: React.FC = () => {
     setCpf,
     cep,      // <-- ADICIONADO
     setCep,   // <-- ADICIONADO
+    phone,
+    setPhone,
+    birthDate,
+    setBirthDate,
     error,
     isLoading,
     passwordValidation,
@@ -67,6 +71,28 @@ const Register: React.FC = () => {
       onChange: setCep, // OK
       required: true,
       autoComplete: 'postal-code', 
+    },
+    {
+      elementType: 'input',
+      type: 'tel',
+      name: 'phone',
+      label: 'Telefone',
+      placeholder: '(00) 00000-0000',
+      value: phone,
+      onChange: setPhone,
+      required: true,
+      autoComplete: 'off',
+    },
+    {
+      elementType: 'input',
+      type: 'date', // Tipo 'date' para facilitar a seleção
+      name: 'birthDate',
+      label: 'Data de Nascimento',
+      placeholder: 'DD/MM/AAAA',
+      value: birthDate,
+      onChange: setBirthDate,
+      required: true,
+      autoComplete: 'off',
     },
     {
       elementType: 'input',

@@ -4,6 +4,8 @@ export interface RegisterData {
   password?: string;
   cpf: string;
   cep: string;
+  phone: string;
+  birthDate: string;
 }
 
 export interface LoginCredentials {
@@ -17,12 +19,16 @@ export interface UserSession{
   name: string,
   email: string,
   cep: string,
+  phone: string,
+  birthDate: string,
   roles: string[]
 }
 
 export interface UpdateUserData {  
   cep: string;
   cpf: string;
+  phone: string;
+  birthDate: string;
 }
 
 export interface AuthContextType {

@@ -46,6 +46,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
         // 1. Tentar buscar do cache
         try {
+            @SuppressWarnings("unchecked")
             List<AppointmentResponseDto> cachedAppointments = cacheService.get(CACHE_KEY_ALL_APPOINTMENTS, List.class);
             if (cachedAppointments != null) {
                 log.info("Retornando {} consultas do cache", cachedAppointments.size());

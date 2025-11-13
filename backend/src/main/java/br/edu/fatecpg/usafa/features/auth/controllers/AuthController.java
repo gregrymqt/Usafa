@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.features.auth.controllers;
 
 import java.util.List;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -94,6 +95,10 @@ public class AuthController {
                             user.getName(),
                             user.getEmail(),
                             user.getCep(),
+                            user.getPhone(),
+                            (user.getBirthDate() != null)
+                                    ? user.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
+                                    : null,
                             roles);
                     return ResponseEntity.ok(response);
                 })

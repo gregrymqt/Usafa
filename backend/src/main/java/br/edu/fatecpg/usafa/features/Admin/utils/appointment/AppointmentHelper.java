@@ -59,7 +59,7 @@ public class AppointmentHelper {
      * Verifica se uma consulta existe pelo ID.
      */
     public void validateAppointmentExists(String publicId) {
-        if (!consultaRepository.existsByPublicId(UUID.fromString(publicId))) {
+        if (consultaRepository.existsByPublicId(publicId)) {
             throw new BusinessRuleException("Consulta com ID " + publicId + " não encontrada");
         }
     }

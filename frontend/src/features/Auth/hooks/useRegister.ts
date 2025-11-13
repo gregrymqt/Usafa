@@ -8,7 +8,8 @@ import {
   validateCpf,
   validateCep,
   getPasswordValidationState,
-  isPasswordValid as checkPasswordValidity, // Renomeado para evitar conflito
+  isPasswordValid as checkPasswordValidity,
+  validatePhone, // Renomeado para evitar conflito
 } from '../../../shared/utils/validators';
 import type { UserSession } from '../types/auth.types';
 import { useAuth } from './useAuth';
@@ -20,6 +21,8 @@ export const useRegister = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { handleLoginSuccess } = useAuth();
@@ -64,6 +67,16 @@ export const useRegister = () => {
       setError('As senhas não coincidem.');
       return;
     }
+    
+    if(!validatePhone(phone)){
+      setError('Por favor, insira um telefone válido.');
+      return;
+    }
+
+    if(!birthDate){
+      setError('Por favor, insira uma data de nascimento válida.');
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -75,6 +88,8 @@ export const useRegister = () => {
         password,
         cpf,
         cep,
+        phone,
+        birthDate,
       });
 
       handleLoginSuccess(response);
@@ -103,6 +118,10 @@ export const useRegister = () => {
     setCpf,
     cep,
     setCep,
+    phone,
+    setPhone,
+    birthDate,
+    setBirthDate,
     error,
     isLoading,
     passwordValidation, // Mantido para a UI

@@ -52,6 +52,26 @@ export const validateCep = (cep: string): boolean => {
 };
 
 /**
+ * Valida um número de telefone brasileiro (celular ou fixo).
+ * Aceita números com ou sem máscara.
+ */
+export const validatePhone = (phone: string): boolean => {
+  const phoneLimpo = phone.replace(/[^\d]+/g, ''); // Remove máscara
+
+  // Deve ter 10 (fixo) ou 11 (celular) dígitos.
+  if (phoneLimpo.length < 10 || phoneLimpo.length > 11) {
+    return false;
+  }
+
+  // Elimina sequências inválidas (ex: '11111111111')
+  if (/^(\d)\1{9,10}$/.test(phoneLimpo)) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Retorna um objeto com o estado de validação da senha.
  * Usado para mostrar feedback na UI.
  */

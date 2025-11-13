@@ -16,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.UUID;
@@ -53,7 +54,10 @@ public class User implements UserDetails {
 
     private String cep;
 
-    private boolean isPacient;
+    private String phone;
+
+    private LocalDate birthDate;
+
 
     // Em: br/edu/fatecpg/usafa/features/auth/models/User.java
     @ManyToMany(fetch = FetchType.EAGER)
@@ -68,7 +72,7 @@ public class User implements UserDetails {
 
     // Não se esqueça de adicionar getters e setters para 'roles'
 
-    public User(String name, String email, String password, String googleId, String picture, String cpf, String cep) {
+    public User(String name, String email, String password, String googleId, String picture, String cpf, String cep, String phone, LocalDate birthDate) {
         this.publicId = UUID.randomUUID(); // Inicializa o publicId ao criar um novo usuário
         this.name = name;
         this.email = email;
@@ -77,6 +81,8 @@ public class User implements UserDetails {
         this.picture = picture;
         this.cpf = cpf;
         this.cep = cep;
+        this.phone = phone;
+        this.birthDate = birthDate;
     }
 
     public User() {
@@ -110,6 +116,14 @@ public class User implements UserDetails {
 
     public String getCep() {
         return cep;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
     }
 
     // Setters
@@ -149,20 +163,20 @@ public class User implements UserDetails {
         this.cep = cep;
     }
 
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
     public Set<Role> getRoles() {
         return roles;
     }
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
-    }
-
-    public boolean isPacient() {
-        return isPacient;
-    }
-
-    public void setPacient(boolean isPacient) {
-        this.isPacient = isPacient;
     }
 
     // --- MÉTODOS OBRIGATÓRIOS DO UserDetails ---

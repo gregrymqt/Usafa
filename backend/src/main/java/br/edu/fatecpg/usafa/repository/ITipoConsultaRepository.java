@@ -14,4 +14,6 @@ public interface ITipoConsultaRepository extends JpaRepository<TipoConsulta, Lon
      * Busca um tipo de consulta (especialidade) pelo seu ID público.
      */
     Optional<TipoConsulta> findByPublicId(String publicId);
+
+    Optional<TipoConsulta> findByNome(String nome);
 }

@@ -15,6 +15,7 @@ import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
+import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
 import br.edu.fatecpg.usafa.models.Consulta;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
@@ -26,6 +27,7 @@ public interface IConsultaMapper {
     // --- Formatadores de Data/Hora ---
     // (Pode ser movido para uma classe de utilidade se preferir)
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     Locale LOCALE_BR = Locale.of("pt", "BR");
     
@@ -99,5 +101,24 @@ public interface IConsultaMapper {
         // Capitaliza a primeira letra e deixa o resto minúsculo (ex: PENDENTE -> "Pendente")
         String name = status.name().toLowerCase(LOCALE_BR);
         return name.substring(0, 1).toUpperCase(LOCALE_BR) + name.substring(1);
+    }
+
+    // Mapeamento para PatientResponseDto (para o módulo Admin)
+    @Mapping(source = "publicId", target = "id")
+    @Mapping(source = "name", target = "name")
+    @Mapping(source = "email", target = "email")
+    @Mapping(source = "cpf", target = "cpf")
+    @Mapping(source = "phone", target = "phone")
+    @Mapping(source = "birthDate", target = "birthDate", qualifiedByName = "localDateToIsoString")
+    PatientResponseDto userToPatientResponseDto(User user);
+
+    @Named("localDateToIsoString")
+    default String localDateToIsoString(LocalDate date) {
+        if (date == null) {
+            return null;
+        }
+        // Formato ISO "1990-10-25T00:00:00Z"
+        // Adiciona uma hora padrão para o formato ISO completo, se a data for apenas LocalDate
+        return date.atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z";
     }
 }
