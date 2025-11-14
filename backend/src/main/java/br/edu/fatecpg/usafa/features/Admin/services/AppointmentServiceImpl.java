@@ -13,10 +13,10 @@ import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentHelper;
 import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
+import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
 import br.edu.fatecpg.usafa.models.Consulta;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.IConsultaRepository;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 
 import java.time.LocalDateTime;

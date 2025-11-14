@@ -5,11 +5,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.profile.dtos.UserProfileResponseDTO;
 import br.edu.fatecpg.usafa.features.profile.dtos.UserProfileUpdateDTO;
 import br.edu.fatecpg.usafa.features.profile.interfaces.IUserProfileService;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.IUserRepository;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 
 @Service

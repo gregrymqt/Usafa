@@ -7,9 +7,6 @@ import { ConsultaSummarys } from './components/modal/ConsultaSummary.tsx'; // <-
 import { ConsultaList } from './components/table/listConsulta';
 import { useConsulta } from './hooks/useConsulta';
 
-
-
-
  const ConsultaPage: React.FC = () => {
   // Assumindo que o ID do usuário vem de um contexto de Autenticação
   const {

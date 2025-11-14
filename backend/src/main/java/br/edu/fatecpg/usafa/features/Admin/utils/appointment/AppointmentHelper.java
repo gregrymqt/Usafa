@@ -1,13 +1,13 @@
 package br.edu.fatecpg.usafa.features.Admin.utils.appointment;
 
 
+import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
+import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
 import br.edu.fatecpg.usafa.models.Consulta;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.IConsultaRepository;
-import br.edu.fatecpg.usafa.repository.IMedicoRepository;
-import br.edu.fatecpg.usafa.repository.IUserRepository;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

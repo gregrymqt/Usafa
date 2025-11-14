@@ -1,6 +1,6 @@
 // src/main/java/br/edu/fatecpg/usafa/features/auth/repository/UserRepository.java
 
-package br.edu.fatecpg.usafa.repository;
+package br.edu.fatecpg.usafa.features.auth.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

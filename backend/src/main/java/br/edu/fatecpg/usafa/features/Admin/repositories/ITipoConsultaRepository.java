@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.repository;
+package br.edu.fatecpg.usafa.features.Admin.repositories;
 
 import java.util.Optional;
 

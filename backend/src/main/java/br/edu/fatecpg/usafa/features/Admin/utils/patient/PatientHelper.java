@@ -7,9 +7,9 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.IConsultaRepository;
-import br.edu.fatecpg.usafa.repository.IUserRepository;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 

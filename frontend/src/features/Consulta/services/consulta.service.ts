@@ -2,8 +2,7 @@ import {
   type Consulta,
   type ConsultaFormOptions,
   type ConsultaRequest,
-  type ConsultaSummary
-} from '../types/consulta.types.ts';
+ } from '../types/consulta.types.ts';
 // Importa o seu cliente 'api' global
 import api from '../../../shared/services/api.ts'; // (Ajuste o caminho se necessário)
 
@@ -44,12 +43,12 @@ export const getFormOptions = async (): Promise<ConsultaFormOptions> => {
  * Envia a requisição de uma nova consulta (do Formulário)
  * Agora faz uma chamada de API real.
  */
-export const requestConsulta = async (request: ConsultaRequest): Promise<ConsultaSummary> => {
+export const requestConsulta = async (request: ConsultaRequest): Promise<void> => {
   try {
-    // Eu assumi que o endpoint para criar uma nova consulta seja este:
-    // POST /consultas
-    const summary = await api.post<ConsultaSummary>('/consultas', request);
-    return summary;
+    // A API agora retorna 202 Accepted com uma string simples,
+    // não mais um objeto JSON ConsultaSummary.
+    // Apenas esperamos a requisição completar, sem esperar um tipo de retorno.
+    await api.post('/consultas', request);
   } catch (error) {
     console.error('Erro ao enviar requisição de consulta:', error);
     throw new Error('Não foi possível enviar sua solicitação de consulta.');

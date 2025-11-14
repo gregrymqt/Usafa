@@ -2,10 +2,10 @@ package br.edu.fatecpg.usafa.features.Admin.utils.doctor;
 
 import org.springframework.stereotype.Component;
 
+import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
+import br.edu.fatecpg.usafa.features.Admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
-import br.edu.fatecpg.usafa.repository.IMedicoRepository;
-import br.edu.fatecpg.usafa.repository.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 

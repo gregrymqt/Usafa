@@ -1,41 +1,35 @@
-import { useState, useEffect, useCallback } from 'react';
+// (Caminho: ../hooks/useConsulta.ts)
+
+import { useState, useEffect } from 'react';
 import {
   type Consulta,
   type ConsultaFormOptions,
   type ConsultaRequest,
-  type ConsultaSummary
 } from '../types/consulta.types';
 import { getConsultas, getFormOptions, requestConsulta } from '../services/consulta.service';
 
 export const useConsulta = (userId: string) => {
-  // Estado Parte 1: Tabela de Consultas
+  // Estado Parte 1 e 2 (Sem mudanças)
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [isLoadingConsultas, setIsLoadingConsultas] = useState(true);
-
-  // Estado Parte 2: Formulário de Requisição
   const [formOptions, setFormOptions] = useState<ConsultaFormOptions | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Estado Parte 3: Modal de Sucesso e Mensagem
-  const [submittedRequest, setSubmittedRequest] = useState<ConsultaSummary | null>(null);
+
+  // MANTIDO: Esta será nossa única confirmação
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   
-  // Erros
   const [error, setError] = useState<string | null>(null);
 
-  // Busca inicial (Tabela e Opções do Form)
+  // useEffect (Sem mudanças)
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoadingConsultas(true);
-        // Busca os dados da tabela
         const consultasData = await getConsultas(userId);
         setConsultas(consultasData);
         
-        // Busca os dados dos <select>
         const optionsData = await getFormOptions();
         setFormOptions(optionsData);
-
       } catch (err) {
         if(err instanceof Error)
            setError(err.message);
@@ -48,33 +42,33 @@ export const useConsulta = (userId: string) => {
     loadData();
   }, [userId]);
 
+  // --- MUDANÇAS AQUI ---
   // Função para o formulário chamar ao enviar
   const handleSubmitConsulta = async (request: ConsultaRequest) => {
     try {
       setIsSubmitting(true);
       setError(null);
-      const summary = await requestConsulta(request);
-      setSubmittedRequest(summary); // Mostra o modal de sucesso
+      
+      // 1. Chama o serviço atualizado (que não retorna nada)
+      await requestConsulta(request);
+      
+      // 3. ATIVA a mensagem de sucesso IMEDIATAMENTE
+      setShowSuccessMessage(true);
+      
+      // 4. Esconde a mensagem após 5 segundos
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 5000);
+
     } catch (err) {
       if(err instanceof Error)
            setError(err.message);
-        else
+      else
            setError('Falha ao carregar dados da página.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Função para o modal chamar ao fechar
-  const closeSummaryModal = useCallback(() => {
-    setSubmittedRequest(null);
-    setShowSuccessMessage(true); // Mostra a mensagem "Iremos entrar em contato..."
-    
-    // Esconde a mensagem após alguns segundos
-    setTimeout(() => {
-      setShowSuccessMessage(false);
-    }, 5000);
-  }, []);
 
   return {
     // Para a Tabela
@@ -84,11 +78,8 @@ export const useConsulta = (userId: string) => {
     formOptions,
     isSubmitting,
     handleSubmitConsulta,
-    // Para o Modal e Mensagem
-    submittedRequest,
+    //Modal
     showSuccessMessage,
-    closeSummaryModal,
-    // Erro
     error
   };
 };

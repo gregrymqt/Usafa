@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Importante
 
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.roles.interfaces.IRoleService;
+import br.edu.fatecpg.usafa.features.roles.repositories.IRolesRepository;
 import br.edu.fatecpg.usafa.models.Role;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.IRolesRepository;
-import br.edu.fatecpg.usafa.repository.IUserRepository;
 
 import java.util.List;
 import java.util.Set;

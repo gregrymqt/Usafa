@@ -6,8 +6,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.IUserRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {

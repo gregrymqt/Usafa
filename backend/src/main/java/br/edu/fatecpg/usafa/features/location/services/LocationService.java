@@ -1,15 +1,15 @@
 package br.edu.fatecpg.usafa.features.location.services;
 
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.location.interfaces.ILocationService;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationCreateDTO;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationDTO;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationUpdateDTO;
 import br.edu.fatecpg.usafa.features.location.mappers.LocationMapper;
+import br.edu.fatecpg.usafa.features.location.repositories.ILocationRepository;
 import br.edu.fatecpg.usafa.models.Usafa;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.ILocationRepository;
-import br.edu.fatecpg.usafa.repository.IUserRepository;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import lombok.RequiredArgsConstructor;

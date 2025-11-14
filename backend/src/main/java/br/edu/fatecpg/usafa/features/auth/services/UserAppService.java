@@ -18,10 +18,10 @@ import br.edu.fatecpg.usafa.features.auth.dtos.ResponseDTO;
 import br.edu.fatecpg.usafa.features.auth.dtos.ResponseGoogleDTO;
 import br.edu.fatecpg.usafa.features.auth.dtos.UpdateUserByPublicIdDTO;
 import br.edu.fatecpg.usafa.features.auth.interfaces.IUserAppService;
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.roles.repositories.IRolesRepository;
 import br.edu.fatecpg.usafa.models.Role;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.repository.IRolesRepository;
-import br.edu.fatecpg.usafa.repository.IUserRepository;
 import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
 
 import java.time.LocalDate;

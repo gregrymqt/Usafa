@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory; // 2. Importar LoggerFactory
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 // (Ajuste esses imports para seus models e repositórios corretos)
-import br.edu.fatecpg.usafa.models.User; 
-import br.edu.fatecpg.usafa.repository.IUserRepository;
+import br.edu.fatecpg.usafa.models.User;
 
 import java.util.Optional;
 import java.util.UUID; // 3. Importar UUID
