@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { type ConsultaFormOptions, type ConsultaRequest } from '../../types/consulta.types';
 import styles from './ConsultaForm.module.scss';
-import type { FormField } from '../../../../components/Form/AuthForm';
 import AuthForm from '../../../../components/Form/AuthForm';
+import type { FormField } from '../../../../components/Form/types/form.type';
 
 interface ConsultaFormProps {
   options: ConsultaFormOptions;

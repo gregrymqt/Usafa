@@ -40,7 +40,6 @@ public interface IConsultaMapper {
     @Mapping(source = "horario", target = "horario", qualifiedByName = "localTimeToString")
     @Mapping(source = "status", target = "status", qualifiedByName = "statusToString")
     ConsultaDTO toDTO(Consulta consulta);
-    List<ConsultaDTO> toDTOList(List<Consulta> consultas);
 
     // === DTO para o Modal de Sucesso ===
 

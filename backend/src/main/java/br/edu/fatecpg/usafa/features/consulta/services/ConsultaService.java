@@ -70,7 +70,9 @@ public class ConsultaService implements IConsultaService {
             // 2. Se não achar, busca no DB
             log.info("Cache MISS para consultas do usuário: {}", user.getPublicId());
             List<Consulta> consultas = consultaRepository.findByUserOrderByDiaDesc(user);
-            List<ConsultaDTO> dtos = mapper.toDTOList(consultas);
+            List<ConsultaDTO> dtos = consultas.stream()
+                    .map(mapper::toDTO) // ou .map(consulta -> mapper.toDTO(consulta))
+                    .collect(Collectors.toList());
 
             // 3. Salva no cache (expira em 5 minutos)
             cacheService.saveWithTtl(cacheKey, dtos, 5, TimeUnit.MINUTES);

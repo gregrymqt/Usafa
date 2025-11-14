@@ -1,10 +1,13 @@
 import React from 'react';
 
 import './styles.scss'; // Importa o SASS da página
-import type { Modal } from '../../components/Modal';
+import { Modal } from '../../components/Modal';
 import { ConsultaForm } from './components/form/formConsulta';
+import { ConsultaSummarys } from './components/modal/ConsultaSummary.tsx'; // <-- 1. Importa o COMPONENTE
 import { ConsultaList } from './components/table/listConsulta';
 import { useConsulta } from './hooks/useConsulta';
+
+
 
 
  const ConsultaPage: React.FC = () => {
@@ -52,7 +55,7 @@ import { useConsulta } from './hooks/useConsulta';
       >
         {/* Renderiza o conteúdo do resumo APENAS se houver dados */}
         {submittedRequest && (
-          <ConsultaSummary
+          <ConsultaSummarys
             summary={submittedRequest}
           />
         )}

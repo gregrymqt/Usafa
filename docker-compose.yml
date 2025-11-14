@@ -1,3 +1,4 @@
+
 services:
   # 1. Aplicativo Spring Boot
   backend:
@@ -5,47 +6,41 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    # --- CORREÇÃO PRINCIPAL ---
-    # 1. O 'env_file' injeta TODAS as variáveis do .env (DB_USER, JWT_SECRET_KEY, etc.)
-    env_file: .env
-    # 2. O bloco 'environment' foi REMOVIDO daqui.
-    #    Ele era redundante, pois seu 'application.properties'
-    #    já lê as variáveis (DB_USER, REDIS_HOST, etc.) que o 'env_file' injetou.
-    # --- FIM DA CORREÇÃO ---
+    env_file: .env # Correto, injeta todas as variáveis [cite: 1]
     depends_on:
       - db
       - cache
       - mq
+      - mongo # <-- ADICIONADO
+    networks: # <-- ADICIONADO
+      - usafa-network
 
   # 2. Aplicação Frontend
   frontend:
     build: ./frontend
     restart: always
     ports:
-      - "3000:80" # Assumindo que seu frontend roda na porta 80 do container
-    # --- ADICIONADO ---
-    # Adicionamos isso para que o frontend possa ler
-    # variáveis como 'VITE_API_URL' do .env
-    env_file: .env
-    # --- FIM DA ADIÇÃO ---
+      - "3000:80"
+    env_file: .env 
     depends_on:
       - backend
+    networks: # <-- ADICIONADO
+      - usafa-network
 
   # 3. Banco de Dados PostgreSQL
   db:
     image: postgres:17
     restart: always
-    # Este bloco 'environment' ESTÁ CORRETO.
-    # A imagem do Postgres precisa que essas variáveis
-    # (POSTGRES_DB, etc.) sejam definidas para ele.
-    environment:
+  environment: 
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      ports:
+        - "5432:5432"
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+      networks: # <-- ADICIONADO
+        - usafa-network
 
   # 4. Cache Redis
   cache:
@@ -53,6 +48,8 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    networks: # <-- ADICIONADO
+      - usafa-network
 
   # 5. Fila RabbitMQ
   mq:
@@ -60,7 +57,32 @@ services:
     restart: always
     ports:
       - "5672:5672"
-      - "15672:15672"
+      - "15672:15672" 
+    networks: # <-- ADICIONADO
+      - usafa-network
 
+  # 6. Banco de Dados MongoDB (NOVO)
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER} # Use variáveis do seu .env
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD} # Use variáveis do seu .env
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME} # Use variáveis do seu .env
+    volumes:
+      - mongo-data:/data/db
+    networks: # <-- ADICIONADO
+      - usafa-network
+
+# Bloco de Volumes (Atualizado)
 volumes:
   pgdata:
+  mongo-data: # <-- ADICIONADO
+
+# Bloco de Redes (Novo)
+networks:
+  usafa-network:
+    driver: bridge
