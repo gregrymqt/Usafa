@@ -2,26 +2,11 @@ import React, { useState, useMemo } from 'react';
 // Importando o AuthForm
 
 import styles from './AppointmentForm.module.scss';
-import AuthForm from '../../../../components/Form/AuthForm';
-import type { FormField } from '../../../../components/Form/types/form.type';
-import type { AppointmentFormData } from '../types/appointment.type';
+import AuthForm from '../../../../../components/Form/AuthForm';
+import type { FormField } from '../../../../../components/Form/types/form.type';
+import type { AppointmentFormProps } from './types/Appointment.types';
 
-// Opções que o formulário precisará (virão dos hooks no futuro)
-export interface FormSelectOption {
-  value: string | number;
-  label: string;
-}
-
-interface AppointmentFormProps {
-  onSubmit: (data: AppointmentFormData) => Promise<void>;
-  onCancel: () => void;
-  initialData?: AppointmentFormData | null;
-  isLoading: boolean;
-  // O formulário precisará das listas de médicos e pacientes
-  // que serão carregadas pelo componente pai (AdminDashboard)
-  doctorOptions: FormSelectOption[];
-  patientOptions: FormSelectOption[];
-}
+type StatusType = 'Agendada' | 'Concluída' | 'Cancelada';
 
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
@@ -36,9 +21,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [doctorId, setDoctorId] = useState(initialData?.doctorId || '');
   const [date, setDate] = useState(initialData?.date || ''); // ex: "2023-10-25"
   const [time, setTime] = useState(initialData?.time || ''); // ex: "14:30"
-  const [status, setStatus] = useState(
-    initialData?.status || 'Agendada'
-  );
+  const [status, setStatus] = useState<StatusType>(initialData?.status || 'Agendada');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -84,6 +67,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         name: 'date',
         label: 'Data da Consulta',
         value: date,
+        placeholder: '',
         onChange: (val) => setDate(val as string),
         required: true,
       },
@@ -93,6 +77,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         name: 'time',
         label: 'Hora da Consulta',
         value: time,
+        placeholder: '',
         onChange: (val) => setTime(val as string),
         required: true,
       },
@@ -101,7 +86,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         name: 'status',
         label: 'Status',
         value: status,
-        onChange: (val) => setStatus(val as string),
+        onChange: (val) => setStatus(val as StatusType),
         options: [
           { value: 'Agendada', label: 'Agendada' },
           { value: 'Concluída', label: 'Concluída' },

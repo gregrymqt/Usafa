@@ -1,0 +1,59 @@
+// Mobile-first
+.actionMenu {
+  position: relative;
+  display: inline-block;
+  z-index: 5; // Garante que o menu fique acima do conteúdo da tabela
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 110%; // Desce um pouco abaixo do botão
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 160px;
+  z-index: 10;
+  overflow: hidden;
+  padding: 8px 0;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333; // Cor padrão do texto
+
+  &:hover {
+    background-color: #f9f9f9;
+  }
+
+  &.delete {
+    color: #e74c3c; // Vermelho para ação destrutiva
+
+    &:hover {
+      background-color: #fbeeee;
+    }
+  }
+}

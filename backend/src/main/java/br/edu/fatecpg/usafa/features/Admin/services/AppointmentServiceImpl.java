@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.IAdminAppointmentService;
 import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentHelper;
 import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AppointmentServiceImpl implements IAppointmentService {
+public class AppointmentServiceImpl implements IAdminAppointmentService {
 
     // Dependências principais
     private final IConsultaRepository consultaRepository;

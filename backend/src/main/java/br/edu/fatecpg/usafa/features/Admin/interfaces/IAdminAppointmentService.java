@@ -8,7 +8,7 @@ import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseD
  * Interface (Contrato) para o serviço de Consultas/Agendamentos.
  * Define O QUE pode ser feito, mas não COMO é feito.
  */
-public interface IAppointmentService {
+public interface IAdminAppointmentService {
 
     List<AppointmentResponseDto> getAllAppointments();
 

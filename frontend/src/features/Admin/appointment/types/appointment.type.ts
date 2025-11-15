@@ -45,3 +45,22 @@ export type NewAppointmentData = Omit<AppointmentFormData, 'date' | 'time'> & {
  * Tipo para atualização de uma Consulta (parcial)
  */
 export type UpdateAppointmentData = Partial<NewAppointmentData>;
+
+
+export interface FormSelectOption {
+  value: string | number;
+  label: string;
+}
+
+export interface AppointmentAdminProps {
+  appointments: Appointment[]; // Virá do hook (pai)
+  isLoading: boolean;
+  error: string | null;
+  onEditAppointment: (appointment: Appointment) => void;
+  onDeleteAppointment: (id : string) => void;
+}
+
+export interface ActionMenuProps {
+  onEdit: () => void;
+  onDelete: () => void;
+}

@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.consulta.mappers;
+package br.edu.fatecpg.usafa.features.consulta.utils;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -51,6 +51,7 @@ public interface IConsultaMapper {
     @Mapping(source = "user.name", target = "paciente")
     @Mapping(source = "sintomas", target = "sintomas")
     ConsultaSummaryDTO toSummaryDTO(Consulta consulta);
+    List<ConsultaSummaryDTO> toSummaryDTOs(List<Consulta> consultas);
 
     // === DTOs para Opções do Formulário ===
 

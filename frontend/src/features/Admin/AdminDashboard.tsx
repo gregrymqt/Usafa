@@ -9,7 +9,7 @@ import { AppointmentAdmin } from './appointment/AppointmentAdmin';
 import {
   AppointmentForm,
   type FormSelectOption,
-} from './appointment/components/AppointmentForm';
+} from './appointment/components/AppointmentForm/AppointmentForm';
 import {
   useAppointments,
   splitDateTime, // Helper para editar

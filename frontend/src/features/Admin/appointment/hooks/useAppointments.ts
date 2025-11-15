@@ -1,8 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { showErrorToast, showSuccessToast } from '../../utils/adminUtils';
-import type { Appointment, AppointmentFormData, NewAppointmentData, UpdateAppointmentData } from '../types/appointment.type';
-import * as appointmentService from '../services/appointment.service';
-
+import { useState, useCallback, useEffect } from "react";
+import  { showErrorToast, showSuccessToast } from "../../utils/adminUtils";
+import type { Appointment, AppointmentFormData, NewAppointmentData, UpdateAppointmentData } from "../types/appointment.type";
+import * as appointmentService from "../services/appointment.service";
 
 /**
  * Combina data (YYYY-MM-DD) e hora (HH:MM) em um ISO string.
@@ -40,6 +39,7 @@ export const splitDateTime = (isoString: string): { date: string; time: string }
     });
     return { date, time };
   } catch (e) {
+    console.error('ISO string inválido:', e);
     return { date: '', time: '' };
   }
 }
@@ -60,9 +60,11 @@ export const useAppointments = () => {
     try {
       const data = await appointmentService.getAppointments();
       setAppointments(data);
-    } catch (err: any) {
+    } catch (err) {
+      if(err instanceof Error){
       setError(err.message);
       showErrorToast('Não foi possível carregar as consultas.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -88,9 +90,11 @@ export const useAppointments = () => {
       );
       setAppointments((prev) => [newAppointment, ...prev]);
       showSuccessToast('Consulta agendada com sucesso!');
-    } catch (err: any) {
+    } catch (err) {
+      if(err instanceof Error){
       setError(err.message);
       showErrorToast(`Falha ao agendar consulta: ${err.message}`);
+      }
       throw err; // Propaga o erro para o formulário
     } finally {
       setIsLoading(false);
@@ -106,9 +110,11 @@ export const useAppointments = () => {
       await appointmentService.deleteAppointment(id);
       setAppointments((prev) => prev.filter((a) => a.id !== id));
       showSuccessToast('Consulta deletada com sucesso.');
-    } catch (err: any) {
+    } catch (err) {
+      if(err instanceof Error){
       setError(err.message);
       showErrorToast(`Falha ao deletar consulta: ${err.message}`);
+      }
     }
   };
 
@@ -138,9 +144,11 @@ export const useAppointments = () => {
         prev.map((a) => (a.id === id ? updatedAppointment : a))
       );
       showSuccessToast('Consulta atualizada com sucesso!');
-    } catch (err: any) {
+    } catch (err) {
+      if(err instanceof Error){
       setError(err.message);
       showErrorToast(`Falha ao atualizar consulta: ${err.message}`);
+      }
       throw err; // Propaga o erro
     } finally {
       setIsLoading(false);

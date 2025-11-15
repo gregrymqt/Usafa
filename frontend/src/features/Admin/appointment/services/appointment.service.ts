@@ -42,3 +42,4 @@ export const updateAppointment = async (
 export const deleteAppointment = async (id: number | string): Promise<void> => {
   await api.delete(`${APPOINTMENTS_ENDPOINT}/${id}`);
 };
+

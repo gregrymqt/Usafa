@@ -17,7 +17,6 @@ import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaMessageDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 import br.edu.fatecpg.usafa.models.User;
 

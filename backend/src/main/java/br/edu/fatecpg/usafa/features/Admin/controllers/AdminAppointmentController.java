@@ -1,64 +1,74 @@
 package br.edu.fatecpg.usafa.features.Admin.controllers;
 
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.IAdminAppointmentService;
 
 import java.util.List;
 
+/**
+ * (Admin) Controller para o CRUD síncrono de Agendamentos (Appointments) no SQL.
+ * Gerencia agendamentos que o admin cria ou modifica diretamente.
+ */
 @RestController
-@RequestMapping("/admin/appointments") // Endpoint base 
+@RequestMapping("/admin/appointments") // Endpoint base [cite: 57]
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminAppointmentController {
 
-    private final IAppointmentService appointmentService;
+    private final IAdminAppointmentService adminAppointmentService;
 
     /**
-     * Busca todas as consultas.
-     * Mapeia: getAppointments() [cite: 16]
+     * GET /admin/appointments
+     * Busca todos os agendamentos. [cite: 58-59]
      */
     @GetMapping
     public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
-        List<AppointmentResponseDto> appointments = appointmentService.getAllAppointments();
+        List<AppointmentResponseDto> appointments = adminAppointmentService.getAllAppointments();
         return ResponseEntity.ok(appointments);
     }
 
     /**
-     * Cria uma nova consulta.
-     * Mapeia: createAppointment() [cite: 17]
+     * POST /admin/appointments
+     * Cria um novo agendamento. [cite: 60]
      */
     @PostMapping
-    public ResponseEntity<AppointmentResponseDto> createAppointment(@Valid @RequestBody AppointmentRequestDto appointmentDto) {
-        AppointmentResponseDto newAppointment = appointmentService.createAppointment(appointmentDto);
+    public ResponseEntity<AppointmentResponseDto> createAppointment(
+            @Valid @RequestBody AppointmentRequestDto appointmentData
+    ) {
+        AppointmentResponseDto newAppointment = adminAppointmentService.createAppointment(appointmentData);
         return ResponseEntity.status(HttpStatus.CREATED).body(newAppointment);
     }
 
     /**
-     * Atualiza uma consulta existente.
-     * Mapeia: updateAppointment() [cite: 18]
+     * PUT /admin/appointments/{id}
+     * Atualiza um agendamento existente. [cite: 61]
      */
     @PutMapping("/{id}")
     public ResponseEntity<AppointmentResponseDto> updateAppointment(
-            @PathVariable String id,
-            @Valid @RequestBody AppointmentRequestDto appointmentDto) {
-        AppointmentResponseDto updatedAppointment = appointmentService.updateAppointment(id, appointmentDto);
+            @PathVariable String id, // Usando String/UUID para o publicId
+            @Valid @RequestBody AppointmentRequestDto appointmentData
+    ) {
+        AppointmentResponseDto updatedAppointment = adminAppointmentService.updateAppointment(id, appointmentData);
         return ResponseEntity.ok(updatedAppointment);
     }
 
     /**
-     * Deleta uma consulta.
-     * Mapeia: deleteAppointment() [cite: 19]
+     * DELETE /admin/appointments/{id}
+     * Deleta um agendamento. [cite: 62]
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAppointment(@PathVariable String id) {
-        appointmentService.deleteAppointment(id);
+        adminAppointmentService.deleteAppointment(id);
         return ResponseEntity.noContent().build();
     }
 }

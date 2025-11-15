@@ -6,7 +6,7 @@ import br.edu.fatecpg.usafa.features.location.interfaces.ILocationService;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationCreateDTO;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationDTO;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationUpdateDTO;
-import br.edu.fatecpg.usafa.features.location.mappers.LocationMapper;
+import br.edu.fatecpg.usafa.features.location.mappers.ILocationMapper;
 import br.edu.fatecpg.usafa.features.location.repositories.ILocationRepository;
 import br.edu.fatecpg.usafa.models.Usafa;
 import br.edu.fatecpg.usafa.models.User;
@@ -32,7 +32,7 @@ public class LocationService implements ILocationService {
     private final ILocationRepository locationRepository;
     private final IUserRepository userRepository; // (Assumido)
     private final ICacheService cacheService;
-    private final LocationMapper locationMapper; // (Assumindo um Mapper)
+    private final ILocationMapper locationMapper; // (Assumindo um Mapper)
 
     private static final String CACHE_KEY_PREFIX = "USAFA_USER_";
     private String getCacheKey(String publicId) {

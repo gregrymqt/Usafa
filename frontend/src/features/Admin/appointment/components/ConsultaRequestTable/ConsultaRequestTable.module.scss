@@ -1,0 +1,43 @@
+@import '../../../../styles/variables'; // Importe suas variáveis de cor
+
+// Estilo para os "badges" de status
+.statusBadge {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: white;
+
+  // Cores por status
+  &.statuspendente {
+    background-color: $color-warning; // ex: #f39c12
+  }
+  &.statusaceita {
+    background-color: $color-success; // ex: #2ecc71
+  }
+  &.statusrecusada {
+    background-color: $color-danger; // ex: #e74c3c
+  }
+}
+
+// Estilos mobile-first (usando os data-labels do Table.tsx) [cite: 7]
+// (Assumindo que Table.scss já tem a lógica de esconder a <thead>
+// e mostrar os data-labels em telas pequenas)
+@media (max-width: 768px) {
+  .tableWrapper {
+    // A Tabela genérica [cite: 6] já deve ser responsiva
+    // mas podemos garantir que o menu de ações fique visível
+    td[data-label='Ações'] {
+      text-align: right; // Alinha o menu de 3 pontinhos
+    }
+  }
+}
+
+.loading,
+.empty {
+  padding: 20px;
+  text-align: center;
+  font-style: italic;
+  color: #777;
+}

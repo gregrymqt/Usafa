@@ -1,12 +1,14 @@
 // (Caminho: ../hooks/useConsulta.ts)
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   type Consulta,
   type ConsultaFormOptions,
   type ConsultaRequest,
+  type ConsultaSummary,
 } from '../types/consulta.types';
 import { getConsultas, getFormOptions, requestConsulta } from '../services/consulta.service';
+import { connectWebSocket, disconnectWebSocket } from '../../../shared/services/websocket.service'; // Ajuste o caminho
 
 export const useConsulta = (userId: string) => {
   // Estado Parte 1 e 2 (Sem mudanças)
@@ -20,6 +22,8 @@ export const useConsulta = (userId: string) => {
   
   const [error, setError] = useState<string | null>(null);
 
+  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
+  
   // useEffect (Sem mudanças)
   useEffect(() => {
     const loadData = async () => {
@@ -40,6 +44,19 @@ export const useConsulta = (userId: string) => {
       }
     };
     loadData();
+
+    // 2. Conecta ao WebSocket
+    // Passamos a função 'setConfirmedConsulta' como callback.
+    // Quando o WebSocket receber uma mensagem, ele vai chamar
+    // setConfirmedConsulta(summary)
+    connectWebSocket(userId, (summary) => {
+      setConfirmedConsulta(summary);
+    });
+
+    // 3. Desconecta ao sair do componente
+    return () => {
+      disconnectWebSocket();
+    };
   }, [userId]);
 
   // --- MUDANÇAS AQUI ---
@@ -70,6 +87,12 @@ export const useConsulta = (userId: string) => {
     }
   };
 
+  // Função para fechar o NOVO modal de confirmação
+  const closeConfirmationModal = useCallback(() => {
+    setConfirmedConsulta(null);
+    // (Opcional: Atualizar a tabela de consultas aqui)
+  }, []);
+
   return {
     // Para a Tabela
     consultas,
@@ -80,6 +103,9 @@ export const useConsulta = (userId: string) => {
     handleSubmitConsulta,
     //Modal
     showSuccessMessage,
+    confirmedConsulta,
+    closeConfirmationModal,
+    // Erro
     error
   };
 };

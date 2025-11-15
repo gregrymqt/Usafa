@@ -7,7 +7,7 @@ import { ConsultaSummarys } from './components/modal/ConsultaSummary.tsx'; // <-
 import { ConsultaList } from './components/table/listConsulta';
 import { useConsulta } from './hooks/useConsulta';
 
- const ConsultaPage: React.FC = () => {
+ const ConsultaPage: React.FC = () => { 
   // Assumindo que o ID do usuário vem de um contexto de Autenticação
   const {
     consultas,
@@ -15,10 +15,10 @@ import { useConsulta } from './hooks/useConsulta';
     formOptions,
     isSubmitting,
     handleSubmitConsulta,
-    submittedRequest,
-    showSuccessMessage,
-    closeSummaryModal,
-    error // <-- Para mostrar erros
+    showSuccessMessage, // Mensagem rápida (ex: "Processando...")
+    confirmedConsulta,    // O DTO que vem do WebSocket
+    closeConfirmationModal, // Ação para fechar o modal
+    error
   } = useConsulta("user-123-fake-id"); // (ID do usuário mocado)
 
   return (
@@ -44,24 +44,24 @@ import { useConsulta } from './hooks/useConsulta';
         </div>
       )}
 
-      {/* Parte 3: Modal de Sucesso */}
+      {/* --- MODAL ATUALIZADO --- */}
+      {/* Agora é acionado pelo 'confirmedConsulta' que vem do WebSocket */}
       <Modal
-        isOpen={!!submittedRequest}
-        onClose={closeSummaryModal}
-        title="Solicitação Recebida!"
+       isOpen={!!confirmedConsulta}
+       onClose={closeConfirmationModal}
+        title="Consulta Confirmada!" // Título atualizado
       >
-        {/* Renderiza o conteúdo do resumo APENAS se houver dados */}
-        {submittedRequest && (
+        {confirmedConsulta && (
           <ConsultaSummarys
-            summary={submittedRequest}
+           summary={confirmedConsulta} 
           />
         )}
       </Modal>
       
-      {/* Parte 3b: Mensagem "Iremos entrar em contato..." */}
+      {/* Mensagem rápida de "Solicitação enviada" */}
       {showSuccessMessage && (
         <div className="success-toast" role="alert">
-          Iremos entrar em contato para falar sobre a consulta.
+          Solicitação recebida! Estamos processando... [cite: 20]
         </div>
       )}
 
@@ -74,5 +74,4 @@ import { useConsulta } from './hooks/useConsulta';
     </div>
   );
 };
-
 export default ConsultaPage;

@@ -39,31 +39,34 @@ export const ConsultaSummarys: React.FC<ConsultaSummaryProps> = ({ summary }) =>
   /**
    * Chama o utilitário de compartilhamento genérico
    */
-  const handleShare = () => {
-    // 1. Prepara os dados específicos da consulta
+  const handleShare = () => { 
     const shareData: ShareData = {
-      title: 'Requisição de Consulta',
-      text: `Minha requisição de consulta (Protocolo: ${summary.protocolo}) com ${summary.medico}.`,
+      title: 'Confirmação de Consulta', // <- Texto atualizado
+      text: `Minha consulta (Protocolo: ${summary.protocolo}) com ${summary.medico} foi confirmada.`, // <- Texto atualizado
     };
-    
-    // 2. Chama a função genérica
-    shareContent(shareData);
+    shareContent(shareData); 
   };
 
   return (
         <>
-          <p className={styles.protocol}>Protocolo: <strong>{summary.protocolo}</strong></p>
+          {/* Título Atualizado */}
+          <h2 className={styles.title}>Consulta Confirmada!</h2>
+          <p className={styles.subtitle}>
+            Sua solicitação foi processada com sucesso.
+          </p>
           
-          <div className={styles.summaryDetails}>
+          <p className={styles.protocol}>Protocolo: <strong>{summary.protocolo}</strong></p> 
+          
+          <div className={styles.summaryDetails}> 
             <p><strong>Médico:</strong> {summary.medico}</p>
             <p><strong>Tipo:</strong> {summary.tipo}</p>
             <p><strong>Data:</strong> {summary.dia} às {summary.horario}</p>
             {summary.sintomas && <p><strong>Sintomas:</strong> {summary.sintomas}</p>}
           </div>
 
-          <div className={styles.actions}>
+          <div className={styles.actions}> 
             <button onClick={handleDownload} className={styles.actionButton}>
-              Baixar Requisição
+              Baixar Confirmação
             </button>
             <button onClick={handleShare} className={styles.actionButton}>
               Compartilhar

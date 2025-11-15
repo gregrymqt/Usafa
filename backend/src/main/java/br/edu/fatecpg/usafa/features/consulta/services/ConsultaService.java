@@ -1,12 +1,8 @@
 package br.edu.fatecpg.usafa.features.consulta.services;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -22,8 +18,9 @@ import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
-import br.edu.fatecpg.usafa.features.consulta.mappers.IConsultaMapper;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
+import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaHelper;
+import br.edu.fatecpg.usafa.features.consulta.utils.IConsultaMapper;
 import br.edu.fatecpg.usafa.models.Consulta;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
@@ -43,16 +40,14 @@ public class ConsultaService implements IConsultaService {
     private final ITipoConsultaRepository tipoConsultaRepository;
     private final IConsultaMapper mapper;
     private final ICacheService cacheService;
+    private final ConsultaHelper helper;
 
-    private String getConsultasCacheKey(String userPublicId) {
-        return "CONSULTAS_USER_" + userPublicId;
-    }
     private static final String FORM_OPTIONS_CACHE_KEY = "CONSULTA_FORM_OPTIONS";
 
     @Override
     @Transactional(readOnly = true)
     public List<ConsultaDTO> findConsultasByUser(User user) {
-        final String cacheKey = getConsultasCacheKey(user.getPublicId().toString());
+        final String cacheKey = helper.getConsultasCacheKey(user.getPublicId().toString());
 
         try {
             // A anotação SuppressWarnings é usada para o cast de List para List<ConsultaDTO>
@@ -105,8 +100,8 @@ public class ConsultaService implements IConsultaService {
             List<TipoConsulta> tipos = tipoConsultaRepository.findAll();
 
             // 3. Lógica de Negócio para gerar dias e horários (como no LogErro)
-            List<FormSelectOptionDTO> dias = gerarProximosDias();
-            List<FormSelectOptionDTO> horarios = gerarHorarios();
+            List<FormSelectOptionDTO> dias = helper.gerarProximosDias(); 
+            List<FormSelectOptionDTO> horarios = helper.gerarHorarios(); 
 
             // 4. Mapeia e constrói o DTO
             ConsultaFormOptionsDTO options = ConsultaFormOptionsDTO.builder()
@@ -158,7 +153,7 @@ public class ConsultaService implements IConsultaService {
             Consulta savedConsulta = consultaRepository.save(consulta);
 
             // 5. Invalida o cache do histórico do usuário
-            cacheService.delete(getConsultasCacheKey(user.getPublicId().toString()));
+            cacheService.delete(helper.getConsultasCacheKey(user.getPublicId().toString())); 
             log.info("Cache de consultas invalidado para o usuário: {}", user.getPublicId());
 
             // 6. Retorna o DTO de Sucesso
@@ -171,36 +166,5 @@ public class ConsultaService implements IConsultaService {
             log.error("Erro de banco ao criar consulta para o usuário: {}", user.getPublicId(), e);
             throw new DatabaseOperationException("Erro ao salvar sua solicitação de consulta.", e);
         }
-    }
-
-
-    // --- Métodos de Negócio (Helpers) ---
-
-    // (Pode ser movido para um 'AvailabilityService' no futuro)
-
-    private List<FormSelectOptionDTO> gerarProximosDias() {
-        // Gera os próximos 7 dias úteis
-        return Stream.iterate(LocalDate.now(), d -> d.plusDays(1))
-                .filter(d -> !d.getDayOfWeek().equals(java.time.DayOfWeek.SATURDAY) &&
-                             !d.getDayOfWeek().equals(java.time.DayOfWeek.SUNDAY))
-                .limit(7)
-                .map(d -> new FormSelectOptionDTO(
-                        d.format(IConsultaMapper.DATE_FORMATTER),
-                        d.format(DateTimeFormatter.ofPattern("dd/MM (EEEE)", IConsultaMapper.LOCALE_BR))
-                ))
-                .collect(Collectors.toList());
-    }
-
-    private List<FormSelectOptionDTO> gerarHorarios() {
-        // Gera horários (ex: 09:00, 10:00, ... 16:00)
-        return Arrays.asList(
-                new FormSelectOptionDTO("09:00", "09:00"),
-                new FormSelectOptionDTO("10:00", "10:00"),
-                new FormSelectOptionDTO("11:00", "11:00"),
-                new FormSelectOptionDTO("13:00", "13:00 (Tarde)"),
-                new FormSelectOptionDTO("14:00", "14:00"),
-                new FormSelectOptionDTO("15:00", "15:00"),
-                new FormSelectOptionDTO("16:00", "16:00")
-        );
     }
 }

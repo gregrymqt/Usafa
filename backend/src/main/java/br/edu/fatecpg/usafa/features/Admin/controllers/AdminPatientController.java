@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientRequestDto;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequestMapping("/admin/patients") // Endpoint base 
 @RequiredArgsConstructor // Para injeção de dependência do service
 @CrossOrigin(origins = "*") // Permite requisições do seu front-end
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminPatientController {
 
     private final IPatientService patientService;

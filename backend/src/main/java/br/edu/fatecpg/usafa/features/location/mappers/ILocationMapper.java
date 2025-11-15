@@ -16,7 +16,7 @@ import org.mapstruct.ReportingPolicy;
  * campos que não estão sendo mapeados (como 'user' no DTO).
  */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface LocationMapper {
+public interface ILocationMapper {
 
     /**
      * Converte a entidade Usafa para o LocationDTO (para enviar ao frontend).

@@ -1,4 +1,4 @@
-import type { FormSelectOption } from "../../Admin/appointment/components/AppointmentForm";
+import type { FormSelectOption } from "../../Admin/appointment/components/AppointmentForm/AppointmentForm";
 
 /**
  * Representa uma consulta existente (para a Tabela)
