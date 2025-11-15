@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -119,6 +120,6 @@ public interface IConsultaMapper {
         }
         // Formato ISO "1990-10-25T00:00:00Z"
         // Adiciona uma hora padrão para o formato ISO completo, se a data for apenas LocalDate
-        return date.atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z";
+        return LocalDateTime.of(date, LocalTime.MIDNIGHT).format(DateTimeFormatter.ISO_DATE_TIME) + "Z";
     }
 }

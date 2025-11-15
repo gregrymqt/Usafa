@@ -3,10 +3,10 @@
 // 1. Importa o wrapper 'api' global
 // (Estou assumindo que seu 'api.ts' global está em 'lib/api.ts' ou 'services/api.ts')
 // Ajuste o caminho se necessário.
-import { api } from '../../../shared/services/api'; // Ou '../lib/api'
+import { api } from '../../../shared/services/api.service'; // Ou '../lib/api'
 
 // 2. Importa o tipo de dado que esperamos
-import { type UserData } from '../types';
+import { type UserData } from '../types/profile.type';
 
 /**
  * Busca os dados do usuário autenticado na API.

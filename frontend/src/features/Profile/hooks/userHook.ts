@@ -1,9 +1,9 @@
 // hooks/useUserProfileData.ts (Modificado)
 
 import { useState, useEffect, useCallback } from 'react';
-import { type UserData } from '../types/index';
+import { type UserData } from '../types/profile.type';
 // Importe as duas funções da sua API
-import { getAuthenticatedUserData, updateUserData } from '../services/api'; 
+import { getAuthenticatedUserData, updateUserData } from '../services/profile.type'; 
 
 // O DTO que o backend espera (name, cep, picture)
 // É uma boa prática ter esse tipo no seu 'types/index.ts'

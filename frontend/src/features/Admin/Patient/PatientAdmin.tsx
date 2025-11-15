@@ -1,80 +1,8 @@
-import React, { useState, useEffect } from 'react';
-
 import styles from './PatientAdmin.module.scss';
 import { showDeleteConfirm } from '../utils/adminUtils';
-import type { Patient } from './types/patient.types';
-
-// --- Ícones (copiados do DoctorAdmin para consistência) ---
-const ActionsIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className={styles.actionIcon}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
-    />
-  </svg>
-);
-
-interface ActionMenuProps {
-  onEdit: () => void;
-  onDelete: () => void;
-}
-
-const ActionMenu: React.FC<ActionMenuProps> = ({ onEdit, onDelete }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const handleClickOutside = () => setIsOpen(false);
-    if (isOpen) {
-      document.addEventListener('click', handleClickOutside);
-    }
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [isOpen]);
-
-  return (
-    <div className={styles.actionMenu}>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen(!isOpen);
-        }}
-        className={styles.actionButton}
-      >
-        <ActionsIcon />
-      </button>
-      {isOpen && (
-        <div className={styles.actionDropdown}>
-          <button onClick={onEdit} className={styles.dropdownItem}>
-            Atualizar
-          </button>
-          <button
-            onClick={onDelete}
-            className={`${styles.dropdownItem} ${styles.deleteItem}`}
-          >
-            Deletar
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// --- Componente da Aba de Pacientes ---
-
-interface PatientAdminProps {
-  patients: Patient[]; // Virá do hook (pai)
-  isLoading: boolean;
-  error: string | null;
-  onEditPatient: (patient: Patient) => void;
-  onDeletePatient: (patient: Patient) => void;
-}
+import type { Patient, PatientAdminProps } from './types/patient.types';
+import { ActionMenu } from '../../../components/ActionMenu/ActionMenu';
+// 1. ADICIONADO O IMPORT GENÉRICO
 
 export const PatientAdmin: React.FC<PatientAdminProps> = ({
   patients,
@@ -110,11 +38,13 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
                 <h3>{patient.name}</h3>
                 <p>CPF: {patient.cpf || 'Não informado'}</p>
               </div>
+              {/* 3. PROP RENOMEADA (onEdit -> onUpdate) */}
               <ActionMenu
-                onEdit={() => onEditPatient(patient)}
+                onUpdate={() => onEditPatient(patient)}
                 onDelete={() => handleDeleteClick(patient)}
               />
             </div>
+            
             <div className={styles.cardBody}>
               <p>
                 <strong>Email:</strong> {patient.email}

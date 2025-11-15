@@ -61,7 +61,7 @@ import { useConsulta } from './hooks/useConsulta';
       {/* Mensagem rápida de "Solicitação enviada" */}
       {showSuccessMessage && (
         <div className="success-toast" role="alert">
-          Solicitação recebida! Estamos processando... [cite: 20]
+          Solicitação recebida! Estamos processando... 
         </div>
       )}
 

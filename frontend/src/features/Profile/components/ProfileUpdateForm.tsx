@@ -1,7 +1,7 @@
 // components/Profile/ProfileUpdateForm.tsx (Novo)
 
 import React, { useState, useEffect } from 'react';
-import { type UserData } from '../types';
+import { type UserData } from '../types/profile.type';
 import AuthForm from '../../../components/Form/AuthForm';
 import { type UserProfileUpdateDTO } from '../hooks/userHook';
 import type { InputField } from '../../../components/Form/types/form.type';

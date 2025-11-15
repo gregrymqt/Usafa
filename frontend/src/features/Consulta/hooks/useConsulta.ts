@@ -1,5 +1,3 @@
-// (Caminho: ../hooks/useConsulta.ts)
-
 import { useState, useEffect, useCallback } from 'react';
 import {
   type Consulta,
@@ -8,104 +6,100 @@ import {
   type ConsultaSummary,
 } from '../types/consulta.types';
 import { getConsultas, getFormOptions, requestConsulta } from '../services/consulta.service';
-import { connectWebSocket, disconnectWebSocket } from '../../../shared/services/websocket.service'; // Ajuste o caminho
+// 1. IMPORTAÇÕES DO WEBSOCKET ATUALIZADAS
+import {
+  connectWebSocket,
+  subscribe,
+  unsubscribe,
+} from '../../../shared/services/websocket.service';
 
 export const useConsulta = (userId: string) => {
-  // Estado Parte 1 e 2 (Sem mudanças)
+  // --- Estados (Sem mudanças) ---
   const [consultas, setConsultas] = useState<Consulta[]>([]);
-  const [isLoadingConsultas, setIsLoadingConsultas] = useState(true);
+  const [isLoadingConsultas, setIsLoadingConsultas] = useState(true); 
   const [formOptions, setFormOptions] = useState<ConsultaFormOptions | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // MANTIDO: Esta será nossa única confirmação
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false); 
   const [error, setError] = useState<string | null>(null);
+  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null); 
 
-  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
-  
-  // useEffect (Sem mudanças)
+  // --- useEffect (Atualizado para o novo WebSocket) ---
   useEffect(() => {
+    // 1. Carrega dados da API (Sem mudanças)
     const loadData = async () => {
       try {
         setIsLoadingConsultas(true);
         const consultasData = await getConsultas(userId);
         setConsultas(consultasData);
-        
+
         const optionsData = await getFormOptions();
         setFormOptions(optionsData);
       } catch (err) {
-        if(err instanceof Error)
-           setError(err.message);
-        else
-           setError('Falha ao carregar dados da página.');
+        if (err instanceof Error) setError(err.message);
+        else setError('Falha ao carregar dados da página.');
       } finally {
         setIsLoadingConsultas(false);
       }
     };
     loadData();
 
-    // 2. Conecta ao WebSocket
-    // Passamos a função 'setConfirmedConsulta' como callback.
-    // Quando o WebSocket receber uma mensagem, ele vai chamar
-    // setConfirmedConsulta(summary)
-    connectWebSocket(userId, (summary) => {
-      setConfirmedConsulta(summary);
-    });
+    // --- LÓGICA DO WEBSOCKET ATUALIZADA ---
 
-    // 3. Desconecta ao sair do componente
+    // 2. Garante que o cliente WebSocket esteja ativo
+    connectWebSocket();
+
+    // 3. Define o tópico e o callback
+    const topic = `/user/${userId}/queue/consultas`;
+    const onConfirmationReceived = (summary: ConsultaSummary) => {
+      setConfirmedConsulta(summary);
+    };
+
+    // 4. Inscreve-se no tópico
+    subscribe<ConsultaSummary>(topic, onConfirmationReceived);
+
+    // 5. Limpa a inscrição (unsubscribe) ao sair do componente
     return () => {
-      disconnectWebSocket();
+      unsubscribe(topic);
+      // Não chamamos disconnectWebSocket() aqui,
+      // pois outros componentes podem estar usando.
     };
   }, [userId]);
 
-  // --- MUDANÇAS AQUI ---
-  // Função para o formulário chamar ao enviar
+  // --- Manipulador de Envio (Sem mudanças) ---
   const handleSubmitConsulta = async (request: ConsultaRequest) => {
     try {
       setIsSubmitting(true);
-      setError(null);
-      
-      // 1. Chama o serviço atualizado (que não retorna nada)
+      setError(null); 
+
       await requestConsulta(request);
-      
-      // 3. ATIVA a mensagem de sucesso IMEDIATAMENTE
-      setShowSuccessMessage(true);
-      
-      // 4. Esconde a mensagem após 5 segundos
+
+      setShowSuccessMessage(true); 
       setTimeout(() => {
         setShowSuccessMessage(false);
-      }, 5000);
-
-    } catch (err) {
-      if(err instanceof Error)
-           setError(err.message);
-      else
-           setError('Falha ao carregar dados da página.');
+      }, 5000); 
+    } catch (err) { 
+      if (err instanceof Error) setError(err.message);
+      else setError('Falha ao carregar dados da página.'); 
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); 
     }
   };
 
-  // Função para fechar o NOVO modal de confirmação
-  const closeConfirmationModal = useCallback(() => {
+  // --- Fechar Modal (Sem mudanças) ---
+  const closeConfirmationModal = useCallback(() => { 
     setConfirmedConsulta(null);
-    // (Opcional: Atualizar a tabela de consultas aqui)
   }, []);
 
-  return {
-    // Para a Tabela
+  // --- Retorno (Sem mudanças) ---
+  return { 
     consultas,
     isLoadingConsultas,
-    // Para o Formulário
     formOptions,
     isSubmitting,
     handleSubmitConsulta,
-    //Modal
     showSuccessMessage,
     confirmedConsulta,
     closeConfirmationModal,
-    // Erro
-    error
+    error,
   };
 };

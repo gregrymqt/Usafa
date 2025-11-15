@@ -9,7 +9,7 @@ import {
   setStorageItem,
   logout as apiLogout, // Renomeamos 'logout' para 'apiLogout' para evitar conflito
   USER_STORAGE_KEY     // A chave específica do usuário
-} from '../../../shared/services/api'; // (Ajuste o caminho se necessário)
+} from '../../../shared/services/api.service'; // (Ajuste o caminho se necessário)
 
 // 2. Importe o TIPO (a estrutura do objeto)
 import type { UserSession } from '../types/auth.types';

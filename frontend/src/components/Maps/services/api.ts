@@ -1,6 +1,6 @@
 // services/api.ts
 import { type GeoLocation } from '../types';
-import api from '../../../shared/services/api';
+import api from '../../../shared/services/api.service';
 
 // --- Tipos ---
 

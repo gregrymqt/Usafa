@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { SearchPics } from "../services/api";
+import { SearchPics } from "../services/home.service";
 import type { ServicePic } from "../types/home.type";
 
 export const useInfiniteScroll = () => {

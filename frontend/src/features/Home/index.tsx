@@ -3,8 +3,9 @@ import Carousel from "../../components/Carousel";
 import ServicesSection from "./components/ServicesSection";
 import AboutSection from "./components/AboutSection";
 import { useInfiniteScroll } from "./hooks/useInfiniteScroll";
-import { SearchPics, type ServicePic } from "./services/api";
 import styles from "./styles.module.scss";
+import { SearchPics } from "./services/home.service";
+import type { ServicePic } from "./types/home.type";
 
 const Home: React.FC = () => {
   // 1. Carrossel principal (primeira impressão)

@@ -30,3 +30,12 @@ export type PatientFormData = {
   phone: string;
   birthDate: string; // Formato YYYY-MM-DD
 };
+
+
+export interface PatientAdminProps {
+  patients: Patient[];
+  isLoading: boolean;
+  error: string | null;
+  onEditPatient: (patient: Patient) => void;
+  onDeletePatient: (patient: Patient) => void;
+}

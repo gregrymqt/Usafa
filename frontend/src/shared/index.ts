@@ -1,7 +1,7 @@
 export * from './utils/download.utils';
 export * from './utils/share.utils';
 export * from './exceptions/ApiError';
-export * from './services/api';
+export * from './services/api.service';
 
 export function get<T>(arg0: string) {
     throw new Error("Function not implemented.");

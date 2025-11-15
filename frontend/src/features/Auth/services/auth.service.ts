@@ -1,4 +1,4 @@
-import api from '../../../shared/services/api';
+import api from '../../../shared/services/api.service';
 import type { LoginCredentials, RegisterData, UpdateUserData, UserSession } from '../types/auth.types';
 
 /**

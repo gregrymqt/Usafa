@@ -3,11 +3,7 @@ import styles from './ConsultaList.module.scss'; // SCSS Módulo
 import Table from '../../../../components/Tables';
 import type { ColumnType } from '../../../../components/Tables/types';
 import type { Consulta } from '../../types/consulta.types';
-
-interface ConsultaListProps {
-  consultas: Consulta[];
-  isLoading: boolean;
-}
+import type { ConsultaListProps } from './types/ConsultaList.types';
 
 // Define as colunas para o seu componente de Tabela
 const colunas: ColumnType<Consulta>[] = [

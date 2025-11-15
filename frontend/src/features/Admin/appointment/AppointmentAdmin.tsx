@@ -5,8 +5,6 @@ import styles from './AppointmentAdmin.module.scss';
 import { ActionMenu } from '../../../components/ActionMenu/ActionMenu';
 import type { AppointmentAdminProps } from './types/appointment.type';
 
-// 2. O ÍCONE E O ACTIONMENU LOCAL FORAM REMOVIDOS DAQUI [c.f. 2-8]
-
 // --- Componente da Aba de Consultas ---
 
 export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({

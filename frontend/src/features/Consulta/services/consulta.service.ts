@@ -4,7 +4,7 @@ import {
   type ConsultaRequest,
  } from '../types/consulta.types.ts';
 // Importa o seu cliente 'api' global
-import api from '../../../shared/services/api.ts'; // (Ajuste o caminho se necessário)
+import api from '../../../shared/services/api.service.ts'; // (Ajuste o caminho se necessário)
 
 /**
  * Busca a lista de consultas existentes do usuário (para a Tabela)

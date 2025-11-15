@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import AuthForm from '../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../components/Form/types/form.type';
 import type { NewDoctorData, Doctor } from '../types/doctor.type';
-
+import styles from '../styles/DoctorForm.module.css';
 
 interface DoctorFormProps {
   onSubmit: (data: NewDoctorData) => Promise<void>;
@@ -75,7 +75,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         name: 'specialty',
         label: 'Especialidade',
         value: specialty,
-        onChange: (val) => setSpecialty(val as string | number),
+        onChange: (val) => setSpecialty(val as string),
         options: [
           { value: 'Clínico Geral', label: 'Clínico Geral' },
           { value: 'Cardiologia', label: 'Cardiologia' },

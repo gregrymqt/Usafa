@@ -18,3 +18,11 @@ export type NewDoctorData = Omit<Doctor, 'id'>;
  * Tipo para atualização de um Doutor (todos os campos são opcionais)
  */
 export type UpdateDoctorData = Partial<NewDoctorData>;
+
+export interface DoctorAdminProps {
+  doctors: Doctor[];
+  isLoading: boolean;
+  error: string | null;
+  onEditDoctor: (doctor: Doctor) => void;
+  onDeleteDoctor: (doctor: Doctor) => void;
+}
