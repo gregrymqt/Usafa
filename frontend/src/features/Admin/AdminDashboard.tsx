@@ -1,75 +1,53 @@
-import React, { useState } from 'react';
+import React from 'react';
+// 1. REMOVEMOS o useState e o styles daqui, pois o Layout vai cuidar disso.
+// import styles from './AdminDashboard.module.scss';
 
-import styles from './AdminDashboard.module.scss'; 
+// 2. IMPORTAR O LAYOUT GENÉRICO E SEUS TIPOS
+import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
+import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';
 
-// Importa as novas "Partial Views"
+// 3. IMPORTAR AS "PARTIAL VIEWS" (as páginas filhas do admin)
 import { _DoctorPartial } from './PartialViews/_Doctor';
 import { _PatientPartial } from './PartialViews/_Patient';
 import { _AppointmentPartial } from './PartialViews/_Appointment';
 
-// Definindo os tipos de abas
-type AdminTab = 'doctors' | 'patients' | 'appointments'; 
+// 4. IMPORTAR ÍCONES (substitua pelos seus)
+import { DoctorIcon, PatientIcon, AppointmentIcon } from './AdminIcons';
+
+// O "brandLogo" para esta sidebar específica
+const AdminLogo = () => (
+  <span style={{ fontWeight: 700 }}>Painel Admin</span>
+);
 
 const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<AdminTab>('doctors'); 
+  // 5. DEFINIR AS "ABAS" *ESPECÍFICAS* DO ADMIN
+  //    (Isto substitui seu <nav>  e useState [cite: 4])
+  const adminViews: ISidebarView[] = [
+    {
+      name: 'Médicos',
+      icon: <DoctorIcon />,
+      component: <_DoctorPartial />, // [cite: 2]
+    },
+    {
+      name: 'Pacientes',
+      icon: <PatientIcon />,
+      component: <_PatientPartial />, // [cite: 2]
+    },
+    {
+      name: 'Consultas',
+      icon: <AppointmentIcon />,
+      component: <_AppointmentPartial />, // [cite: 3]
+    },
+  ];
 
-  // --- Toda a lógica de hooks, modais e handlers foi movida ---
-
-  // --- Renderização ---
-  const renderActiveTabContent = () => { 
-    switch (activeTab) {
-      case 'doctors':
-        return <_DoctorPartial />; // Renderiza a parcial
-      case 'patients':
-        return <_PatientPartial />; // Renderiza a parcial
-      case 'appointments':
-        return <_AppointmentPartial />; // Renderiza a parcial
-      default: 
-        return null;
-    }
-  };
-
+  // 6. RENDERIZAR O LAYOUT GENÉRICO, PASSANDO AS ABAS DO ADMIN
   return (
-    <div className={styles.adminPage}> 
-      <header className={styles.adminHeader}>
-        {/* O título principal fica na index */}
-        <h1 className={styles.title}>Painel do Admin</h1>
-        {/* O botão "Adicionar" foi movido para as parciais */}
-      </header>
-
-      {/* Navegação por Abas (Tabs) */}
-      <nav className={styles.tabNav}> 
-        <button
-          className={`${styles.tabButton} ${
-            activeTab === 'doctors' ? styles.active : ''
-          }`}
-          onClick={() => setActiveTab('doctors')}
-        >
-          Médicos
-        </button>
-
-        <button
-          className={`${styles.tabButton} ${
-            activeTab === 'patients' ? styles.active : ''
-          }`}
-          onClick={() => setActiveTab('patients')}
-        >
-          Pacientes
-        </button>
-        <button
-          className={`${styles.tabButton} ${
-            activeTab === 'appointments' ? styles.active : ''
-          }`}
-          onClick={() => setActiveTab('appointments')}
-        >
-          Consultas
-        </button>
-      </nav>
-
-      {/* Conteúdo da Aba Ativa */}
-      <main>{renderActiveTabContent()}</main>
-
-      {/* --- Todos os Modais foram movidos para suas parciais --- */}
+    <div style={{ display: 'flex', width: '100%' }}>
+      {/* O AdminDashboard agora é SÓ o layout */}
+      <SidebarLayout 
+        views={adminViews}
+        brandLogo={<AdminLogo />} 
+      />
     </div>
   );
 };

@@ -14,7 +14,7 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 // --- Nossas Páginas ---
 import Layout from './components/Layout';
 import Home from './pages/Home.tsx';
-import Profile from './features/Profile/index.tsx';
+import Profile from './features/Profile/Profile.tsx';
 import AuthRoutes from './features/Auth/routes/authRoutes.tsx';
 import Consulta from './pages/Consulta.tsx';
 import AdminDashboard from './pages/AdminDashboard.tsx';
