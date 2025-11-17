@@ -6,27 +6,37 @@ import java.util.Set;
 
 @Data
 @Entity
-@Table(name = "medicos")
+@Table(name = "medicos", indexes = {
+    // Índices para colunas que serão muito usadas em 'WHERE'
+    @Index(name = "idx_medico_public_id", columnList = "publicId", unique = true),
+    @Index(name = "idx_medico_email", columnList = "email", unique = true),
+    @Index(name = "idx_medico_crm", columnList = "crm", unique = true)
+})
 public class Medico {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String publicId;
+
+    @Column(unique = true, nullable = false, updatable = false)
+    private String publicId; // 
+
     private String nome;
 
     @Column(unique = true, nullable = false)
-    private String email; // <-- ADICIONAR
+    private String email; // 
 
     @Column(unique = true, nullable = false)
-    private String crm; // <-- ADICIONAR
+    private String crm; // 
 
-    // --- RELACIONAMENTO ADICIONADO ---
-    // Esta é a "especialidade" do médico.
-    // Múltiplos médicos podem ter o mesmo TipoConsulta (especialidade).
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_consulta_id", nullable = false)
-    private TipoConsulta tipoConsulta;
+    private TipoConsulta tipoConsulta; // [cite: 17]
     
+    // Relacionamento com Consulta (pode ser mantido para histórico)
     @OneToMany(mappedBy = "medico")
-    private Set<Consulta> consultas;
+    private Set<Consulta> consultas; // [cite: 18]
+
+    // Um médico tem muitos slots de horário
+    @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<HorarioSlot> horarios;
 }

@@ -1,62 +1,60 @@
 package br.edu.fatecpg.usafa.models;
 
-
+import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
-
-import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "consultas")
+@Table(name = "consultas", indexes = {
+    // Índice para o ID público que o front-end vai usar
+    @Index(name = "idx_consulta_public_id", columnList = "publicId", unique = true),
+    // Índices para as chaves estrangeiras (melhora performance de JOINs)
+    @Index(name = "idx_consulta_user_id", columnList = "user_id"),
+    @Index(name = "idx_consulta_medico_id", columnList = "medico_id"),
+    @Index(name = "idx_consulta_slot_id", columnList = "horario_slot_id", unique = true)
+})
 public class Consulta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // ID interno do banco
+    private Long id; // [cite: 2]
 
     @Column(unique = true, nullable = false, updatable = false)
-    private String publicId; // ID público para o front-end
+    private String publicId; // [cite: 3]
 
-    // Relacionamentos (assumindo que estas entidades existem)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User user; // [cite: 4]
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medico_id", nullable = false)
-    private Medico medico;
+    private Medico medico; // [cite: 5]
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_consulta_id", nullable = false)
-    private TipoConsulta tipoConsulta;
+    private TipoConsulta tipoConsulta; // [cite: 6]
 
-    @Column(nullable = false)
-    private LocalDate dia; // Melhor que String para queries no banco
+    // --- NOVO RELACIONAMENTO ---
+    // A Consulta agora "trava" um Slot de Horário
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "horario_slot_id", unique = true, nullable = false)
+    private HorarioSlot horarioSlot;
 
-    @Column(nullable = false)
-    private LocalTime horario; // Melhor que String
-
-    @Lob // Para textos longos (pode ser @Column(length = 1000) também)
-    private String sintomas;
+    @Lob 
+    private String sintomas; // [cite: 8]
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ConsultaStatus status;
+    private ConsultaStatus status; // [cite: 9]
 
-    /**
-     * Gera automaticamente um publicId (UUID) antes de salvar
-     * uma nova consulta no banco.
-     */
     @PrePersist
     protected void onCreate() {
         if (this.publicId == null) {
-            this.publicId = UUID.randomUUID().toString();
+            this.publicId = UUID.randomUUID().toString(); // [cite: 11]
         }
     }
 }
