@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './ConsultaList.module.scss'; // SCSS Módulo
-import Table from '../../../../components/Tables';
+import Table from '../../../../components/Tables/Tables';
 import type { ColumnType } from '../../../../components/Tables/types';
 import type { Consulta } from '../../types/consulta.types';
 import type { ConsultaListProps } from './types/ConsultaList.types';

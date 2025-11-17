@@ -3,8 +3,10 @@ package br.edu.fatecpg.usafa.features.Admin.utils.appointment;
 
 import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
+import br.edu.fatecpg.usafa.features.consulta.utils.IConsultaMapper;
 import br.edu.fatecpg.usafa.models.Consulta;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.User;
@@ -15,7 +17,12 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Classe auxiliar para o AppointmentService.

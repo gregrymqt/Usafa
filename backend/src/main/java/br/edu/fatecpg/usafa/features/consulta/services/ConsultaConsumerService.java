@@ -11,7 +11,7 @@ import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaMessageDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.notifications.NotificationService;
-import br.edu.fatecpg.usafa.features.consulta.repositories.ConsultaDocumentRepository;
+import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaConsumerHelper;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ConsultaConsumerService {
 
     // Repositórios e Serviços principais
-    private final ConsultaDocumentRepository mongoRepository; 
+    private final IConsultaDocumentRepository mongoRepository; 
     private final ICacheService cacheService; 
     private final NotificationService notificationService; 
     

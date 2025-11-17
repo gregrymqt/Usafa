@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fatecpg.usafa.document.ConsultaDocument;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.UpdateStatusDTO;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IAdminAppointmentConsumerService;
+import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.UpdateAppointmentDTO;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentConsumerService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,10 +23,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('ADMIN')") // Protege a controller inteira
-public class AdminAppointmentConsumerController {
+public class AppointmentConsumerController {
 
     // 1. Consome a INTERFACE, não a implementação
-    private final IAdminAppointmentConsumerService adminConsultaService;
+    private final IAppointmentConsumerService adminConsultaService;
 
     /**
      * (Admin) GET /admin/consultas
@@ -38,16 +39,26 @@ public class AdminAppointmentConsumerController {
     }
 
     /**
-     * (Admin) PATCH /admin/consultas/{id}/status
-     * Atualiza o status de uma consulta (ex: "ACEITA", "RECUSADA").
-     * Usa o DTO 'UpdateStatusDTO'.
+     * (Admin) PATCH /admin/requisicao/appointments/{id}
+     * Atualiza o status, dia ou horário de uma solicitação.
      */
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<ConsultaDocument> updateConsultaStatus(
+    @PatchMapping("/{id}")
+    public ResponseEntity<ConsultaDocument> updateConsulta(
             @PathVariable String id,
-            @RequestBody UpdateStatusDTO statusDTO
+            @RequestBody UpdateAppointmentDTO appointmentDTO
     ) {
-        ConsultaDocument updatedDoc = adminConsultaService.updateConsultaStatus(id, statusDTO.status());
+        // O DTO [cite: 1] e o endpoint  já estavam corretos.
+        ConsultaDocument updatedDoc = adminConsultaService.updateConsultaStatus(id, appointmentDTO);
         return ResponseEntity.ok(updatedDoc);
+    }
+
+    /**
+     * (Admin) DELETE /admin/requisicao/appointments/{id}
+     * Deleta uma solicitação da fila (ex: spam ou erro).
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteConsultaRequest(@PathVariable String id) {
+        adminConsultaService.deleteConsultaRequest(id);
+        return ResponseEntity.noContent().build(); // Retorna 204 No Content
     }
 }

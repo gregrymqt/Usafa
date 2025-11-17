@@ -21,11 +21,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [doctorId, setDoctorId] = useState(initialData?.doctorId || '');
   const [date, setDate] = useState(initialData?.date || ''); // ex: "2023-10-25"
   const [time, setTime] = useState(initialData?.time || ''); // ex: "14:30"
+  const [specialty, setSpecialty] = useState(initialData?.specialty || '');
   const [status, setStatus] = useState<StatusType>(initialData?.status || 'Agendada');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = { patientId, doctorId, date, time, status };
+    const formData = { patientId, doctorId, date, time, status, specialty };
 
     try {
       await onSubmit(formData);
@@ -63,6 +64,16 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       },
       {
         elementType: 'input',
+        type: 'text',
+        name: 'specialty',
+        label: 'Especialidade',
+        value: specialty,
+        onChange: (val) => setSpecialty(val as string),
+        placeholder: 'Ex: Urologista',
+        required: true,
+      },
+      {
+        elementType: 'input',
         type: 'date',
         name: 'date',
         label: 'Data da Consulta',
@@ -94,7 +105,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         ],
       },
     ],
-    [patientId, doctorId, date, time, status, patientOptions, doctorOptions]
+    [patientId, doctorId, date, time, status, specialty, patientOptions, doctorOptions]
   );
 
   return (

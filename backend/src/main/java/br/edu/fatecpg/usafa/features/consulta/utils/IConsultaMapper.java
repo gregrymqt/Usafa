@@ -37,18 +37,19 @@ public interface IConsultaMapper {
     @Mapping(source = "publicId", target = "id")
     @Mapping(source = "medico.nome", target = "medico")
     @Mapping(source = "tipoConsulta.nome", target = "tipo")
-    @Mapping(source = "dia", target = "dia", qualifiedByName = "localDateToString")
-    @Mapping(source = "horario", target = "horario", qualifiedByName = "localTimeToString")
+    // --- CORREÇÃO ---
+    // A fonte agora é o 'horarioSlot.dataHoraInicio'
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString")
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString")
     @Mapping(source = "status", target = "status", qualifiedByName = "statusToString")
     ConsultaDTO toDTO(Consulta consulta);
-
-    // === DTO para o Modal de Sucesso ===
 
     @Mapping(source = "publicId", target = "protocolo")
     @Mapping(source = "medico.nome", target = "medico")
     @Mapping(source = "tipoConsulta.nome", target = "tipo")
-    @Mapping(source = "dia", target = "dia", qualifiedByName = "localDateToString")
-    @Mapping(source = "horario", target = "horario", qualifiedByName = "localTimeToString")
+    // --- CORREÇÃO ---
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString")
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString")
     @Mapping(source = "user.name", target = "paciente")
     @Mapping(source = "sintomas", target = "sintomas")
     ConsultaSummaryDTO toSummaryDTO(Consulta consulta);
@@ -64,14 +65,27 @@ public interface IConsultaMapper {
     @Mapping(source = "publicId", target = "value")
     @Mapping(source = "nome", target = "label")
     FormSelectOptionDTO tipoToOption(TipoConsulta tipoConsulta);
+    List<FormSelectOptionDTO> tiposToOptions(List<TipoConsulta> tiposConsulta);
+
     @Mapping(source = "publicId", target = "value")
     @Mapping(source = "name", target = "label")
     FormSelectOptionDTO pacienteToOption(User paciente);
     List<FormSelectOptionDTO> pacientesToOptions(List<User> pacientes);
-    List<FormSelectOptionDTO> tiposToOptions(List<TipoConsulta> tipos);
 
     // --- Conversores (qualifiedByName) ---
 
+    @Named("localDateTimeToDateString")
+    default String localDateTimeToDateString(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
+        return dateTime.toLocalDate().format(DATE_FORMATTER);
+    }
+
+    @Named("localDateTimeToTimeString")
+    default String localDateTimeToTimeString(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
+        return dateTime.toLocalTime().format(TIME_FORMATTER);
+    }
+    
     @Named("localDateToString")
     default String localDateToString(LocalDate date) {
         if (date == null) return null;

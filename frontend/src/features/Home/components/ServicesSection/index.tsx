@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Carousel from "../../../../components/Carousel"; // Usando o Carousel global
+import Carousel from "../../../../components/Carousel/Carousel"; // Usando o Carousel global
 import { useSectionManager } from "../../hooks/useSectionManager";
 import styles from "./styles.module.scss";
 import type { SwiperOptions } from "swiper/types";
-import { Card } from "../../../../components/Card";
+import { Card } from "../../../../components/Card/Card";
 import type { CardData } from "./types/servicesSection.types";
 
 // Dados de exemplo para os cards

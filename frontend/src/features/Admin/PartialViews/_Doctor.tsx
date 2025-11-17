@@ -8,7 +8,7 @@ import type { Doctor, NewDoctorData } from '../doctors/types/doctor.type';
 import styles from '../AdminDashboard.module.scss';
 import { DoctorAdmin } from '../doctors/DoctorAdmin';
 import { DoctorForm } from '../doctors/components/DoctorForm';
-import { Modal } from '../../../components/Modal';
+import { Modal } from '../../../components/Modal/Modal';
 
 export const _DoctorPartial: React.FC = () => {
   // --- Lógica de Médicos (Completa) ---

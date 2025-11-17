@@ -32,6 +32,7 @@ export interface AppointmentFormData {
   date: string; // "YYYY-MM-DD"
   time: string; // "HH:MM"
   status: AppointmentStatus;
+  appointmentType: string;
 }
 
 /**

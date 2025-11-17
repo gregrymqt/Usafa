@@ -13,10 +13,7 @@ import br.edu.fatecpg.usafa.features.Admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
-import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaHelper;
@@ -25,7 +22,6 @@ import br.edu.fatecpg.usafa.models.Consulta;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
 import br.edu.fatecpg.usafa.models.User;
-import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,9 +46,8 @@ public class ConsultaService implements IConsultaService {
         final String cacheKey = helper.getConsultasCacheKey(user.getPublicId().toString());
 
         try {
-            // A anotação SuppressWarnings é usada para o cast de List para List<ConsultaDTO>
-            // 1. Tenta buscar do Cache
-            @SuppressWarnings("unchecked") List<ConsultaDTO> cachedConsultas = (List<ConsultaDTO>) cacheService.get(cacheKey, List.class);
+            @SuppressWarnings("unchecked")
+            List<ConsultaDTO> cachedConsultas = (List<ConsultaDTO>) cacheService.get(cacheKey, List.class);
             if (cachedConsultas != null) {
                 log.info("Cache HIT para consultas do usuário: {}", user.getPublicId());
                 return cachedConsultas;
@@ -62,14 +57,17 @@ public class ConsultaService implements IConsultaService {
         }
 
         try {
-            // 2. Se não achar, busca no DB
             log.info("Cache MISS para consultas do usuário: {}", user.getPublicId());
-            List<Consulta> consultas = consultaRepository.findByUserOrderByDiaDesc(user);
+            
+            // <<< 2. CORREÇÃO DA ORDENAÇÃO
+            //    Você precisa criar este método no IConsultaRepository
+            //    O campo 'dia' não existe mais, então ordenamos pelo 'dataHoraInicio' do slot.
+            List<Consulta> consultas = consultaRepository.findByUserOrderByHorarioSlotDataHoraInicioDesc(user);
+            
             List<ConsultaDTO> dtos = consultas.stream()
-                    .map(mapper::toDTO) // ou .map(consulta -> mapper.toDTO(consulta))
+                    .map(mapper::toDTO)
                     .collect(Collectors.toList());
 
-            // 3. Salva no cache (expira em 5 minutos)
             cacheService.saveWithTtl(cacheKey, dtos, 5, TimeUnit.MINUTES);
             return dtos;
 
@@ -118,53 +116,6 @@ public class ConsultaService implements IConsultaService {
         } catch (DataAccessException e) {
             log.error("Erro de banco ao buscar opções do formulário.", e);
             throw new DatabaseOperationException("Erro ao carregar opções de agendamento.", e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public ConsultaSummaryDTO createConsulta(ConsultaRequestDTO requestDTO, User user) {
-        try {
-            // 1. Validação: Busca as entidades
-            Medico medico = medicoRepository.findByPublicId(requestDTO.getMedicoId())
-                    .orElseThrow(() -> new BusinessRuleException("Médico não encontrado."));
-
-            TipoConsulta tipo = tipoConsultaRepository.findByPublicId(requestDTO.getTipoId())
-                    .orElseThrow(() -> new BusinessRuleException("Tipo de consulta não encontrado."));
-
-            // 2. Validação: Verifica se o médico pertence à especialidade
-            if (!medico.getTipoConsulta().getId().equals(tipo.getId())) {
-                throw new BusinessRuleException("O médico " + medico.getNome() + " não pertence à especialidade " + tipo.getNome() + ".");
-            }
-
-            // 3. Mapeamento e Lógica
-            Consulta consulta = new Consulta();
-            consulta.setUser(user);
-            consulta.setMedico(medico);
-            consulta.setTipoConsulta(tipo);
-            consulta.setSintomas(requestDTO.getSintomas());
-            consulta.setStatus(ConsultaStatus.PENDENTE); // Status inicial
-
-            // Converte Strings para os tipos do banco (com o mapper)
-            consulta.setDia(mapper.stringToLocalDate(requestDTO.getDia()));
-            consulta.setHorario(mapper.stringToLocalTime(requestDTO.getHorario()));
-            
-            // 4. Salva
-            Consulta savedConsulta = consultaRepository.save(consulta);
-
-            // 5. Invalida o cache do histórico do usuário
-            cacheService.delete(helper.getConsultasCacheKey(user.getPublicId().toString())); 
-            log.info("Cache de consultas invalidado para o usuário: {}", user.getPublicId());
-
-            // 6. Retorna o DTO de Sucesso
-            return mapper.toSummaryDTO(savedConsulta);
-
-        } catch (BusinessRuleException e) {
-            log.warn("Regra de negócio violada ao criar consulta: {}", e.getMessage());
-            throw e; // Re-lança para o Controller (que vira 400 Bad Request)
-        } catch (DataAccessException e) {
-            log.error("Erro de banco ao criar consulta para o usuário: {}", user.getPublicId(), e);
-            throw new DatabaseOperationException("Erro ao salvar sua solicitação de consulta.", e);
         }
     }
 }

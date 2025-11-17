@@ -12,7 +12,7 @@ import java.util.List;
  * Ela gerencia o Documento 'ConsultaDocument' e usa String como ID.
  */
 @Repository
-public interface ConsultaDocumentRepository extends MongoRepository<ConsultaDocument, String> {
+public interface IConsultaDocumentRepository extends MongoRepository<ConsultaDocument, String> {
 
     List<ConsultaDocument> findByUserPublicId(String userPublicId);
 }

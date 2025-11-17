@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IAdminAppointmentService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentService;
+import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 
 import java.util.List;
 
@@ -23,9 +25,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminAppointmentController {
+public class AppointmentController {
 
-    private final IAdminAppointmentService adminAppointmentService;
+    private final IAppointmentService adminAppointmentService;
 
     /**
      * GET /admin/appointments
@@ -42,10 +44,10 @@ public class AdminAppointmentController {
      * Cria um novo agendamento. [cite: 60]
      */
     @PostMapping
-    public ResponseEntity<AppointmentResponseDto> createAppointment(
+    public ResponseEntity<ConsultaSummaryDTO> createAppointment(
             @Valid @RequestBody AppointmentRequestDto appointmentData
     ) {
-        AppointmentResponseDto newAppointment = adminAppointmentService.createAppointment(appointmentData);
+        ConsultaSummaryDTO newAppointment = adminAppointmentService.createAppointment(appointmentData, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(newAppointment);
     }
 

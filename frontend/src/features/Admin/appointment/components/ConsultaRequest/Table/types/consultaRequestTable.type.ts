@@ -50,8 +50,3 @@ export interface ConsultaDocument {
   // Status
   status: 'PENDENTE' | 'ACEITA' | 'RECUSADA' | string; // string para flexibilidade
 }
-
-
-export interface IUpdateStatusDTO {
-  status: string;
-}

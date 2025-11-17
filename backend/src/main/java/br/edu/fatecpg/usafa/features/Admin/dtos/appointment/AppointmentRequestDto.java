@@ -15,8 +15,11 @@ public class AppointmentRequestDto {
     @NotBlank(message = "O ID do médico é obrigatório")
     private String doctorId; // O publicId do Medico [cite: 33]
 
-    @NotBlank(message = "A data e hora são obrigatórias")
-    private String dateTime; // Formato ISO "2023-12-25T14:30:00Z" 
+    @NotBlank(message = "A data são obrigatórias")
+    private String date; // Formato ISO "2023-12-25T14:30:00Z" 
+
+    @NotBlank(message = "A hora são obrigatórias")
+    private String time; // Formato ISO "2023-12-25T14:30:00Z" 
 
     @NotBlank(message = "O status é obrigatório")
     private String status; // "Agendada", "Concluída", "Cancelada" 

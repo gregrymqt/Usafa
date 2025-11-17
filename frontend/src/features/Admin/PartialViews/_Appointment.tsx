@@ -17,7 +17,7 @@ import type {
 import styles from '../AdminDashboard.module.scss';
 import { AppointmentAdmin } from '../appointment/AppointmentAdmin';
 import { AppointmentForm } from '../appointment/components/AppointmentForm/AppointmentForm';
-import  { Modal } from '../../../components/Modal';
+import  { Modal } from '../../../components/Modal/Modal';
 
 export const _AppointmentPartial: React.FC = () => {
   // --- Lógica de Consultas (Completa) ---

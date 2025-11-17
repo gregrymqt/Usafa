@@ -4,7 +4,7 @@ import { SidebarLayout } from '../../layouts/SidebarLayout/SidebarLayout';
 import type { ISidebarView } from '../../layouts/SidebarLayout/types';
 
 import './styles.scss'; // [cite: 14]
-import { Modal } from '../../components/Modal'; // [cite: 14]
+import { Modal } from '../../components/Modal/Modal.tsx'; // [cite: 14]
 import { ConsultaSummarys } from './components/modal/ConsultaSummary.tsx'; // 
 import { useConsulta } from './hooks/useConsulta'; // 
 

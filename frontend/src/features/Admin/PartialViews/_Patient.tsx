@@ -8,7 +8,7 @@ import type { Patient, PatientFormData } from '../Patient/types/patient.types';
 import styles from '../AdminDashboard.module.scss';
 import { PatientAdmin } from '../Patient/PatientAdmin';     
 import { PatientForm } from '../Patient/components/PatientForm';    
-import { Modal } from '../../../components/Modal';
+import { Modal } from '../../../components/Modal/Modal';
 
 export const _PatientPartial: React.FC = () => {
   // --- Lógica de Pacientes (Completa) ---

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import  { ApiError } from '../../../../shared';
-import type { ConsultaDocument } from '../components/ConsultaRequestTable/types/consultaRequestTable.type';
+import type { ConsultaDocument } from '../components/ConsultaRequest/Table/types/consultaRequestTable.type';
 import  { consultaService } from '../services/appointmentRequest.service';
+import type { ConsultaUpdateData } from '../components/ConsultaRequest/Modal/types/ConsultaEditModal.type';
 
 
 export const useConsultaRequests = () => {
@@ -39,25 +40,26 @@ export const useConsultaRequests = () => {
     fetchData();
   }, [fetchData]);
 
-  /**
-   * Função para ATUALIZAR o status de uma solicitação.
-   */
-  const handleUpdateStatus = useCallback(async (id: string, newStatus: string) => {
-    try {
-      // 1. Chama o service para atualizar na API 
-      const updatedDoc = await consultaService.updateStatus(id, newStatus);
+  const handleUpdateStatus = useCallback(
+    async (id: string, data: ConsultaUpdateData) => {
+      try {
+        // 1. Chama o service para atualizar na API
+        //    (Assumindo que seu service agora aceita o objeto 'data')
+        const updatedDoc = await consultaService.updateStatus(id, data);
 
-      // 2. Atualiza o estado local (para UI reativa)
-      setData(currentData =>
-        currentData?.map(item => 
-          item.id === id ? updatedDoc : item // Substitui o item antigo pelo novo [cite: 17]
-        ) || null
-      );
-    } catch (err) {
-      console.error('[useConsultaRequests] Erro ao atualizar status:', err);
-      // Aqui você pode adicionar um toast de erro, por exemplo
-    }
-  }, []);
+        // 2. Atualiza o estado local (para UI reativa) 
+        setData(currentData =>
+          currentData?.map(item =>
+            item.id === id ? updatedDoc : item // Substitui o item antigo pelo novo
+          ) || null
+        );
+      } catch (err) {
+        console.error('[useConsultaRequests] Erro ao atualizar status:', err);
+        // Aqui você pode adicionar um toast de erro, por exemplo
+      }
+    },
+    [setData] // setData é uma dependência estável do useState
+  );
 
   /**
    * Função para DELETAR uma solicitação.

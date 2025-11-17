@@ -1,5 +1,6 @@
 import  { api } from "../../../../shared";
-import type { ConsultaDocument, IUpdateStatusDTO } from "../components/ConsultaRequestTable/types/consultaRequestTable.type";
+import type { ConsultaUpdateData } from "../components/ConsultaRequest/Modal/types/ConsultaEditModal.type";
+import type { ConsultaDocument} from "../components/ConsultaRequest/Table/types/consultaRequestTable.type";
 
 // O endpoint base do seu controller Java
 const API_URL = '/admin/requisicao/appointments';
@@ -17,22 +18,15 @@ const getAllRequests = async (): Promise<ConsultaDocument[]> => {
  * Atualiza o status de uma consulta específica.
  * Mapeia o endpoint PATCH /{id}/status 
  */
-const updateStatus = async (id: string, newStatus: string): Promise<ConsultaDocument> => {
-  const dto: IUpdateStatusDTO = { status: newStatus };
-  
+const updateStatus = async (id: string, updateData: ConsultaUpdateData): Promise<ConsultaDocument> => {
+
   // Chama o endpoint de patch com o DTO 
-  const data = await api.patch<ConsultaDocument>(`${API_URL}/${id}/status`, dto);
+  const data = await api.patch<ConsultaDocument>(`${API_URL}/${id}/status`, updateData);
   return data;
 };
 
 /**
  * Deleta uma solicitação de consulta.
- *
- * ATENÇÃO: Seu ActionMenu [cite: 9] e props [cite: 22] precisam dessa função, 
- * mas seu Controller Java não forneceu um endpoint DELETE.
- *
- * Você precisará adicionar um @DeleteMapping("/{id}") no seu controller.
- * Por enquanto, esta função simulará a chamada.
  */
 const deleteRequest = async (id: string): Promise<void> => {
   console.warn(`[consultaService] A função deleteRequest foi chamada para o ID: ${id}. 

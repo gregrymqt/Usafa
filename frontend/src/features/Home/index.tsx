@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Carousel from "../../components/Carousel";
+import Carousel from "../../components/Carousel/Carousel";
 import ServicesSection from "./components/ServicesSection";
 import AboutSection from "./components/AboutSection";
 import { useInfiniteScroll } from "./hooks/useInfiniteScroll";
