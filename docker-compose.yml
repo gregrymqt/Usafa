@@ -44,12 +44,15 @@ services:
 
   # 4. Cache Redis
   cache:
-    image: "redis:alpine"
+    image: redis:latest
+    command: redis-server --appendonly yes
     restart: always
     ports:
       - "6379:6379"
     networks: # <-- ADICIONADO
       - usafa-network
+    volumes:
+      - ./redis-data:/data  
 
   # 5. Fila RabbitMQ
   mq:

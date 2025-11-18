@@ -1,42 +1,35 @@
-package br.edu.fatecpg.usafa.config; // (Verifique seu pacote)
+package br.edu.fatecpg.usafa.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
 
-     @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper;
-    }
+    // Removemos a criação manual do ObjectMapper aqui se você já tiver uma global.
+    // Se não tiver, pode manter o @Bean do ObjectMapper, mas sem injeção no construtor da classe.
 
-    private final tools.jackson.databind.ObjectMapper objectMapper;
-
-    public RedisConfig(tools.jackson.databind.ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-    /**
-     * 2. Agora o redisTemplate RECEBE o ObjectMapper como parâmetro,
-     * em vez de criar o seu próprio.
-     */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(
-            RedisConnectionFactory connectionFactory) { // CORREÇÃO: Recebemos o ObjectMapper por injeção de dependência
+            RedisConnectionFactory connectionFactory,
+            tools.jackson.databind.ObjectMapper objectMapper) { // Injeta o ObjectMapper do Spring aqui
+
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
-        // Serializador para as chaves (String)
+
+        // Serializador de Chaves (String) - para ficar legível no Redis (ex: "cache:usuarios")
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
 
-        // Serializador para os valores (JSON) - usa o Bean global
-        template.setValueSerializer(new org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer(objectMapper));
-        template.setHashValueSerializer(new org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer(objectMapper)); // CORREÇÃO: Usamos o Bean globalobjectMapper));
+        // Serializador de Valores (JSON) - usando o ObjectMapper correto
+        GenericJacksonJsonRedisSerializer jsonSerializer = new GenericJacksonJsonRedisSerializer(objectMapper);
+
+        template.setValueSerializer(jsonSerializer);
+        template.setHashValueSerializer(jsonSerializer);
 
         template.afterPropertiesSet();
         return template;

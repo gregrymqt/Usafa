@@ -5,26 +5,14 @@ import java.util.List;
 import java.util.Optional; // <<< IMPORTAR OPTIONAL
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.enums.StatusHorario;
 
 public interface IHorarioSlotRepository extends JpaRepository<HorarioSlot, Long> {
 
-    List<HorarioSlot> findByMedicoIdAndStatusAndDataHoraInicioBetween(
-            Long medicoId, 
-            StatusHorario status, 
-            LocalDateTime inicio, 
-            LocalDateTime fim
-    );
-
     List<HorarioSlot> findByMedicoIdAndStatus(Long medicoId, StatusHorario status);
-    
-    boolean existsByMedicoIdAndDataHoraInicioBetween(
-            Long medicoId, 
-            LocalDateTime inicio, 
-            LocalDateTime fim
-    );
 
     // <<< MÉTODO ADICIONADO (NECESSÁRIO PELO ERRO)
     /**
@@ -32,4 +20,11 @@ public interface IHorarioSlotRepository extends JpaRepository<HorarioSlot, Long>
      * Usado pelo ConsultaService para travar um slot ao criar a consulta.
      */
     Optional<HorarioSlot> findByMedicoIdAndDataHoraInicio(Long medicoId, LocalDateTime dataHoraInicio); 
+
+
+    List<HorarioSlot> findByStatus(StatusHorario status);
+
+    @Query("SELECT h FROM HorarioSlot h WHERE h.medico.publicId = :medicoPublicId AND h.dataHoraInicio = :dataHora")
+        Optional<HorarioSlot> findByMedicoPublicIdAndDataHoraInicio(String medicoPublicId, LocalDateTime dataHora);
+
 }

@@ -1,8 +1,6 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -16,63 +14,73 @@ import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
 import br.edu.fatecpg.usafa.models.Consulta;
+import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
-import br.edu.fatecpg.usafa.models.User;
+
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface IConsultaMapper {
 
-    // --- Formatadores de Data/Hora ---
-    // (Pode ser movido para uma classe de utilidade se preferir)
+    // Definições de formatação
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     Locale LOCALE_BR = Locale.of("pt", "BR");
-    
-    // === DTO para a Tabela ===
 
+    // ========================================================================
+    // 1. VISUALIZAÇÃO (Tabelas e Listas de Histórico)
+    // ========================================================================
+
+    // Mapeia a entidade Consulta completa para um DTO detalhado
     @Mapping(source = "publicId", target = "id")
     @Mapping(source = "medico.nome", target = "medico")
-    @Mapping(source = "tipoConsulta.nome", target = "tipo")
-    // --- CORREÇÃO ---
-    // A fonte agora é o 'horarioSlot.dataHoraInicio'
-    @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString")
-    @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString")
-    @Mapping(source = "status", target = "status", qualifiedByName = "statusToString")
+    @Mapping(source = "tipoConsulta.nome", target = "tipo") // [cite: 32, 50]
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString") // 
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString") // [cite: 38]
+    @Mapping(source = "status", target = "status", qualifiedByName = "statusToString") // [cite: 34]
     ConsultaDTO toDTO(Consulta consulta);
 
+    // Mapeia a entidade para um resumo (ideal para listas rápidas no painel do usuário)
     @Mapping(source = "publicId", target = "protocolo")
-    @Mapping(source = "medico.nome", target = "medico")
+    @Mapping(source = "medico.nome", target = "medico") // [cite: 31, 44]
     @Mapping(source = "tipoConsulta.nome", target = "tipo")
-    // --- CORREÇÃO ---
     @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString")
     @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString")
-    @Mapping(source = "user.name", target = "paciente")
+    @Mapping(source = "user.name", target = "paciente") // [cite: 30]
     @Mapping(source = "sintomas", target = "sintomas")
     ConsultaSummaryDTO toSummaryDTO(Consulta consulta);
+
     List<ConsultaSummaryDTO> toSummaryDTOs(List<Consulta> consultas);
 
-    // === DTOs para Opções do Formulário ===
 
-    @Mapping(source = "publicId", target = "value")
-    @Mapping(source = "nome", target = "label")
+    // ========================================================================
+    // 2. FORMULÁRIOS E SELEÇÃO (Melhoria de UX)
+    // ========================================================================
+
+    // Converte Medico em Opção de Select (Value = ID, Label = Nome)
+    @Mapping(source = "publicId", target = "value") // [cite: 43]
+    @Mapping(source = "nome", target = "label") // [cite: 44]
     FormSelectOptionDTO medicoToOption(Medico medico);
     List<FormSelectOptionDTO> medicosToOptions(List<Medico> medicos);
 
-    @Mapping(source = "publicId", target = "value")
+    // Converte TipoConsulta em Opção de Select (Value = ID, Label = Nome)
+    @Mapping(source = "publicId", target = "value") // [cite: 50]
     @Mapping(source = "nome", target = "label")
     FormSelectOptionDTO tipoToOption(TipoConsulta tipoConsulta);
     List<FormSelectOptionDTO> tiposToOptions(List<TipoConsulta> tiposConsulta);
 
-    @Mapping(source = "publicId", target = "value")
-    @Mapping(source = "name", target = "label")
-    FormSelectOptionDTO pacienteToOption(User paciente);
-    List<FormSelectOptionDTO> pacientesToOptions(List<User> pacientes);
+    // NOVO: Converte HorarioSlot LIVRE em Opção de Select
+    // Isso substitui a lógica hardcoded do ConsultaHelper para mostrar horários REAIS do banco
+    @Mapping(source = "id", target = "value") // O value precisa ser o ID do slot para salvar no banco
+    @Mapping(source = "dataHoraInicio", target = "label", qualifiedByName = "slotToLabel") // Label amigável: "25/10 - 14:00"
+    FormSelectOptionDTO slotToOption(HorarioSlot slot);
+    List<FormSelectOptionDTO> slotsToOptions(List<HorarioSlot> slots);
 
-    // --- Conversores (qualifiedByName) ---
+
+    // ========================================================================
+    // 3. MÉTODOS AUXILIARES DE FORMATAÇÃO (@Named)
+    // ========================================================================
 
     @Named("localDateTimeToDateString")
     default String localDateTimeToDateString(LocalDateTime dateTime) {
@@ -85,55 +93,20 @@ public interface IConsultaMapper {
         if (dateTime == null) return null;
         return dateTime.toLocalTime().format(TIME_FORMATTER);
     }
-    
-    @Named("localDateToString")
-    default String localDateToString(LocalDate date) {
-        if (date == null) return null;
-        return date.format(DATE_FORMATTER);
-    }
 
-    @Named("localTimeToString")
-    default String localTimeToString(LocalTime time) {
-        if (time == null) return null;
-        return time.format(TIME_FORMATTER);
-    }
-
-    @Named("stringToLocalDate")
-    default LocalDate stringToLocalDate(String date) {
-        if (date == null) return null;
-        return LocalDate.parse(date, DATE_FORMATTER);
-    }
-
-    @Named("stringToLocalTime")
-    default LocalTime stringToLocalTime(String time) {
-        if (time == null) return null;
-        return LocalTime.parse(time, TIME_FORMATTER);
-    }
-    
     @Named("statusToString")
     default String statusToString(ConsultaStatus status) {
         if (status == null) return null;
-        // Capitaliza a primeira letra e deixa o resto minúsculo (ex: PENDENTE -> "Pendente")
+        // Transforma "AGENDADA" em "Agendada"
         String name = status.name().toLowerCase(LOCALE_BR);
         return name.substring(0, 1).toUpperCase(LOCALE_BR) + name.substring(1);
     }
 
-    // Mapeamento para PatientResponseDto (para o módulo Admin)
-    @Mapping(source = "publicId", target = "id")
-    @Mapping(source = "name", target = "name")
-    @Mapping(source = "email", target = "email")
-    @Mapping(source = "cpf", target = "cpf")
-    @Mapping(source = "phone", target = "phone")
-    @Mapping(source = "birthDate", target = "birthDate", qualifiedByName = "localDateToIsoString")
-    PatientResponseDto userToPatientResponseDto(User user);
-
-    @Named("localDateToIsoString")
-    default String localDateToIsoString(LocalDate date) {
-        if (date == null) {
-            return null;
-        }
-        // Formato ISO "1990-10-25T00:00:00Z"
-        // Adiciona uma hora padrão para o formato ISO completo, se a data for apenas LocalDate
-        return LocalDateTime.of(date, LocalTime.MIDNIGHT).format(DateTimeFormatter.ISO_DATE_TIME) + "Z";
+    // Cria um label bonito para o select de horários: "25/10 (Terça) às 14:00"
+    @Named("slotToLabel")
+    default String slotToLabel(LocalDateTime dataHora) {
+        if (dataHora == null) return "Data inválida";
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("dd/MM (EEE) 'às' HH:mm", LOCALE_BR);
+        return dataHora.format(labelFormatter);
     }
 }

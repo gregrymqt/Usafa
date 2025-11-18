@@ -9,12 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentService;
-import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
 import br.edu.fatecpg.usafa.features.Admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentHelper;
 import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
@@ -30,9 +28,6 @@ import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepositor
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaHelper;
 import br.edu.fatecpg.usafa.features.consulta.utils.IConsultaMapper;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -52,7 +47,6 @@ public class AppointmentServiceImpl implements IAppointmentService {
     private final ConsultaHelper consultaHelper;
     private final IConsultaMapper consultaMapper;
 
-    private final IMedicoRepository medicoRepository;
     private final ITipoConsultaRepository tipoConsultaRepository;
     private final IHorarioSlotRepository horarioSlotRepository;
 
@@ -82,7 +76,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
             
             // 3. Mapear para DTO (usando o Mapper)
             List<AppointmentResponseDto> dtos = consultas.stream()
-                    .map(mapper::toDto) // <-- MUITO MAIS LIMPO!
+                    .map(mapper::toDto) 
                     .collect(Collectors.toList());
 
             // 4. Salvar no cache
@@ -99,68 +93,70 @@ public class AppointmentServiceImpl implements IAppointmentService {
     @Transactional
     public ConsultaSummaryDTO createAppointment(AppointmentRequestDto requestDTO, User user) {
         try {
-            // 1. Validação: Busca as entidades
-            Medico medico = medicoRepository.findByPublicId(requestDTO.getDoctorId())
-                    .orElseThrow(() -> new BusinessRuleException("Médico não encontrado."));
+            // 1. Busca e Valida o Slot de Horário (A "Verdade Absoluta")
+            // O DTO agora envia o ID do slot, não data/hora soltas.
+            HorarioSlot slot = horarioSlotRepository.findById(requestDTO.getHorarioSlotId())
+                    .orElseThrow(() -> new BusinessRuleException("O horário selecionado não foi encontrado."));
 
-            TipoConsulta tipo = tipoConsultaRepository.findByPublicId(requestDTO.())
+            // 2. Validação CRÍTICA: O slot ainda está livre?
+            // Se outro usuário pegou milissegundos antes, o status já será RESERVADO.
+            if (slot.getStatus() != StatusHorario.DISPONIVEL) {
+                throw new BusinessRuleException("Sinto muito, este horário acabou de ser reservado por outro paciente.");
+            }
+
+            // 3. Obtém o Médico através do Slot
+            // Não precisamos buscar o médico pelo ID do DTO. O slot já pertence a um médico.
+            Medico medico = slot.getMedico();
+
+            // 4. Busca e Valida o Tipo de Consulta
+            TipoConsulta tipo = tipoConsultaRepository.findByPublicId(requestDTO.getTipoConsultaId())
                     .orElseThrow(() -> new BusinessRuleException("Tipo de consulta não encontrado."));
 
-            // 2. Validação: Verifica se o médico pertence à especialidade
+            // Validação: O médico do slot atende essa especialidade?
             if (!medico.getTipoConsulta().getId().equals(tipo.getId())) {
-                throw new BusinessRuleException("O médico " + medico.getNome() + " não pertence à especialidade " + tipo.getNome() + ".");
+                throw new BusinessRuleException("O médico selecionado não atende pela especialidade informada.");
             }
 
-            // --- 3. LÓGICA DO HORÁRIO SLOT (A CORREÇÃO) ---
-            
-            // Converte as strings do DTO para data e hora
-            LocalDate dia = consultaMapper.stringToLocalDate(requestDTO.getDia());
-            LocalTime horario = consultaMapper.stringToLocalTime(requestDTO.getHorario());
-            LocalDateTime dataHoraInicio = LocalDateTime.of(dia, horario);
-            
-            // Busca o slot exato que o usuário quer agendar
-            HorarioSlot slot = horarioSlotRepository
-                    .findByMedicoIdAndDataHoraInicio(medico.getId(), dataHoraInicio)
-                    .orElseThrow(() -> new BusinessRuleException("Horário não disponível ou não cadastrado."));
-            
-            // Validação de Negócio: O slot está DISPONÍVEL?
-            if (slot.getStatus() != StatusHorario.DISPONIVEL) {
-                throw new BusinessRuleException("Este horário não está mais disponível.");
-            }
-            
-            // Trava o slot
+            // 5. Trava o Slot (Atualiza Status)
+            // Isso impede que o slot apareça na busca de outros usuários imediatamente
             slot.setStatus(StatusHorario.RESERVADO);
-            HorarioSlot savedSlot = horarioSlotRepository.save(slot);
+            // Opcional: Se a relação for bidirecional, associe a consulta aqui depois de instanciá-la, 
+            // mas salvar o slot agora garante a reserva.
+            horarioSlotRepository.save(slot); 
 
-            // --- FIM DA LÓGICA DO SLOT ---
-
-            // 4. Mapeamento e Lógica
+            // 6. Criação da Entidade Consulta
             Consulta consulta = new Consulta();
-            consulta.setUser(user);
+            consulta.setUser(user); // O paciente passado pelo controller
             consulta.setMedico(medico);
             consulta.setTipoConsulta(tipo);
-            consulta.setSintomas(requestDTO.getSintomas());
-            consulta.setStatus(ConsultaStatus.PENDENTE); 
+            consulta.setHorarioSlot(slot); // [cite: 33] Associa o slot travado
+            consulta.setSintomas(requestDTO.getSintomas()); // [cite: 34]
+            consulta.setStatus(ConsultaStatus.PENDENTE); // [cite: 34] Define status inicial
 
-            // Define o slot na consulta (Substitui setDia e setHorario)
-            consulta.setHorarioSlot(savedSlot); // <<< CORREÇÃO
-            
-            // 5. Salva a Consulta
+            // 7. Salva a Consulta
             Consulta savedConsulta = consultaRepository.save(consulta);
+            
+            // Atualiza o slot com a referência da consulta (caso precise navegar Slot -> Consulta)
+            slot.setConsulta(savedConsulta);
+            horarioSlotRepository.save(slot);
 
-            // 6. Invalida o cache
-            cacheService.delete(consultaHelper.getConsultasCacheKey(user.getPublicId().toString())); 
-            log.info("Cache de consultas invalidado para o usuário: {}", user.getPublicId());
+            // 8. Invalida caches pertinentes
+            // Limpa o histórico do usuário
+            cacheService.delete(consultaHelper.getConsultasCacheKey(user.getPublicId().toString()));
+            // IMPORTANTE: Invalida o cache de horários disponíveis (se você estiver usando cache lá)
+            // cacheService.delete("FORM_OPTIONS_SLOTS"); 
 
-            // 7. Retorna o DTO
+            log.info("Consulta criada com sucesso. Protocolo: {}", savedConsulta.getPublicId());
+
+            // 9. Retorna o DTO de resumo
             return consultaMapper.toSummaryDTO(savedConsulta);
 
         } catch (BusinessRuleException e) {
             log.warn("Regra de negócio violada ao criar consulta: {}", e.getMessage());
-            throw e;
+            throw e; // Repassa para o Controller tratar (retornar 400 ou 409)
         } catch (DataAccessException e) {
             log.error("Erro de banco ao criar consulta para o usuário: {}", user.getPublicId(), e);
-            throw new DatabaseOperationException("Erro ao salvar sua solicitação de consulta.", e);
+            throw new DatabaseOperationException("Erro técnico ao processar seu agendamento.", e);
         }
     }
 
@@ -170,72 +166,95 @@ public class AppointmentServiceImpl implements IAppointmentService {
      */
     @Override
     @Transactional
-    public AppointmentResponseDto updateAppointment(String id, AppointmentRequestDto appointmentDto) {
+    public AppointmentResponseDto updateAppointment(String id, AppointmentRequestDto requestDTO) {
         log.info("Atualizando consulta ID: {}", id);
 
         // 1. Buscar a consulta existente
+        // (Assumindo que seu helper busca por publicId e retorna a entidade Consulta)
         Consulta consulta = helper.findConsultaByPublicId(id);
-        HorarioSlot oldSlot = consulta.getHorarioSlot(); // Pega o slot atual
-
-        // 2. Validar e buscar dados
-        User patient = helper.findPatientByPublicId(appointmentDto.getPatientId());
-        Medico doctor = helper.findDoctorByPublicId(appointmentDto.getDoctorId());
-        LocalDateTime newDateTime = helper.parseDateTime(appointmentDto.getDateTime());
-        ConsultaStatus newStatus = helper.parseStatus(appointmentDto.getStatus());
         
-        // 3. Regra de Negócio: O slot/médico mudou?
-        boolean doctorChanged = !consulta.getMedico().getId().equals(doctor.getId());
-        boolean dateTimeChanged = !oldSlot.getDataHoraInicio().equals(newDateTime);
+        // 2. Validar e buscar dados básicos
+        // Se o paciente mudou (ex: erro de cadastro), atualizamos.
+        User patient = helper.findPatientByPublicId(requestDTO.getPatientId());
+        
+        // Busca o Tipo de Consulta (pode ter mudado a especialidade necessária)
+        TipoConsulta tipo = tipoConsultaRepository.findByPublicId(requestDTO.getTipoConsultaId())
+                .orElseThrow(() -> new BusinessRuleException("Tipo de consulta não encontrado."));
 
-        if (doctorChanged || dateTimeChanged) {
-            log.info("Médico ou horário alterado. Trocando slot...");
+        // --- 3. LÓGICA DE TROCA DE HORÁRIO (O CORAÇÃO DO UPDATE) ---
+        
+        HorarioSlot currentSlot = consulta.getHorarioSlot();
+        Long newSlotId = requestDTO.getHorarioSlotId();
 
-            // 3.1. Encontra o NOVO slot
-            HorarioSlot newSlot = horarioSlotRepository
-                    .findByMedicoIdAndDataHoraInicio(doctor.getId(), newDateTime)
-                    .orElseThrow(() -> new BusinessRuleException("Novo horário não disponível ou não cadastrado."));
+        // Verificamos se houve mudança de horário/médico comparando os IDs dos slots
+        if (!currentSlot.getId().equals(newSlotId)) {
+            log.info("Detectada alteração de agendamento. Realizando troca de slots...");
 
-            // 3.2. Verifica se o NOVO slot está disponível
+            // 3.1. Busca o NOVO slot pelo ID (A "Verdade Absoluta")
+            HorarioSlot newSlot = horarioSlotRepository.findById(newSlotId)
+                    .orElseThrow(() -> new BusinessRuleException("O novo horário selecionado não foi encontrado."));
+
+            // 3.2. Validação: O novo slot está livre?
             if (newSlot.getStatus() != StatusHorario.DISPONIVEL) {
-                // (Nota: Em um caso raro, ele pode estar 'RESERVADO' pelo *próprio* 'oldSlot'
-                // se o usuário só mudou o médico mas não a data/hora.
-                // Mas para um CRUD de Admin, é mais seguro exigir um slot DISPONIVEL)
-                throw new BusinessRuleException("Novo horário (" + newDateTime + ") não está disponível.");
+                throw new BusinessRuleException("O novo horário selecionado não está mais disponível.");
             }
 
-            // 3.3. Libera o slot ANTIGO
-            oldSlot.setStatus(StatusHorario.DISPONIVEL);
-            oldSlot.setConsulta(null); // Quebra a ligação 1:1
-            horarioSlotRepository.save(oldSlot);
+            // 3.3. Validação: O médico do NOVO slot atende a especialidade?
+            if (!newSlot.getMedico().getTipoConsulta().getId().equals(tipo.getId())) {
+                throw new BusinessRuleException("O médico do novo horário não atende a especialidade informada.");
+            }
 
-            // 3.4. Reserva o slot NOVO
+            // 3.4. LIBERA o slot ANTIGO
+            // O horário antigo volta a ficar disponível para outros pacientes
+            currentSlot.setStatus(StatusHorario.DISPONIVEL);
+            currentSlot.setConsulta(null); // Remove a amarração
+            horarioSlotRepository.save(currentSlot);
+
+            // 3.5. RESERVA o slot NOVO
             newSlot.setStatus(StatusHorario.RESERVADO);
-            newSlot.setConsulta(consulta); // Faz a ligação 1:1
+            // newSlot.setConsulta(consulta); // Será feito ao salvar a consulta, pelo Cascade ou manualmente abaixo
             horarioSlotRepository.save(newSlot);
-            
-            // 3.5. Atualiza a consulta com o novo slot
-            consulta.setHorarioSlot(newSlot);
-        }
 
-        // 4. Atualizar o restante dos dados da entidade
+            // 3.6. Atualiza a consulta com os dados do NOVO slot
+            consulta.setHorarioSlot(newSlot);
+            consulta.setMedico(newSlot.getMedico()); // O médico muda automaticamente com o slot!
+        } else {
+            // Se o slot é o mesmo, apenas validamos se a especialidade bate com o médico atual
+            if (!consulta.getMedico().getTipoConsulta().getId().equals(tipo.getId())) {
+                 throw new BusinessRuleException("Conflito: O médico atual não atende o novo tipo de consulta informado.");
+            }
+        }
+        // --- FIM DA LÓGICA DE SLOT ---
+
+        // 4. Atualiza demais dados
         consulta.setUser(patient);
-        consulta.setMedico(doctor);
-        consulta.setTipoConsulta(doctor.getTipoConsulta()); // Importante se o médico mudou
-        consulta.setStatus(newStatus);
-        
+        consulta.setTipoConsulta(tipo);
+        consulta.setSintomas(requestDTO.getSintomas());
+
         try {
-            // 5. Salvar a consulta
+            // 5. Salva a consulta atualizada
             Consulta updatedConsulta = consultaRepository.save(consulta);
             
-            // 6. Invalidar cache
-            cacheService.delete(CACHE_KEY_ALL_APPOINTMENTS);
+            // Garante a consistência da bidirecionalidade (opcional, depende do JPA mapping)
+            updatedConsulta.getHorarioSlot().setConsulta(updatedConsulta);
+            horarioSlotRepository.save(updatedConsulta.getHorarioSlot());
 
-            // 7. Retornar DTO
+            // 6. Invalida cache (Do usuário antigo e do novo, se mudou)
+            cacheService.delete(consultaHelper.getConsultasCacheKey(consulta.getUser().getPublicId().toString())); 
+            if (!patient.equals(consulta.getUser())) {
+                 cacheService.delete(consultaHelper.getConsultasCacheKey(patient.getPublicId().toString()));
+            }
+            // Limpa cache de opções (pois um slot foi liberado e outro ocupado)
+             cacheService.delete("FORM_OPTIONS_STATIC"); // Se houver cache de slots
+
+            log.info("Consulta atualizada com sucesso. ID: {}", id);
+
+            // 7. Retorna DTO
             return mapper.toDto(updatedConsulta);
 
         } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao atualizar consulta: {}", e.getMessage());
-            throw new DatabaseOperationException("Erro ao atualizar consulta", e);
+            log.error("Erro de banco ao atualizar consulta: {}", e.getMessage());
+            throw new DatabaseOperationException("Erro técnico ao atualizar agendamento.", e);
         }
     }
 

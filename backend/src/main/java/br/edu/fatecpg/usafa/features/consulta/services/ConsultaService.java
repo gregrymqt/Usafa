@@ -16,12 +16,15 @@ import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
+import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaHelper;
 import br.edu.fatecpg.usafa.features.consulta.utils.IConsultaMapper;
 import br.edu.fatecpg.usafa.models.Consulta;
+import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
 import br.edu.fatecpg.usafa.models.User;
+import br.edu.fatecpg.usafa.models.enums.StatusHorario;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +40,7 @@ public class ConsultaService implements IConsultaService {
     private final IConsultaMapper mapper;
     private final ICacheService cacheService;
     private final ConsultaHelper helper;
-
-    private static final String FORM_OPTIONS_CACHE_KEY = "CONSULTA_FORM_OPTIONS";
+    private final IHorarioSlotRepository horarioSlotRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -76,46 +78,55 @@ public class ConsultaService implements IConsultaService {
             throw new DatabaseOperationException("Erro ao consultar seu histórico de consultas.", e);
         }
     }
-
     @Override
     @Transactional(readOnly = true)
     public ConsultaFormOptionsDTO getFormOptions() {
-        try {
-            // 1. Tenta buscar do Cache
-            ConsultaFormOptionsDTO cachedOptions = cacheService.get(FORM_OPTIONS_CACHE_KEY, ConsultaFormOptionsDTO.class);
-            if (cachedOptions != null) {
-                log.info("Cache HIT para opções do formulário.");
-                return cachedOptions;
-            }
-        } catch (Exception e) {
-            log.warn("Falha ao ler cache de opções. Buscando no DB. Erro: {}", e.getMessage());
+        // 1. Tenta buscar OPÇÕES ESTÁTICAS do Cache (Médicos e Tipos mudam pouco)
+        // Nota: Separei o cache de horários do cache de cadastros para evitar conflito de agendamento
+        ConsultaFormOptionsDTO cachedBaseOptions = cacheService.get("FORM_OPTIONS_STATIC", ConsultaFormOptionsDTO.class);
+        
+        List<FormSelectOptionDTO> medicosOptions;
+        List<FormSelectOptionDTO> tiposOptions;
+
+        if (cachedBaseOptions != null) {
+            medicosOptions = cachedBaseOptions.getMedicos();
+            tiposOptions = cachedBaseOptions.getTipos();
+        } else {
+            // Se não tiver em cache, busca no banco e salva
+            List<Medico> medicos = medicoRepository.findAll();
+            List<TipoConsulta> tipos = tipoConsultaRepository.findAll();
+            
+            medicosOptions = mapper.medicosToOptions(medicos); // [cite: 51]
+            tiposOptions = mapper.tiposToOptions(tipos);       // [cite: 52]
+            
+            // Salva apenas a parte estática no cache
+            ConsultaFormOptionsDTO baseOptions = ConsultaFormOptionsDTO.builder()
+                .medicos(medicosOptions)
+                .tipos(tiposOptions)
+                .build();
+            cacheService.saveWithTtl("FORM_OPTIONS_STATIC", baseOptions, 24, TimeUnit.HOURS);
         }
 
         try {
-            // 2. Se não achar, busca no DB
-            log.info("Cache MISS para opções do formulário. Buscando no DB.");
-            List<Medico> medicos = medicoRepository.findAll();
-            List<TipoConsulta> tipos = tipoConsultaRepository.findAll();
+            // 2. Busca HORÁRIOS DISPONÍVEIS em Tempo Real (Sem Cache Longo ou Sem Cache)
+            // Aqui usamos a entidade HorarioSlot que você criou [cite: 73]
+            List<HorarioSlot> slotsLivres = horarioSlotRepository.findByStatus(StatusHorario.DISPONIVEL); // 
 
-            // 3. Lógica de Negócio para gerar dias e horários (como no LogErro)
-            List<FormSelectOptionDTO> dias = helper.gerarProximosDias(); 
-            List<FormSelectOptionDTO> horarios = helper.gerarHorarios(); 
+            // Usa o novo método do mapper que criamos na resposta anterior
+            List<FormSelectOptionDTO> slotsOptions = mapper.slotsToOptions(slotsLivres);
 
-            // 4. Mapeia e constrói o DTO
-            ConsultaFormOptionsDTO options = ConsultaFormOptionsDTO.builder()
-                    .medicos(mapper.medicosToOptions(medicos))
-                    .tipos(mapper.tiposToOptions(tipos))
-                    .dias(dias)
-                    .horarios(horarios)
+            // 3. Monta o DTO Final
+            return ConsultaFormOptionsDTO.builder()
+                    .medicos(medicosOptions)
+                    .tipos(tiposOptions)
+                    // Removemos "dias" separados, pois o slot já contém dia e hora combinados
+                    // ou você pode processar os slots para separar no front, mas enviar o slot real é crucial
+                    .horarios(slotsOptions) 
                     .build();
 
-            // 5. Salva no cache (expira em 1 hora)
-            cacheService.saveWithTtl(FORM_OPTIONS_CACHE_KEY, options, 1, TimeUnit.HOURS);
-            return options;
-
         } catch (DataAccessException e) {
-            log.error("Erro de banco ao buscar opções do formulário.", e);
-            throw new DatabaseOperationException("Erro ao carregar opções de agendamento.", e);
+            log.error("Erro de banco ao buscar opções.", e);
+            throw new DatabaseOperationException("Erro ao carregar opções.", e);
         }
     }
 }
