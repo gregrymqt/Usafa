@@ -1,6 +1,6 @@
 package br.edu.fatecpg.usafa.features.consulta.services;
 
-import br.edu.fatecpg.usafa.document.ConsultaDocument;
+import br.edu.fatecpg.usafa.document.RequestAppointment;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaConsumerHelper;
@@ -69,10 +69,10 @@ public class ConsultaConsumerService {
 
             // 4. Mapeia para o Documento Mongo (Staging Area)
             // O helper extrai os dados do Slot para preencher o documento corretamente
-            ConsultaDocument consultaDoc = helper.createDocumentFromSlot(request, user, slot, tipo);
+            RequestAppointment consultaDoc = helper.createDocumentFromSlot(request, user, slot, tipo);
 
             // 5. Salva no MongoDB
-            ConsultaDocument savedDoc = mongoRepository.save(consultaDoc); 
+            RequestAppointment savedDoc = mongoRepository.save(consultaDoc); 
             log.info("Solicitação salva no MongoDB com ID: {}", savedDoc.getId());
 
             // 6. Invalida Caches

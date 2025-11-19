@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IDoctorService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.Doctor.IDoctorService;
 
 import java.util.List;
 

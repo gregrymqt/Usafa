@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces;
+package br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment;
 
 import java.util.List;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;

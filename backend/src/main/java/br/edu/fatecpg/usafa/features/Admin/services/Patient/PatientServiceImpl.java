@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.services;
+package br.edu.fatecpg.usafa.features.Admin.services.Patient;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IPatientService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.Patient.IPatientService;
 import br.edu.fatecpg.usafa.features.Admin.utils.patient.PatientHelper;
 import br.edu.fatecpg.usafa.features.Admin.utils.patient.PatientMapper;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
@@ -94,6 +94,7 @@ public class PatientServiceImpl implements IPatientService {
         user.setCep(patientDto.getCep()); 
         user.setPhone(patientDto.getPhone());
         user.setBirthDate(birthDate);
+        user.setCreatedByAdmin(true);
         
         // Nota: A senha não está no DTO. Se for obrigatória,
         // o DTO precisa ser ajustado ou uma senha padrão gerada.
@@ -165,8 +166,7 @@ public class PatientServiceImpl implements IPatientService {
         
         try {
             // 3. Deletar
-            userRepository.delete(user);
-            // (Alternativa: userRepository.deleteByPublicId(user.getPublicId()))
+            userRepository.deleteByPublicId(user.getPublicId());
 
             // 4. Invalidar cache
             cacheService.delete(CACHE_KEY_ALL_PATIENTS);

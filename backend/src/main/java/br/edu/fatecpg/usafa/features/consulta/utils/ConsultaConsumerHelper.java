@@ -1,6 +1,6 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
-import br.edu.fatecpg.usafa.document.ConsultaDocument;
+import br.edu.fatecpg.usafa.document.RequestAppointment;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
@@ -55,9 +55,9 @@ public class ConsultaConsumerHelper {
     /**
      * Cria o Documento MongoDB extraindo dados do Slot SQL.
      */
-    public ConsultaDocument createDocumentFromSlot(AppointmentRequestDto request, User user, HorarioSlot slot,
+    public RequestAppointment createDocumentFromSlot(AppointmentRequestDto request, User user, HorarioSlot slot,
             TipoConsulta tipo) {
-        ConsultaDocument doc = new ConsultaDocument();
+        RequestAppointment doc = new RequestAppointment();
 
         // Dados da Requisição
         doc.setSintomas(request.getSintomas());

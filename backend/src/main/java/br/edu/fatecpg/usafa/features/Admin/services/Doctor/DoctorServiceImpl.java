@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.services;
+package br.edu.fatecpg.usafa.features.Admin.services.Doctor;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IDoctorService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.Doctor.IDoctorService;
 import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
 import br.edu.fatecpg.usafa.features.Admin.utils.doctor.DoctorHelper;
 import br.edu.fatecpg.usafa.features.Admin.utils.doctor.DoctorMapper;

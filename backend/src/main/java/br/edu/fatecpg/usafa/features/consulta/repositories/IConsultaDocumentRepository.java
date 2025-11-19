@@ -3,7 +3,7 @@ package br.edu.fatecpg.usafa.features.consulta.repositories;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import br.edu.fatecpg.usafa.document.ConsultaDocument;
+import br.edu.fatecpg.usafa.document.RequestAppointment;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
  * Ela gerencia o Documento 'ConsultaDocument' e usa String como ID.
  */
 @Repository
-public interface IConsultaDocumentRepository extends MongoRepository<ConsultaDocument, String> {
+public interface IConsultaDocumentRepository extends MongoRepository<RequestAppointment, String> {
 
-    List<ConsultaDocument> findByUserPublicId(String userPublicId);
+    List<RequestAppointment> findByUserPublicId(String userPublicId);
 }

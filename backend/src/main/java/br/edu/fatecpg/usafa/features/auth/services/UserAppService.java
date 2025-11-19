@@ -2,14 +2,14 @@
 
 package br.edu.fatecpg.usafa.features.auth.services; // (Ajuste o package se necessário)
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority; // 2. Importar
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecpg.usafa.features.auth.dtos.LoginGoogleRequestDTO;
 import br.edu.fatecpg.usafa.features.auth.dtos.LoginRequestDTO;
@@ -22,7 +22,10 @@ import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.roles.repositories.IRolesRepository;
 import br.edu.fatecpg.usafa.models.Role;
 import br.edu.fatecpg.usafa.models.User;
+import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -30,215 +33,199 @@ import java.util.Collections; // 3. Importar
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors; // 4. Importar
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class UserAppService implements IUserAppService {
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final IRolesRepository roleRepository; // (Mantive seu nome)
+    private final IRolesRepository roleRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
 
-    @Autowired
-    public UserAppService(IUserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            IRolesRepository roleRepository,
-            AuthenticationManager authenticationManager,
-            JwtUtils jwtUtils) {
-        this.roleRepository = roleRepository;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.jwtUtils = jwtUtils;
-    }
-
-    @Async
+    // --- LOGIN MANUAL ---
     @Override
     public ResponseDTO processManualLogin(LoginRequestDTO data) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(data.email(), data.password()));
+        try {
+            // 1. Autentica via Spring Security
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(data.email(), data.password()));
 
-        // 1. O 'principal' AGORA é o nosso UserDetails (que é o User)
-        User userDetails = (User) authentication.getPrincipal();
+            // 2. Recupera o UserDetails (User)
+            User userDetails = (User) authentication.getPrincipal();
 
-        // 2. MUDANÇA CRÍTICA: Geramos o token a partir do UserDetails
-        //    Isso permite que o JwtUtils coloque as roles DENTRO do token.
-        //    (Estou assumindo que você ajustou o JwtUtils.generateToken conforme nossa conversa)
-        String token = jwtUtils.generateToken(userDetails); 
+            // 3. Gera o token
+            String token = jwtUtils.generateToken(userDetails);
 
-        // 3. Pega a lista de roles (como strings) a partir das 'authorities'
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+            // 4. Retorna DTO padronizado
+            return buildResponseDTO(userDetails, token);
 
-        // 4. Retorna o DTO completo, incluindo as roles
-        return new ResponseDTO(
-                token,
-                userDetails.getPublicId().toString(),
-                userDetails.getName(),
-                userDetails.getEmail(),
-                userDetails.getCep(),
-                userDetails.getPhone(),
-                (userDetails.getBirthDate() != null)
-                                    ? userDetails.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
-                                    : null,
-                roles // <-- PREENCHIDO
-        );
+        } catch (BadCredentialsException e) {
+            // Encapsula erro de segurança em erro de negócio para não vazar detalhes
+            throw new BusinessRuleException("E-mail ou senha inválidos.");
+        }
     }
 
-    @Async
+    // --- REGISTRO MANUAL ---
     @Override
+    @Transactional // Garante que o usuário e a role sejam salvos juntos ou nada feito
     public ResponseDTO processManualRegistration(RegisterRequestDTO data) {
+        // 1. Fail-fast: Valida duplicidade
         if (userRepository.findByEmail(data.email()).isPresent()) {
-            throw new IllegalStateException("Este e-mail já está cadastrado.");
+            throw new BusinessRuleException("Este e-mail já está em uso.");
         }
 
-        String encryptedPassword = passwordEncoder.encode(data.password());
+        // 2. Prepara o usuário
+        User newUser = new User();
+        newUser.setName(data.name());
+        newUser.setEmail(data.email());
+        newUser.setPassword(passwordEncoder.encode(data.password()));
+        newUser.setCpf(data.cpf());
+        newUser.setCep(data.cep());
+        newUser.setPhone(data.phone());
+        newUser.setCreatedByAdmin(false);
 
-        User newUser = new User(data.name(),
-                data.email(),
-                encryptedPassword,
-                null,
-                null,
-                data.cpf(),
-                data.cep(),
-                data.phone(),
-                LocalDate.parse(data.birthDate().substring(0, 10))); // Extrai "YYYY-MM-DD" e converte
+        // Tratamento seguro de data
+        try {
+            // Assume formato ISO (YYYY-MM-DD) ou similar vindo do front
+            // Se vier com hora (ex: 2000-01-01T00:00:00), usamos substring ou parse seguro
+            String dateStr = data.birthDate().length() >= 10 ? data.birthDate().substring(0, 10) : data.birthDate();
+            newUser.setBirthDate(LocalDate.parse(dateStr));
+        } catch (Exception e) {
+            throw new BusinessRuleException("Formato de data de nascimento inválido.");
+        }
 
-        // 5. Atribui a role padrão (agora implementado)
+        // 3. Atribui Role e Salva
         assignDefaultRole(newUser);
-
         User savedUser = userRepository.save(newUser);
 
-        // 6. Gera o token (também a partir do UserDetails)
+        // 4. Gera token e retorna
         String token = jwtUtils.generateToken(savedUser);
-
-        // 7. Pega as roles
-        List<String> roles = savedUser.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        // 8. Retorna o DTO completo
-        return new ResponseDTO(
-                token,
-                savedUser.getPublicId().toString(),
-                savedUser.getName(),
-                savedUser.getEmail(),
-                savedUser.getCep(),
-                savedUser.getPhone(),
-               (savedUser.getBirthDate() != null)
-                                    ? savedUser.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
-                                    : null,
-                roles // <-- PREENCHIDO
-        );
+        return buildResponseDTO(savedUser, token);
     }
 
-    @Async
+    // --- LOGIN / REGISTRO VIA GOOGLE ---
     @Override
+    @Transactional
     public ResponseGoogleDTO processGoogleLogin(LoginGoogleRequestDTO googleUser) {
         Optional<User> existingUserOpt = userRepository.findByEmail(googleUser.email());
         User userToSave;
         boolean isNewUser = false;
-        boolean needsCompletion = false; // <-- NOSSO NOVO FLAG
+        boolean needsCompletion = false;
 
         if (existingUserOpt.isPresent()) {
             // --- USUÁRIO EXISTENTE ---
             userToSave = existingUserOpt.get();
-            userToSave.setName(googleUser.name());
+            userToSave.setName(googleUser.name()); // Atualiza nome se mudou no Google
             userToSave.setPicture(googleUser.picture());
+            
             if (userToSave.getGoogleId() == null) {
-                userToSave.setGoogleId(googleUser.googleId());
-                }
+                userToSave.setGoogleId(googleUser.googleId()); // Vincula conta existente ao Google
+            }
 
-            // --- LÓGICA DE VALIDAÇÃO (NOVA) ---
-            // Verifica se o usuário EXISTENTE não preencheu os dados
-            if (userToSave.getCpf() == null || userToSave.getCpf().isBlank() ||
-                userToSave.getCep() == null || userToSave.getCep().isBlank() ||
-                userToSave.getPhone() == null || userToSave.getPhone().isBlank() ||
-                userToSave.getBirthDate() == null) {
-                
-                needsCompletion = true; // <-- AVISA O FRONT-END
+            // Verifica se falta preencher dados obrigatórios do sistema
+            if (isProfileIncomplete(userToSave)) {
+                needsCompletion = true;
             }
 
         } else {
-            // --- USUÁRIO NOVO ---
+            // --- NOVO USUÁRIO ---
             isNewUser = true;
-            needsCompletion = true; // <-- Um usuário novo SEMPRE precisa completar
-            
+            needsCompletion = true; // Novo usuário Google SEMPRE precisa completar CPF/CEP etc.
+
             userToSave = new User();
             userToSave.setName(googleUser.name());
             userToSave.setEmail(googleUser.email());
             userToSave.setPicture(googleUser.picture());
             userToSave.setGoogleId(googleUser.googleId());
-            userToSave.setPassword(null); 
-            assignDefaultRole(userToSave); // Atribui ROLE_USER
+            userToSave.setCreatedByAdmin(false);
+            
+            assignDefaultRole(userToSave);
         }
 
         User savedUser = userRepository.save(userToSave);
-         // Gera o token (que agora terá a ROLE_USER)
         String token = jwtUtils.generateToken(savedUser);
-        // Pega as roles (para o DTO)
+        
+        // Obtém roles para retorno
         List<String> roles = savedUser.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+                .toList(); // Java 16+ (ou .collect(Collectors.toList()))
 
-        // 9. Retorna o DTO do Google (MODIFICADO)
         return new ResponseGoogleDTO(
                 token,
                 savedUser.getPublicId().toString(),
                 roles,
                 isNewUser,
-                needsCompletion // <-- RETORNA O NOVO FLAG
-        
-);
+                needsCompletion
+        );
     }
 
-    @Async
+    // --- ATUALIZAÇÃO DE CADASTRO (COMPLETAR DADOS) ---
     @Override
+    @Transactional
     public Optional<ResponseDTO> updateUserByPublicId(String publicId, UpdateUserByPublicIdDTO data) {
-        return userRepository.findByPublicId(UUID.fromString(publicId))
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(publicId);
+        } catch (IllegalArgumentException e) {
+             throw new BusinessRuleException("ID do usuário inválido.");
+        }
+
+        return userRepository.findByPublicId(uuid)
                 .map(user -> {
-                    // Atualiza CPF/CEP
                     user.setCep(data.cep());
                     user.setCpf(data.cpf());
+                    // Se houver outros campos para completar, adicione aqui
+                    
                     User savedUser = userRepository.save(user);
-
-                    // Gera um NOVO token (agora com CPF/CEP)
+                    
+                    // Gera novo token com as claims atualizadas (se o token carregar dados do user)
                     String token = jwtUtils.generateToken(savedUser);
-
-                    // Pega as roles
-                    List<String> roles = savedUser.getAuthorities().stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .collect(Collectors.toList());
-
-                    // Retorna o DTO completo
-                    return new ResponseDTO(
-                            token,
-                            savedUser.getPublicId().toString(),
-                            savedUser.getName(),
-                            savedUser.getEmail(),
-                            savedUser.getCep(),
-                            savedUser.getPhone(),
-                           (savedUser.getBirthDate() != null)
-                                        ? savedUser.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
-                                        : null,
-                            roles // <-- PREENCHIDO
-                    );
+                    
+                    return buildResponseDTO(savedUser, token);
                 });
     }
 
-    /**
-     * Método privado (helper) para atribuir a role "ROLE_USER"
-     * a um novo usuário.
-     */
-    private void assignDefaultRole(User user) {
-        // 1. Busca a role "ROLE_USER" no banco
-        Role defaultRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new RuntimeException("Erro: A role 'ROLE_USER' padrão não foi encontrada no banco."));
+    // ---------------------------------------------------------
+    // MÉTODOS PRIVADOS (HELPERS)
+    // ---------------------------------------------------------
 
-        // 2. Adiciona ao Set<Role> do usuário
+    private void assignDefaultRole(User user) {
+        Role defaultRole = roleRepository.findByName("ROLE_USER")
+                .orElseThrow(() -> new BusinessRuleException("Erro interno: Role padrão não configurada."));
         user.setRoles(Collections.singleton(defaultRole));
+    }
+
+    private boolean isProfileIncomplete(User user) {
+        return user.getCpf() == null || user.getCpf().isBlank() ||
+               user.getCep() == null || user.getCep().isBlank() ||
+               user.getPhone() == null || user.getPhone().isBlank() ||
+               user.getBirthDate() == null;
+    }
+
+    /**
+     * Centraliza a criação do ResponseDTO para evitar código duplicado
+     */
+    private ResponseDTO buildResponseDTO(User user, String token) {
+        List<String> roles = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        String birthDateFormatted = (user.getBirthDate() != null)
+                ? user.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
+                : null;
+
+        return new ResponseDTO(
+                token,
+                user.getPublicId().toString(),
+                user.getName(),
+                user.getEmail(),
+                user.getCep(),
+                user.getPhone(),
+                birthDateFormatted,
+                roles
+        );
     }
 }

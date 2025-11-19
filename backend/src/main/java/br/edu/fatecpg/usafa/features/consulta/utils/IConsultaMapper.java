@@ -37,8 +37,8 @@ public interface IConsultaMapper {
     @Mapping(source = "publicId", target = "id")
     @Mapping(source = "medico.nome", target = "medico")
     @Mapping(source = "tipoConsulta.nome", target = "tipo") // [cite: 32, 50]
-    @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString") // 
-    @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString") // [cite: 38]
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString")
+    @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString")
     @Mapping(source = "status", target = "status", qualifiedByName = "statusToString") // [cite: 34]
     ConsultaDTO toDTO(Consulta consulta);
 
@@ -48,8 +48,6 @@ public interface IConsultaMapper {
     @Mapping(source = "tipoConsulta.nome", target = "tipo")
     @Mapping(source = "horarioSlot.dataHoraInicio", target = "dia", qualifiedByName = "localDateTimeToDateString")
     @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString")
-    @Mapping(source = "user.name", target = "paciente") // [cite: 30]
-    @Mapping(source = "sintomas", target = "sintomas")
     ConsultaSummaryDTO toSummaryDTO(Consulta consulta);
 
     List<ConsultaSummaryDTO> toSummaryDTOs(List<Consulta> consultas);

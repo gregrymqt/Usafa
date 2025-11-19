@@ -8,9 +8,7 @@ import styles from './AuthSuccessPage.module.scss';
 import AuthForm from '../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../components/Form/types/form.type';
 import { validateCpf, validateCep, validatePhone } from '../../../../shared/utils/validators';
-import { useAuthSuccess } from '../../hooks/useAuthSuccess';
-
-
+import { useAuthSuccess } from './hooks/useAuthSuccess';
 
 /**
  * Página de transição que agora é controlada pelo hook useAuthSuccess.

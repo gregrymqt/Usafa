@@ -3,6 +3,7 @@ package br.edu.fatecpg.usafa.models;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,7 +30,10 @@ import java.util.Set;
  * Isso permite que o Spring Security entenda seu modelo de dados.
  */
 @Entity
-@Table(name = "users") // ou o nome da sua tabela
+@Table(name = "users", indexes = {
+        @Index(name = "idx_user_publicid", columnList = "publicId", unique = true),
+        @Index(name = "idx_user_email", columnList = "email", unique = true)
+})
 public class User implements UserDetails {
 
     @Id
@@ -42,6 +46,7 @@ public class User implements UserDetails {
 
     private String name;
 
+    @Column(unique = true, nullable = false)
     private String email;
 
     private String password;
@@ -58,6 +63,9 @@ public class User implements UserDetails {
 
     private LocalDate birthDate;
 
+    @Column(nullable = false)
+    private boolean createdByAdmin = false;
+
 
     // Em: br/edu/fatecpg/usafa/features/auth/models/User.java
     @ManyToMany(fetch = FetchType.EAGER)
@@ -72,7 +80,7 @@ public class User implements UserDetails {
 
     // Não se esqueça de adicionar getters e setters para 'roles'
 
-    public User(String name, String email, String password, String googleId, String picture, String cpf, String cep, String phone, LocalDate birthDate) {
+    public User(String name, String email, String password, String googleId, String picture, String cpf, String cep, String phone, LocalDate birthDate, boolean createdByAdmin) {
         this.publicId = UUID.randomUUID(); // Inicializa o publicId ao criar um novo usuário
         this.name = name;
         this.email = email;
@@ -83,6 +91,7 @@ public class User implements UserDetails {
         this.cep = cep;
         this.phone = phone;
         this.birthDate = birthDate;
+        this.createdByAdmin = createdByAdmin;
     }
 
     public User() {
@@ -124,6 +133,10 @@ public class User implements UserDetails {
 
     public LocalDate getBirthDate() {
         return birthDate;
+    }
+
+    public boolean isCreatedByAdmin() {
+        return createdByAdmin;
     }
 
     // Setters
@@ -169,6 +182,10 @@ public class User implements UserDetails {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public void setCreatedByAdmin(boolean createdByAdmin) {
+        this.createdByAdmin = createdByAdmin;
     }
 
     public Set<Role> getRoles() {

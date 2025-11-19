@@ -15,7 +15,8 @@ import java.util.UUID;
     // Índices para as chaves estrangeiras (melhora performance de JOINs)
     @Index(name = "idx_consulta_user_id", columnList = "user_id"),
     @Index(name = "idx_consulta_medico_id", columnList = "medico_id"),
-    @Index(name = "idx_consulta_slot_id", columnList = "horario_slot_id", unique = true)
+    @Index(name = "idx_consulta_slot_id", columnList = "horario_slot_id", unique = true),
+    @Index(name = "idx_consulta_tipo_consulta_id", columnList = "tipo_consulta_id")
 })
 public class Consulta {
 

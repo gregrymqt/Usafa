@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.models;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Index;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -12,7 +13,10 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "usafas") // Define o nome da tabela no banco de dados
+@Table(name = "usafas", indexes = {
+    @Index(name = "idx_usafa_user_id", columnList = "user_id"),
+    @Index(name = "idx_usafa_cep", columnList = "cep")
+})
 public class Usafa {
 
     @Id

@@ -10,10 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentService;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment.IAppointmentService;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
-import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 
 import java.util.List;
 

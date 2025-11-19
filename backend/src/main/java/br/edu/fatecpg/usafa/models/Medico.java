@@ -10,7 +10,8 @@ import java.util.Set;
     // Índices para colunas que serão muito usadas em 'WHERE'
     @Index(name = "idx_medico_public_id", columnList = "publicId", unique = true),
     @Index(name = "idx_medico_email", columnList = "email", unique = true),
-    @Index(name = "idx_medico_crm", columnList = "crm", unique = true)
+    @Index(name = "idx_medico_crm", columnList = "crm", unique = true),
+    @Index(name = "idx_medico_tipo_consulta_id", columnList = "tipo_consulta_id")
 })
 public class Medico {
     @Id

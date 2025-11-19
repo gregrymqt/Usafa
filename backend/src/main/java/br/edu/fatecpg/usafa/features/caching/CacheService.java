@@ -1,8 +1,11 @@
 package br.edu.fatecpg.usafa.features.caching;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -13,67 +16,73 @@ import java.util.concurrent.TimeUnit;
  * armazenar, recuperar e remover objetos do cache.
  */
 @Service
+@Slf4j // Adiciona logs automáticos
+@RequiredArgsConstructor // Cria construtor para as dependências final
 public class CacheService implements ICacheService {
 
+    // Usar <String, String> costuma ser mais seguro para garantir que seja salvo como JSON puro,
+    // mas manterei <String, Object> para compatibilidade com sua config atual.
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
-    public CacheService(RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
-        this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
-    }
-
-    /**
-     * Salva (ou atualiza) um valor no cache sem tempo de expiração.
-     * @param key A chave única para o item no cache.
-     * @param value O objeto a ser armazenado.
-     */
-    @Async
+    @Override
     public void save(String key, Object value) {
-        redisTemplate.opsForValue().set(key, value);
+        try {
+            redisTemplate.opsForValue().set(key, value);
+        } catch (Exception e) {
+            log.error("Erro ao salvar no cache Redis (Key: {}): {}", key, e.getMessage());
+        }
     }
 
-    /**
-     * Salva (ou atualiza) um valor no cache com um tempo de expiração (TTL - Time To Live).
-     * @param key A chave única para o item no cache.
-     * @param value O objeto a ser armazenado.
-     * @param timeout O tempo de vida do item no cache.
-     * @param timeUnit A unidade de tempo (ex: TimeUnit.MINUTES).
-     */
-    @Async
+    @Override
     public void saveWithTtl(String key, Object value, long timeout, TimeUnit timeUnit) {
-        redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
+        try {
+            redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
+        } catch (Exception e) {
+            log.error("Erro ao salvar com TTL no cache Redis (Key: {}): {}", key, e.getMessage());
+        }
     }
 
-    /**
-     * Busca um valor do cache e o converte para o tipo especificado.
-     * @param key A chave do item a ser buscado.
-     * @param clazz O tipo (classe) para o qual o resultado deve ser convertido.
-     * @return O objeto encontrado e convertido, ou null se a chave não existir.
-     */
-    @Async
+    @Override
     public <T> T get(String key, Class<T> clazz) {
-        Object value = redisTemplate.opsForValue().get(key);
-        return objectMapper.convertValue(value, clazz);
+        try {
+            Object value = redisTemplate.opsForValue().get(key);
+            
+            if (value == null) {
+                return null;
+            }
+
+            // Se o RedisTemplate já retornou o objeto do tipo certo, retorna direto
+            if (clazz.isInstance(value)) {
+                return clazz.cast(value);
+            }
+
+            // Caso o Redis retorne um LinkedHashMap (comum com Jackson), converte para o Objeto
+            return objectMapper.convertValue(value, clazz);
+
+        } catch (Exception e) {
+            log.error("Erro ao buscar do cache Redis (Key: {}): {}", key, e.getMessage());
+            return null; // Retorna null para forçar a busca no banco de dados
+        }
     }
 
-    /**
-     * Deleta um valor do cache.
-     * @param key A chave do item a ser removido.
-     */
-    @Async
+    @Override
     public void delete(String key) {
-        redisTemplate.delete(key);
+        try {
+            redisTemplate.delete(key);
+        } catch (Exception e) {
+            log.error("Erro ao deletar do cache Redis (Key: {}): {}", key, e.getMessage());
+        }
     }
 
-    /**
-     * Verifica se uma chave existe no cache.
-     * @param key A chave a ser verificada.
-     * @return true se a chave existir, false caso contrário.
-     */
-    @Async
+    @Override
     public boolean exists(String key) {
-        Boolean hasKey = redisTemplate.hasKey(key);
-        return hasKey != null && hasKey;
+        try {
+            Boolean hasKey = redisTemplate.hasKey(key);
+            return Boolean.TRUE.equals(hasKey);
+        } catch (Exception e) {
+            log.error("Erro ao verificar existência no cache Redis (Key: {}): {}", key, e.getMessage());
+            return false; // Na dúvida, diz que não existe para buscar no banco
+        }
     }
 }

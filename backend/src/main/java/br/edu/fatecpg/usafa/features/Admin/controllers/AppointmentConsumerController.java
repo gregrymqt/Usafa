@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.edu.fatecpg.usafa.document.ConsultaDocument;
+import br.edu.fatecpg.usafa.document.RequestAppointment;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.UpdateAppointmentDTO;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentConsumerService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment.IAppointmentConsumerService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,8 +33,8 @@ public class AppointmentConsumerController {
      * Busca todas as solicitações de consulta do MongoDB.
      */
     @GetMapping
-    public ResponseEntity<List<ConsultaDocument>> getAllConsultaRequests() {
-        List<ConsultaDocument> requests = adminConsultaService.getAllConsultaRequests();
+    public ResponseEntity<List<RequestAppointment>> getAllConsultaRequests() {
+        List<RequestAppointment> requests = adminConsultaService.getAllConsultaRequests();
         return ResponseEntity.ok(requests);
     }
 
@@ -43,12 +43,12 @@ public class AppointmentConsumerController {
      * Atualiza o status, dia ou horário de uma solicitação.
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<ConsultaDocument> updateConsulta(
+    public ResponseEntity<RequestAppointment> updateConsulta(
             @PathVariable String id,
             @RequestBody UpdateAppointmentDTO appointmentDTO
     ) {
         // O DTO [cite: 1] e o endpoint  já estavam corretos.
-        ConsultaDocument updatedDoc = adminConsultaService.updateConsultaStatus(id, appointmentDTO);
+        RequestAppointment updatedDoc = adminConsultaService.updateConsultaStatus(id, appointmentDTO);
         return ResponseEntity.ok(updatedDoc);
     }
 

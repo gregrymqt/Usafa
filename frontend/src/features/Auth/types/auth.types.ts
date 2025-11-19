@@ -21,7 +21,8 @@ export interface UserSession{
   cep: string,
   phone: string,
   birthDate: string,
-  roles: string[]
+  roles: string[],
+  createdByAdmin: boolean,
 }
 
 export interface UpdateUserData {  
@@ -36,6 +37,8 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   hasRole: (role: string) => boolean;
 }
+
+
 
 
 

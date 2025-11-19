@@ -1,6 +1,6 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces;
+package br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment;
 
-import br.edu.fatecpg.usafa.document.ConsultaDocument; // Importa o Documento do MongoDB [cite: 13]
+import br.edu.fatecpg.usafa.document.RequestAppointment; // Importa o Documento do MongoDB [cite: 13]
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.UpdateAppointmentDTO;
 
 import java.util.List;
@@ -14,7 +14,7 @@ public interface IAppointmentConsumerService {
     /**
      * (Admin) Busca todas as solicitações de consulta do MongoDB.
      */
-    List<ConsultaDocument> getAllConsultaRequests();
+    List<RequestAppointment> getAllConsultaRequests();
 
     /**
      * (Admin) Atualiza uma solicitação de consulta (dia, hora, status).
@@ -24,7 +24,7 @@ public interface IAppointmentConsumerService {
      * @param dto Os dados da atualização.
      * @return O documento atualizado (ou o documento como estava antes de ser movido para o SQL).
      */
-    ConsultaDocument updateConsultaStatus(String consultaId, UpdateAppointmentDTO dto); // Assinatura atualizada
+    RequestAppointment updateConsultaStatus(String consultaId, UpdateAppointmentDTO dto); // Assinatura atualizada
 
     /**
      * (Admin) Deleta permanentemente uma solicitação de consulta do MongoDB.

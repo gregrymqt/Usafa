@@ -20,7 +20,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @Document(collection = "solicitacoes_consulta") // Nome da coleção no MongoDB
-public class ConsultaDocument {
+public class RequestAppointment {
 
     @Id
     private String id; // ID automático do MongoDB
@@ -44,7 +44,7 @@ public class ConsultaDocument {
     /**
      * Construtor auxiliar para criar o Documento a partir dos dados validados.
      */
-    public ConsultaDocument(ConsultaRequestDTO request, User user, Medico medico, TipoConsulta tipo) {
+    public RequestAppointment(ConsultaRequestDTO request, User user, Medico medico, TipoConsulta tipo) {
         this.sintomas = request.getSintomas();
         this.dia = LocalDate.parse(request.getDia()); // Convertendo String para LocalDate
         this.horario = LocalTime.parse(request.getHorario()); // Convertendo String para LocalTime

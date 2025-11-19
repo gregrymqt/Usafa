@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { updateUserByPublicId } from '../services/auth.service'; 
-import type { UpdateUserData, UserSession } from '../types/auth.types'; 
-import { useAuth } from './useAuth'; 
+import { updateUserByPublicId } from '../../../services/auth.service'; 
+import type { UpdateUserData, UserSession } from '../../../types/auth.types'; 
+import { useAuth } from '../../../hooks/useAuth'; 
 
 type AuthStatus = 'loading' | 'redirecting' | 'google_form' | 'error';
 

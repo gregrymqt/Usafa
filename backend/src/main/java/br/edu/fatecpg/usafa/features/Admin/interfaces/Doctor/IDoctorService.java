@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces;
+package br.edu.fatecpg.usafa.features.Admin.interfaces.Doctor;
 
 
 import java.util.List;

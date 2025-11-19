@@ -1,5 +1,5 @@
 import api from '../../../shared/services/api.service';
-import type { LoginCredentials, RegisterData, UpdateUserData, UserSession } from '../types/auth.types';
+import type { LoginCredentials, RegisterData, UpdateUserAndCreatePasswordData, UpdateUserData, UserSession } from '../types/auth.types';
 
 /**
  * Envia as credenciais de login para o endpoint /auth/login (usando fetch).
@@ -45,4 +45,9 @@ export const getUserByPublicId = async (publicId: string): Promise<UserSession> 
  */
 export const updateUserByPublicId = async (publicId: string, userData: UpdateUserData): Promise<UserSession> => {
   return api.put<UserSession>(`/auth/id/${publicId}`, userData);
+};
+
+
+export const createPassword = async (data : UpdateUserAndCreatePasswordData): Promise<void> => {
+  return api.post<void>(`/auth/create-password`, data);
 };

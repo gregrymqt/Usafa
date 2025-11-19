@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.services;
+package br.edu.fatecpg.usafa.features.Admin.services.Appointment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.IAppointmentService;
+import br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment.IAppointmentService;
 import br.edu.fatecpg.usafa.features.Admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentHelper;
 import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentMapper;

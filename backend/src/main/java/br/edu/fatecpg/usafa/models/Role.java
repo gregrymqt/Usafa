@@ -6,7 +6,9 @@ import java.util.Set;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "roles", indexes = {
+    @Index(name = "idx_role_name", columnList = "name", unique = true)
+})
 public class Role {
 
     @Id
