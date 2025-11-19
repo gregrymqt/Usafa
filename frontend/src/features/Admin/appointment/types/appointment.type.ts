@@ -1,67 +1,47 @@
-// Importando os tipos que já devem existir
-
-import type { Doctor } from "../../doctors/types/doctor.type";
 import type { Patient } from "../../Patient/types/patient.types";
+import type { Doctor } from "../../doctors/types/doctor.type";
 
-
-// (Placeholder do Paciente foi REMOVIDO)
-
-/**
- * Status possíveis de uma consulta
- */
-export type AppointmentStatus = 'Agendada' | 'Concluída' | 'Cancelada';
+export type AppointmentStatus = 'Agendada' | 'Concluída' | 'Cancelada' | 'Pendente';
 
 /**
- * Interface base para uma Consulta
- * (Pode ser mais complexa, com objetos Doctor/Patient aninhados)
+ * Interface de Visualização (Para a Tabela)
  */
 export interface Appointment {
-  id: number | string;
-  patient: Patient; // Objeto paciente (agora tipo real)
-  doctor: Doctor; // Objeto doutor (simplificado)
-  date: string; // Data no formato ISO (ex: "2023-12-25T14:30:00Z")
+  id: string;
+  patient: Patient; 
+  doctor: Doctor; 
+  date: string; // ISO String (Vem do slot)
   status: AppointmentStatus;
+  specialty?: string; // Opcional, para exibição
 }
 
 /**
- * Tipo para os dados do formulário (usa IDs)
+ * Interface de Envio (Para Criar/Editar)
+ * Alinhada com o DTO do Backend (AppointmentRequestDto)
  */
 export interface AppointmentFormData {
-  patientId: string;
-  doctorId: string;
-  date: string; // "YYYY-MM-DD"
-  time: string; // "HH:MM"
+  patientId: string;       // Admin seleciona o paciente
+  horarioSlotId: number;   // ID do Slot (Substitui data/hora/medico)
+  tipoConsultaId: string;  // ID da Especialidade
   status: AppointmentStatus;
-  appointmentType: string;
+  sintomas?: string;
 }
 
 /**
- * Tipo para criação (combina data e hora)
+ * Opções para os Selects
  */
-export type NewAppointmentData = Omit<AppointmentFormData, 'date' | 'time'> & {
-  dateTime: string; // Formato ISO
-};
-
-/**
- * Tipo para atualização de uma Consulta (parcial)
- */
-export type UpdateAppointmentData = Partial<NewAppointmentData>;
-
-
 export interface FormSelectOption {
   value: string | number;
   label: string;
 }
 
-export interface AppointmentAdminProps {
-  appointments: Appointment[]; // Virá do hook (pai)
+export interface AppointmentFormProps {
+  onSubmit: (data: AppointmentFormData) => Promise<void>;
+  onCancel: () => void;
+  initialData?: AppointmentFormData | null;
   isLoading: boolean;
-  error: string | null;
-  onEditAppointment: (appointment: Appointment) => void;
-  onDeleteAppointment: (id : string) => void;
-}
-
-export interface ActionMenuProps {
-  onEdit: () => void;
-  onDelete: () => void;
+  // Opções necessárias para o Admin preencher o form
+  patientOptions: FormSelectOption[];
+  typeOptions: FormSelectOption[]; // Tipos de consulta
+  slotOptions: FormSelectOption[]; // Lista de horários (ID do Slot)
 }

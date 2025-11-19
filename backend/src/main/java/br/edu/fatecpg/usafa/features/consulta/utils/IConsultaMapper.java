@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
 import java.time.LocalDateTime;
+import java.time.format.TextStyle;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -106,7 +107,9 @@ public interface IConsultaMapper {
     @Named("slotToLabel")
     default String slotToLabel(LocalDateTime dataHora) {
         if (dataHora == null) return "Data inválida";
-        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("dd/MM (EEE) 'às' HH:mm", LOCALE_BR);
-        return dataHora.format(labelFormatter);
+        String diaSemana = dataHora.getDayOfWeek().getDisplayName(TextStyle.SHORT, LOCALE_BR);
+        String dataFormatada = dataHora.format(DateTimeFormatter.ofPattern("dd/MM", LOCALE_BR));
+        String horaFormatada = dataHora.format(TIME_FORMATTER);
+        return String.format("%s (%s) às %s", dataFormatada, diaSemana, horaFormatada);
     }
 }

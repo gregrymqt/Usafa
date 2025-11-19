@@ -4,19 +4,18 @@ package br.edu.fatecpg.usafa.features.consulta.controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication; // 2. Importa Authentication
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import br.edu.fatecpg.usafa.config.queues.ConsultaQueueConfig;
+import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaMessageDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 import br.edu.fatecpg.usafa.models.User;
 
@@ -32,7 +31,9 @@ public class ConsultaController {
     // Instancia a INTERFACE do serviço (não a implementação)
     private final IConsultaService consultaService;
     private final UserUtils userUtils;
-    private final AmqpTemplate amqpTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private static final String CONSULTA_QUEUE_NAME = "fila:consultas:request";
+
 
     /**
      * Endpoint para buscar o histórico de consultas de um usuário.
@@ -85,40 +86,35 @@ public class ConsultaController {
      */
     @PostMapping
     public ResponseEntity<String> criarConsulta(
-            @Validated @RequestBody ConsultaRequestDTO requestDTO,
-            Authentication authentication // [cite: 1]
+            @Validated @RequestBody AppointmentRequestDto requestDTO, 
+            Authentication authentication
     ) {
-        // 1. Pega o usuário da autenticação [cite: 1, 3]
-        Optional<User> userOptional = userUtils.getUserFromAuthentication(authentication);
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // [cite: 2]
-        }
-        User user = userOptional.get();
+        // 1. Pega o usuário da autenticação
+        User user = userUtils.getUserFromAuthentication(authentication)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        // 2. Cria o DTO da Mensagem (com o ID do usuário)
-        ConsultaMessageDTO message = new ConsultaMessageDTO(
-                requestDTO,
-                user.getPublicId().toString()
-        );
+        // 2. Prepara o DTO (Injeta o ID do paciente autenticado)
+        // Isso substitui a necessidade do antigo "ConsultaMessageDTO"
+        requestDTO.setPatientId(user.getPublicId().toString());
 
-        // 3. Publica a mensagem na fila do RabbitMQ
+        // 3. Publica na fila do REDIS
         try {
-            amqpTemplate.convertAndSend(
-                    ConsultaQueueConfig.EXCHANGE_NAME,
-                    ConsultaQueueConfig.CONSULTA_ROUTING_KEY,
-                    message // O template converte isso para JSON
+            // RedisQueueConfig.CONSULTA_QUEUE_NAME é a constante "fila:consultas:request"
+            redisTemplate.convertAndSend( 
+                CONSULTA_QUEUE_NAME,
+                requestDTO // O Jackson configurado no RedisConfig vai virar JSON sozinho
             );
-            log.info("Solicitação de consulta enviada para a fila pelo usuário: {}", user.getPublicId());
 
-            // 4. Retorna 202 Accepted (Aceito) IMEDIATAMENTE.
-            // O front-end não recebe mais o ConsultaSummaryDTO 
+            log.info("Solicitação enviada para o Redis. Usuário: {}", user.getPublicId());
+
+            // 4. Retorna 202 Accepted (Igual antes)
             return ResponseEntity.accepted()
-                                 .body("Sua solicitação foi recebida e está sendo processada.");
+                    .body("Sua solicitação foi recebida e está sendo processada.");
 
         } catch (Exception e) {
-            log.error("Falha ao publicar mensagem no RabbitMQ: {}", e.getMessage(), e);
+            log.error("Falha ao publicar no Redis: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body("Não foi possível processar sua solicitação no momento.");
+                    .body("Erro interno ao processar solicitação.");
         }
     }
 }

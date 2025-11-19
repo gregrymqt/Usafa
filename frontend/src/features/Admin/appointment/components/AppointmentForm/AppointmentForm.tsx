@@ -1,41 +1,45 @@
 import React, { useState, useMemo } from 'react';
-// Importando o AuthForm
-
 import styles from './AppointmentForm.module.scss';
 import AuthForm from '../../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../../components/Form/types/form.type';
+import type { AppointmentStatus } from '../../types/appointment.type';
 import type { AppointmentFormProps } from './types/Appointment.types';
-
-type StatusType = 'Agendada' | 'Concluída' | 'Cancelada';
 
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
   onCancel,
   initialData = null,
   isLoading,
-  doctorOptions,
   patientOptions,
+  typeOptions, // Nova prop
+  slotOptions, // Nova prop (contém os horários reais do banco)
 }) => {
-  // Estado para o formulário
+  
+  // Estados alinhados com o novo DTO
   const [patientId, setPatientId] = useState(initialData?.patientId || '');
-  const [doctorId, setDoctorId] = useState(initialData?.doctorId || '');
-  const [date, setDate] = useState(initialData?.date || ''); // ex: "2023-10-25"
-  const [time, setTime] = useState(initialData?.time || ''); // ex: "14:30"
-  const [specialty, setSpecialty] = useState(initialData?.specialty || '');
-  const [status, setStatus] = useState<StatusType>(initialData?.status || 'Agendada');
+  const [tipoConsultaId, setTipoConsultaId] = useState(initialData?.tipoConsultaId || '');
+  const [horarioSlotId, setHorarioSlotId] = useState<number | undefined>(initialData?.horarioSlotId);
+  const [status, setStatus] = useState<AppointmentStatus>(initialData?.status || 'Agendada');
+  const [sintomas, setSintomas] = useState(initialData?.sintomas || '');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = { patientId, doctorId, date, time, status, specialty };
-
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('Falha no submit, modal não será fechado.', error);
+    if (horarioSlotId && patientId && tipoConsultaId) {
+      const formData = { 
+        patientId, 
+        tipoConsultaId, 
+        horarioSlotId, 
+        status, 
+        sintomas 
+      };
+      try {
+        await onSubmit(formData);
+      } catch (error) {
+        console.error('Falha no submit admin:', error);
+      }
     }
   };
 
-  // Definição dos campos para o AuthForm
   const fields: FormField[] = useMemo(
     () => [
       {
@@ -44,68 +48,52 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         label: 'Paciente',
         value: patientId,
         onChange: (val) => setPatientId(val as string),
-        options: [
-          { value: '', label: 'Selecione o paciente' },
-          ...patientOptions,
-        ],
+        options: [{ value: '', label: 'Selecione o paciente' }, ...patientOptions],
         required: true,
       },
       {
         elementType: 'select',
-        name: 'doctorId',
-        label: 'Médico',
-        value: doctorId,
-        onChange: (val) => setDoctorId(val as string),
-        options: [
-          { value: '', label: 'Selecione o médico' },
-          ...doctorOptions,
-        ],
-        required: true,
-      },
-      {
-        elementType: 'input',
-        type: 'text',
-        name: 'specialty',
+        name: 'tipoConsultaId',
         label: 'Especialidade',
-        value: specialty,
-        onChange: (val) => setSpecialty(val as string),
-        placeholder: 'Ex: Urologista',
+        value: tipoConsultaId,
+        onChange: (val) => setTipoConsultaId(val as string),
+        options: [{ value: '', label: 'Selecione a especialidade' }, ...typeOptions],
         required: true,
       },
       {
-        elementType: 'input',
-        type: 'date',
-        name: 'date',
-        label: 'Data da Consulta',
-        value: date,
-        placeholder: '',
-        onChange: (val) => setDate(val as string),
+        elementType: 'select',
+        name: 'horarioSlotId', // O Admin escolhe um slot real do banco
+        label: 'Horário / Médico',
+        value: horarioSlotId || '',
+        onChange: (val) => setHorarioSlotId(Number(val)),
+        options: slotOptions, // Ex: [{value: 1, label: "25/10 14:00 - Dr. House"}]
         required: true,
-      },
-      {
-        elementType: 'input',
-        type: 'time',
-        name: 'time',
-        label: 'Hora da Consulta',
-        value: time,
-        placeholder: '',
-        onChange: (val) => setTime(val as string),
-        required: true,
+        placeholder: 'Selecione um horário disponível'
       },
       {
         elementType: 'select',
         name: 'status',
         label: 'Status',
         value: status,
-        onChange: (val) => setStatus(val as StatusType),
+        onChange: (val) => setStatus(val as AppointmentStatus),
         options: [
           { value: 'Agendada', label: 'Agendada' },
           { value: 'Concluída', label: 'Concluída' },
           { value: 'Cancelada', label: 'Cancelada' },
+          { value: 'Pendente', label: 'Pendente' },
         ],
+        required: true,
+      },
+      {
+        elementType: 'textarea',
+        name: 'sintomas',
+        label: 'Observações / Sintomas',
+        value: sintomas,
+        onChange: (val) => setSintomas(val as string),
+        placeholder: 'Detalhes adicionais...',
       },
     ],
-    [patientId, doctorId, date, time, status, specialty, patientOptions, doctorOptions]
+    [patientId, tipoConsultaId, horarioSlotId, status, sintomas, patientOptions, typeOptions, slotOptions]
   );
 
   return (
@@ -114,7 +102,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         fields={fields}
         handleSubmit={handleSubmit}
         isLoading={isLoading}
-        buttonText={initialData ? 'Atualizar Consulta' : 'Agendar Consulta'}
+        buttonText={initialData ? 'Atualizar Agendamento' : 'Criar Agendamento'}
       >
         <button
           type="button"

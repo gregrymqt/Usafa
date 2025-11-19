@@ -35,6 +35,7 @@ export interface SelectField extends BaseField {
   value: string | number; // <-- Pode ser string ou number
   onChange: (value: string | number) => void;
   options: FormSelectOption[];
+  placeholder?: string;
 }
 
 // Tipo para Checkbox

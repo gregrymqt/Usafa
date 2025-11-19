@@ -1,5 +1,7 @@
 package br.edu.fatecpg.usafa.features.location.mappers;
 
+import java.util.List;
+
 import br.edu.fatecpg.usafa.features.location.dtos.LocationCreateDTO;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationDTO;
 import br.edu.fatecpg.usafa.models.Usafa;
@@ -39,5 +41,12 @@ public interface ILocationMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
     Usafa fromCreateDTO(LocationCreateDTO createDTO);
-    
+
+    /**
+     * Converte uma lista de entidades Usafa para uma lista de LocationDTOs.
+     *
+     * @param usafas A lista de entidades do banco de dados.
+     * @return A lista de DTOs correspondentes.
+     */
+    List<LocationDTO> toDTOList(List<Usafa> usafas);
 }

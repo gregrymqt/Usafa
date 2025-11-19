@@ -1,30 +1,34 @@
-import type { FormSelectOption } from "../../Admin/appointment/components/AppointmentForm/AppointmentForm";
+// Definição de opção para Selects (Reutilizável)
+export interface FormSelectOption {
+  value: string | number;
+  label: string;
+}
 
 /**
- * Representa uma consulta existente (para a Tabela)
+ * [cite_start]Representa uma consulta existente (para a Tabela) [cite: 33]
  */
 export interface Consulta {
   id: string;
   medico: string;
   tipo: string;
-  dia: string;
+  dia: string; // Vem formatado do backend ou do slot
   horario: string;
-  status: 'Pendente' | 'Confirmada' | 'Realizada';
+  status: 'Pendente' | 'Confirmada' | 'Realizada' | 'Agendada';
 }
 
 /**
- * Representa os dados do formulário
+ * [cite_start]Representa os dados do formulário de envio [cite: 35]
+ * ATUALIZADO para bater com AppointmentRequestDto do Backend
  */
 export interface ConsultaRequest {
-  medicoId: string;
-  tipoId: string;
-  dia: string;
-  horario: string;
+  patientId: string;       // ID do usuário logado
+  horarioSlotId: number;   // ID do slot escolhido (Substitui dia/horario/medico)
+  tipoConsultaId: string;  // ID do tipo
   sintomas: string;
 }
 
 /**
- * Representa os dados que a API retorna após o agendamento (para o Modal)
+ * [cite_start]Dados para o Modal de Sucesso [cite: 36]
  */
 export interface ConsultaSummary {
   protocolo: string;
@@ -36,11 +40,11 @@ export interface ConsultaSummary {
 }
 
 /**
- * Representa as opções que vêm da API para preencher os <select>
+ * [cite_start]Opções para preencher os <select> [cite: 38]
  */
 export interface ConsultaFormOptions {
-  medicos: FormSelectOption[];
+  medicos: FormSelectOption[]; // Útil se quiser filtrar slots no front
   tipos: FormSelectOption[];
-  dias: FormSelectOption[];
-  horarios: FormSelectOption[];
+  // 'dias' foi removido pois a data está dentro do slot
+  horarios: FormSelectOption[]; // Agora contém a lista de Slots (ID, Label="25/10 14:00 - Dr. X")
 }

@@ -1,81 +1,97 @@
 package br.edu.fatecpg.usafa.features.consulta.services;
 
-import java.util.UUID;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Service;
-
-import br.edu.fatecpg.usafa.config.queues.ConsultaQueueConfig;
 import br.edu.fatecpg.usafa.document.ConsultaDocument;
+import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaMessageDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
-import br.edu.fatecpg.usafa.features.consulta.notifications.NotificationService;
-import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaConsumerHelper;
-import br.edu.fatecpg.usafa.models.Medico;
+import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
 import br.edu.fatecpg.usafa.models.User;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
+import br.edu.fatecpg.usafa.shared.webSockets.interfaces.INotificationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Serviço Consumidor do RabbitMQ.
- * Escuta a fila de solicitações de consulta, valida os dados
- * (cruzando com o banco SQL) e salva no MongoDB.
- */
+import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ConsultaConsumerService {
 
-    // Repositórios e Serviços principais
     private final IConsultaDocumentRepository mongoRepository; 
     private final ICacheService cacheService; 
-    private final NotificationService notificationService; 
-    
-    // Classe de utilidade injetada
-    private final ConsultaConsumerHelper helper;
+    private final INotificationService notificationService; 
+    private final ConsultaConsumerHelper helper; 
+    private final ObjectMapper objectMapper; // Para converter o JSON do Redis
 
     /**
-     * Escuta a fila de solicitações de consulta.
+     * Método invocado pelo RedisMessageListenerContainer (via Adapter).
+     * Recebe a mensagem bruta (JSON).
      */
-    @RabbitListener(queues = ConsultaQueueConfig.CONSULTA_QUEUE_NAME) 
-    public void handleConsultaRequest(ConsultaMessageDTO message) {
-        log.info("Mensagem recebida da fila para o usuário: {}", message.getUserPublicId());
-        ConsultaRequestDTO request = message.getRequestData(); 
+    public void receiveMessage(String messageJson) {
+        log.info("Redis: Mensagem recebida na fila de solicitações.");
+        // Chama o processamento assíncrono para não travar o listener do Redis
+        processarSolicitacaoAsync(messageJson);
+    }
 
+    /**
+     * Processa a solicitação em uma thread separada.
+     */
+    @Async
+    @Transactional // Garante consistência nas leituras do SQL
+    public void processarSolicitacaoAsync(String messageJson) {
         try {
-            // 1. Validar e Buscar dados (usando o Helper)
-            User user = helper.findUserOrThrow(message.getUserPublicId());
-            Medico medico = helper.findMedicoOrThrow(UUID.fromString(request.getMedicoId()));
-            TipoConsulta tipo = helper.findTipoConsultaOrThrow(UUID.fromString(request.getTipoId()));
+            // 1. Deserializa o JSON para o DTO novo (que tem horarioSlotId)
+            AppointmentRequestDto request = objectMapper.readValue(messageJson, AppointmentRequestDto.class);
+            log.info("Processando solicitação para o usuário: {}", request.getPatientId());
 
-            // 2. Executar Regras de Negócio
-            if (!medico.getTipoConsulta().getId().equals(tipo.getId())) { 
+            // 2. Valida e Busca dados (SQL) usando o Helper
+            User user = helper.findUserOrThrow(request.getPatientId());
+            
+            // Busca o Slot (que contém Médico e Data/Hora)
+            HorarioSlot slot = helper.findSlotOrThrow(request.getHorarioSlotId());
+            
+            TipoConsulta tipo = helper.findTipoConsultaOrThrow(request.getTipoConsultaId());
+
+            // 3. Executa Regras de Negócio
+            // Verifica se o médico do slot atende o tipo de consulta solicitado
+            if (!slot.getMedico().getTipoConsulta().getId().equals(tipo.getId())) {
                 throw new BusinessRuleException("O médico selecionado não pertence a esta especialidade.");
             }
-
-            // 3. Mapear para o Documento Mongo
-            ConsultaDocument consultaDoc = new ConsultaDocument(request, user, medico, tipo); 
             
-            // 4. Salvar no MongoDB
-            ConsultaDocument savedDoc = mongoRepository.save(consultaDoc); 
-            log.info("Solicitação de consulta salva no MongoDB com ID: {}", savedDoc.getId()); 
-            // 5. Invalidar Caches (usando o Helper)
-            cacheService.delete(helper.getConsultasCacheKey(user.getPublicId().toString())); 
+            // Verifica se o slot ainda está disponível (Proteção extra)
+            helper.validateSlotAvailability(slot);
 
-            // 6. Enviar Notificação (usando o Helper)
-            ConsultaSummaryDTO summary = helper.createSummaryFromDocument(savedDoc); 
-            notificationService.sendConsultaConfirmation( 
-                message.getUserPublicId(), 
-                summary
+            // 4. Mapeia para o Documento Mongo (Staging Area)
+            // O helper extrai os dados do Slot para preencher o documento corretamente
+            ConsultaDocument consultaDoc = helper.createDocumentFromSlot(request, user, slot, tipo);
+
+            // 5. Salva no MongoDB
+            ConsultaDocument savedDoc = mongoRepository.save(consultaDoc); 
+            log.info("Solicitação salva no MongoDB com ID: {}", savedDoc.getId());
+
+            // 6. Invalida Caches
+            cacheService.delete(helper.getConsultasCacheKey(user.getPublicId().toString()));
+
+            // 7. Notifica o Usuário (Recebimento)
+            // Usa o serviço genérico "send"
+            notificationService.send(
+                request.getPatientId(),
+                "SOLICITACAO_RECEBIDA", // Tipo para o front saber que é um aviso de "Aguarde"
+                "Recebemos seu pedido! Aguardando confirmação da secretaria.",
+                savedDoc
             );
+
         } catch (BusinessRuleException e) {
-            log.warn("Falha na regra de negócio: {}", e.getMessage()); 
+            log.warn("Regra de negócio violada (consumidor): {}", e.getMessage());
+            // Aqui você poderia notificar o usuário sobre o erro via WebSocket também
         } catch (Exception e) {
-            log.error("Erro inesperado ao processar consulta da fila", e); 
+            log.error("Erro crítico ao processar solicitação do Redis", e);
         }
     }
 }

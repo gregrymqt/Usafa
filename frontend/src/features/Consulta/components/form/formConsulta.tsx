@@ -1,88 +1,74 @@
 import React, { useState } from 'react';
-import { type ConsultaRequest } from '../../types/consulta.types';
+// Importamos 'Omit' para dizer que o formulário não sabe o 'patientId' (o hook que sabe)
+import { type ConsultaRequest } from '../../types/consulta.types'; 
 import styles from './ConsultaForm.module.scss';
 import AuthForm from '../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../components/Form/types/form.type';
 import type { ConsultaFormProps } from './types/ConsultaForm.type';
 
+// Tipo local para o estado do formulário (tudo menos o patientId)
+type ConsultaFormState = Omit<ConsultaRequest, 'patientId'>;
 
 export const ConsultaForm: React.FC<ConsultaFormProps> = ({ options, isSubmitting, onSubmit }) => {
   
-  // Estado interno do formulário
-  const [formData, setFormData] = useState<ConsultaRequest>({
-    medicoId: '',
-    tipoId: '',
-    dia: '',
-    horario: '',
+  // Estado inicial atualizado [cite: 22]
+  const [formData, setFormData] = useState<Partial<ConsultaFormState>>({
+    tipoConsultaId: '',     // Substitui tipoId
+    horarioSlotId: undefined, // Substitui dia/horario/medico
     sintomas: ''
   });
 
-  const handleChange = (field: keyof ConsultaRequest, value: string | number) => {
-    setFormData((prev: ConsultaRequest) => ({
+  // Manipulador de mudanças genérico [cite: 23]
+  const handleChange = (field: keyof ConsultaFormState, value: string | number) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: String(value) // Garante que é string
+      [field]: value 
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await onSubmit(formData);
-    // Limpa o form após o envio (opcional)
-    setFormData({
-      medicoId: '',
-      tipoId: '',
-      dia: '',
-      horario: '',
-      sintomas: ''
-    });
+    // Validamos se os campos obrigatórios estão preenchidos
+    if (formData.tipoConsultaId && formData.horarioSlotId) {
+      // Convertemos para o tipo esperado (cast seguro pois validamos acima)
+      await onSubmit(formData as unknown as ConsultaRequest); 
+      
+      // Limpa o form [cite: 25]
+      setFormData({
+        tipoConsultaId: '',
+        horarioSlotId: undefined,
+        sintomas: ''
+      });
+    }
   };
 
-  // Constrói os campos para o seu AuthForm
-  // Todos são 'select' ou 'textarea' como pedido
   const fields: FormField[] = [
     {
       elementType: 'select',
-      name: 'medicoId',
-      label: 'Médico',
-      value: formData.medicoId,
-      onChange: (val: string | number) => handleChange('medicoId', val),
-      options: options.medicos,
-      required: true,
-    },
-    {
-      elementType: 'select',
-      name: 'tipoId',
-      label: 'Tipo de Consulta',
-      value: formData.tipoId,
-      onChange: (val: string | number) => handleChange('tipoId', val),
+      name: 'tipoConsultaId', // [cite: 27]
+      label: 'Especialidade / Tipo',
+      value: formData.tipoConsultaId || '',
+      onChange: (val) => handleChange('tipoConsultaId', val),
       options: options.tipos,
       required: true,
     },
     {
       elementType: 'select',
-      name: 'dia',
-      label: 'Dia',
-      value: formData.dia,
-      onChange: (val: string | number) => handleChange('dia', val),
-      options: options.dias,
+      name: 'horarioSlotId', // NOVO: Substitui Médico, Dia e Horário
+      label: 'Horários Disponíveis',
+      value: formData.horarioSlotId || '',
+      onChange: (val) => handleChange('horarioSlotId', Number(val)), // Converte para number (Long no Java)
+      options: options.horarios, // Vem do mapper.slotsToOptions() do backend
       required: true,
-    },
-    {
-      elementType: 'select',
-      name: 'horario',
-      label: 'Horário',
-      value: formData.horario,
-      onChange: (val: string | number) => handleChange('horario', val),
-      options: options.horarios,
-      required: true,
+      placeholder: 'Selecione data e médico...'
     },
     {
       elementType: 'textarea',
-      name: 'sintomas',
+      name: 'sintomas', // [cite: 29]
       label: 'Sintomas (Opcional)',
       placeholder: 'Descreva brevemente seus sintomas...',
-      value: formData.sintomas,
-      onChange: (val: string | number) => handleChange('sintomas', val),
+      value: formData.sintomas || '',
+      onChange: (val) => handleChange('sintomas', val),
     }
   ];
 
@@ -93,7 +79,7 @@ export const ConsultaForm: React.FC<ConsultaFormProps> = ({ options, isSubmittin
         fields={fields}
         handleSubmit={handleSubmit}
         isLoading={isSubmitting}
-        buttonText="Enviar Solicitação"
+        buttonText="Agendar Consulta"
       />
     </section>
   );
