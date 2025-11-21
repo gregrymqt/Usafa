@@ -25,4 +25,12 @@ export interface DoctorAdminProps {
   error: string | null;
   onEditDoctor: (doctor: Doctor) => void;
   onDeleteDoctor: (doctor: Doctor) => void;
+  loadMoreDoctors: () => void;
+  hasMore: boolean;
+}
+
+export interface GetDoctorsParams {
+  page: number;
+  size: number;
+  search: string;
 }

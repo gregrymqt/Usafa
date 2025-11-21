@@ -38,4 +38,12 @@ export interface PatientAdminProps {
   error: string | null;
   onEditPatient: (patient: Patient) => void;
   onDeletePatient: (patient: Patient) => void;
+  hasMore: boolean;
+  loadMorePatients: () => void;
+}
+
+export interface GetPatientsParams {
+  page: number;
+  size: number;
+  search?: string;
 }

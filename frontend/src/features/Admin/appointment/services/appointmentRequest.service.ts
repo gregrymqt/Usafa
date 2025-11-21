@@ -1,16 +1,30 @@
 import  { api } from "../../../../shared";
+import type { Page } from "../../../../shared/utils/forPages.utils";
 import type { ConsultaUpdateData } from "../components/ConsultaRequest/Modal/types/ConsultaEditModal.type";
 import type { ConsultaDocument} from "../components/ConsultaRequest/Table/types/consultaRequestTable.type";
 
 // O endpoint base do seu controller Java
 const API_URL = '/admin/requisicao/appointments';
 
+interface GetRequestsParams {
+  page: number;
+  size: number;
+  search: string;
+}
+
 /**
- * Busca todas as solicitações de consulta.
- * Mapeia o endpoint GET / [cite: 14]
+ * Busca as solicitações de consulta com suporte para paginação e busca.
  */
-const getAllRequests = async (): Promise<ConsultaDocument[]> => {
-  const data = await api.get<ConsultaDocument[]>(API_URL);
+const getRequests = async (params: GetRequestsParams): Promise<Page<ConsultaDocument>> => {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    size: params.size.toString(),
+  });
+
+  if (params.search) {
+    queryParams.append('search', params.search);
+  }
+  const data = await api.get<Page<ConsultaDocument>>(`${API_URL}?${queryParams.toString()}`);
   return data;
 };
 
@@ -42,7 +56,7 @@ const deleteRequest = async (id: string): Promise<void> => {
 
 // Exporta todas as funções do serviço
 export const consultaService = {
-  getAllRequests,
+  getRequests,
   updateStatus,
   deleteRequest,
 };

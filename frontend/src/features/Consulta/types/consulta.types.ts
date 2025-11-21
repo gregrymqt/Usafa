@@ -48,3 +48,10 @@ export interface ConsultaFormOptions {
   // 'dias' foi removido pois a data está dentro do slot
   horarios: FormSelectOption[]; // Agora contém a lista de Slots (ID, Label="25/10 14:00 - Dr. X")
 }
+
+
+export interface GetConsultasParams {
+  page: number;
+  size: number;
+  search: string;
+}

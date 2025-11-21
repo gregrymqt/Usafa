@@ -1,13 +1,11 @@
-import React from 'react';
-// 1. Importar o Layout Genérico
-import { SidebarLayout } from '../../layouts/SidebarLayout/SidebarLayout';
-import type { ISidebarView } from '../../layouts/SidebarLayout/types';
 
 // 2. Importar o hook e as novas parciais
 import { useUserProfileData } from './hooks/userHook'; // [cite: 26]
 import { _MeusDadosPartial } from './PartialViews/_MeusDados';
 import { _UsafaPartial } from './PartialViews/_Usafa';
 import { UserIcon, MapPinIcon } from './components/icons'; // [cite: 23]
+import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
+import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';
 
 // Logo para esta sidebar específica
 const ProfileLogo = () => (
@@ -23,7 +21,7 @@ export default function Profile() {
     isUpdating,
     updateError,
     handleUpdateProfile
-  } = useUserProfileData('123'); // [cite: 26-27]
+  } = useUserProfileData(); // [cite: 26-27]
 
   // 4. Tratamento de loading e erro (continua igual)
   if (isLoading) {

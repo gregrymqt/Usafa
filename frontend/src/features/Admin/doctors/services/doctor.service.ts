@@ -1,9 +1,11 @@
 
 import api from '../../../../shared/services/api.service';
+import type { Page } from '../../../../shared/utils/forPages.utils';
 import type {
   Doctor,
   NewDoctorData,
   UpdateDoctorData,
+  GetDoctorsParams,
 } from '../types/doctor.type';
 
 /**
@@ -15,8 +17,16 @@ const DOCTORS_ENDPOINT = '/admin/doctors';
 /**
  * Busca a lista de médicos.
  */
-export const getDoctors = async (): Promise<Doctor[]> => {
-  return await api.get<Doctor[]>(DOCTORS_ENDPOINT);
+export const getDoctors = async (params: GetDoctorsParams): Promise<Page<Doctor>> => {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    size: params.size.toString(),
+  });
+
+  if (params.search) {
+    queryParams.append('search', params.search);
+  }
+  return await api.get<Page<Doctor>>(`${DOCTORS_ENDPOINT}?${queryParams.toString()}`);
 };
 
 /**

@@ -1,86 +1,81 @@
 // hooks/useUserProfileData.ts (Modificado)
 
 import { useState, useEffect, useCallback } from 'react';
-import { type UserData } from '../types/profile.type';
+import { ApiError } from '../../../shared';
+import { type UserData, type UserProfileUpdateDTO } from '../types/profile.type';
 // Importe as duas funções da sua API
 import { getAuthenticatedUserData, updateUserData } from '../services/profile.type'; 
 
-// O DTO que o backend espera (name, cep, picture)
-// É uma boa prática ter esse tipo no seu 'types/index.ts'
-export interface UserProfileUpdateDTO {
-  name: string;
-  cep: string;
-  picture: string;
-}
-
-export const useUserProfileData = (userId: string) => {
-  // Estados para o GET (leitura)
+/**
+ * Hook customizado para gerenciar os dados do perfil do usuário autenticado.
+ * Lida com o carregamento (GET) e a atualização (UPDATE) dos dados.
+ */
+export const useUserProfileData = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- NOVOS ESTADOS PARA O UPDATE ---
+  // Estados específicos para a operação de atualização
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
-  // ---
 
-  // Lógica de GET (permanece a mesma)
+  /**
+   * Busca os dados do perfil do usuário autenticado na API.
+   */
   const loadProfileData = useCallback(async () => {
-    if (!userId) {
-      setIsLoading(false);
-      setError("ID do usuário não fornecido.");
-      return;
-    }
     try {
       setIsLoading(true);
       setError(null);
       const user = await getAuthenticatedUserData();
       setUserData(user);
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError('Erro ao carregar dados do perfil.');
+      const errorMessage = err instanceof ApiError ? err.message : 'Erro ao carregar dados do perfil.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
+  // Efeito para carregar os dados iniciais quando o hook é montado.
   useEffect(() => {
     loadProfileData();
   }, [loadProfileData]);
 
-  // --- NOVO MÉTODO PARA O UPDATE ---
+  /**
+   * Envia os dados atualizados do perfil para a API.
+   * @param updateData - Os dados do formulário a serem enviados.
+   * @returns `true` em caso de sucesso, `false` em caso de falha.
+   */
   const handleUpdateProfile = async (updateData: UserProfileUpdateDTO) => {
     setUpdateError(null);
     setIsUpdating(true);
     try {
-      // 1. Chama a função da API que você já tem
-      // (O DTO do frontend (parcial) é compatível com o DTO do backend (completo))
       const updatedUser = await updateUserData(updateData);
       
-      // 2. SUCESSO! Atualiza o estado local com os novos dados.
-      // Isso fará a página inteira (e o formulário) recarregar
-      // com as novas informações, sem precisar de um refresh manual.
+      // Sucesso: Atualiza o estado local com os novos dados retornados pela API.
+      // Isso garante que a UI reflita as informações mais recentes.
       setUserData(updatedUser); 
       
-      // Opcional: retornar true para o componente saber que deu certo
       return true; 
       
     } catch (err) {
-      const errorMsg = (err instanceof Error) ? err.message : 'Erro ao atualizar o perfil.';
+      const errorMsg = err instanceof ApiError ? err.message : 'Erro ao atualizar o perfil.';
       setUpdateError(errorMsg);
       return false;
     } finally {
       setIsUpdating(false);
     }
   };
-  // ---
 
   return { 
     userData, 
     isLoading, 
     error,
+    // Propriedades e métodos para a atualização
     isUpdating,
     updateError,
-    handleUpdateProfile 
+    handleUpdateProfile,
+    // Função para recarregar os dados manualmente, se necessário
+    refetchProfile: loadProfileData,
   };
 };

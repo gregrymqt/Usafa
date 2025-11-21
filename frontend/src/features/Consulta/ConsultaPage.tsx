@@ -1,7 +1,6 @@
 import React from 'react';
 // 1. Importar o Layout Genérico
-import { SidebarLayout } from '../../layouts/SidebarLayout/SidebarLayout';
-import type { ISidebarView } from '../../layouts/SidebarLayout/types';
+
 
 import './styles.scss'; // [cite: 14]
 import { Modal } from '../../components/Modal/Modal.tsx'; // [cite: 14]
@@ -11,6 +10,8 @@ import { useConsulta } from './hooks/useConsulta'; //
 // 2. Importar as novas parciais
 import { _ListaConsultasPartial } from './PartialViews/_ListaConsultas';
 import { _AgendarConsultaPartial } from './PartialViews/_AgendarConsulta';
+import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout.tsx';
+import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type.ts';
 
 // 3. Ícones (Substitua pelos seus)
 const ListIcon = () => <span>L</span>;

@@ -1,33 +1,71 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { showErrorToast, showSuccessToast } from "../../utils/adminUtils";
 import type { Doctor, NewDoctorData, UpdateDoctorData } from "../types/doctor.type";
 import * as doctorService from "../services/doctor.service";
 import { ApiError } from "../../../../shared/exceptions/ApiError";
+import { useDebounce } from "../../../../shared/utils/forPages.utils";
+// Importando o hook de debounce que você mencionou
 
-
-export const useDoctors = () => {
+/**
+ * Hook customizado para gerenciar a lógica de médicos,
+ * incluindo busca, paginação e operações CRUD.
+ */
+export const useDoctors = (initialSearchTerm = "") => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // --- Lógica de Paginação e Scroll Infinito ---
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const isInitialFetch = useRef(true); // Para controlar a primeira carga
+
+  // --- Lógica de Busca com Debounce ---
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms de espera
+
   /**
-   * Busca os médicos da API.
+   * Busca os médicos da API, gerenciando paginação e busca.
+   * @param term - O termo de busca.
+   * @param pageNumber - O número da página a ser buscada.
+   * @param isNewSearch - Se true, limpa a lista atual antes de buscar.
    */
-  const fetchDoctors = useCallback(async () => {
+  const fetchDoctors = useCallback(async (term: string, pageNumber: number, isNewSearch = false) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await doctorService.getDoctors();
-      setDoctors(data);
+      // Assumindo que o serviço agora aceita paginação e busca
+      const data = await doctorService.getDoctors({ page: pageNumber, size: 20, search: term });
+      
+      setDoctors(prev => (isNewSearch ? data.content : [...prev, ...data.content]));
+      setHasMore(!data.last);
+      setPage(pageNumber);
+
     } catch (err) {
-      if( err instanceof ApiError){
-      setError(err.message);
-      showErrorToast('Não foi possível carregar os médicos.');
+      if (err instanceof ApiError) {
+        setError(err.message);
+        showErrorToast('Não foi possível carregar os médicos.');
       }
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  // Efeito para buscar quando o termo de busca (debounced) muda
+  useEffect(() => {
+    // Evita a busca inicial duplicada, pois o `useEffect` abaixo já cuida disso
+    if (!isInitialFetch.current) {
+      fetchDoctors(debouncedSearchTerm, 0, true);
+    }
+  }, [debouncedSearchTerm, fetchDoctors]);
+
+  // Efeito para a carga inicial
+  useEffect(() => {
+    isInitialFetch.current = true;
+    fetchDoctors(debouncedSearchTerm, 0, true).finally(() => {
+      isInitialFetch.current = false;
+    });
+  }, [fetchDoctors]); // Apenas na montagem
 
   /**
    * Adiciona um novo médico.
@@ -36,8 +74,10 @@ export const useDoctors = () => {
     setIsLoading(true);
     try {
       const newDoctor = await doctorService.createDoctor(doctorData);
-      setDoctors((prev) => [newDoctor, ...prev]); // Adiciona no topo da lista
+      // Recarrega a lista para refletir a ordem correta da paginação
+      fetchDoctors(searchTerm, 0, true);
       showSuccessToast('Médico criado com sucesso!');
+      return newDoctor; // Retorna o médico criado para o chamador
     } catch (err) {
       if( err instanceof ApiError){
       setError(err.message);
@@ -49,6 +89,15 @@ export const useDoctors = () => {
     }
   };
 
+  /**
+   * Carrega a próxima página de resultados (para scroll infinito).
+   */
+  const loadMoreDoctors = useCallback(() => {
+    if (!isLoading && hasMore) {
+      fetchDoctors(debouncedSearchTerm, page + 1);
+    }
+  }, [isLoading, hasMore, debouncedSearchTerm, page, fetchDoctors]);
+  
   /**
    * Remove um médico (após confirmação na UI).
    */
@@ -90,16 +139,15 @@ export const useDoctors = () => {
     } 
   };
 
-  // Efeito inicial para carregar os dados
-  useEffect(() => {
-    fetchDoctors();
-  }, [fetchDoctors]);
-
   return {
     doctors,
     isLoading,
     error,
-    fetchDoctors,
+    hasMore,
+    searchTerm,
+    setSearchTerm,
+    loadMoreDoctors,
+    reloadDoctors: () => fetchDoctors(debouncedSearchTerm, 0, true),
     addDoctor,
     removeDoctor,
     editDoctor,

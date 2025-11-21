@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { LoginCredentials, UserSession } from '../types/auth.types';
 import { login } from '../services/auth.service';
-import { validateEmail } from '../../../shared/utils/validators'; // Só precisamos deste validador
+import { validateEmail } from '../../../shared/utils/validators.utils'; // Só precisamos deste validador
 import { useAuth } from './useAuth';
 
 export const useLogin= () => {

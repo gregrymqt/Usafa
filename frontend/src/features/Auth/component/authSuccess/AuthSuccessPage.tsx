@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './AuthSuccessPage.module.scss';
 import AuthForm from '../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../components/Form/types/form.type';
-import { validateCpf, validateCep, validatePhone } from '../../../../shared/utils/validators';
+import { validateCpf, validateCep, validatePhone } from '../../../../shared/utils/validators.utils';
 import { useAuthSuccess } from './hooks/useAuthSuccess';
 
 /**

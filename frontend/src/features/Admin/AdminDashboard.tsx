@@ -12,7 +12,7 @@ import { _PatientPartial } from './PartialViews/_Patient';
 import { _AppointmentPartial } from './PartialViews/_Appointment';
 
 // 4. IMPORTAR ÍCONES (substitua pelos seus)
-import { DoctorIcon, PatientIcon, AppointmentIcon } from './AdminIcons';
+import { DoctorIcon, PatientIcon, AppointmentIcon } from './utils/AdminIcons.tsx';
 
 // O "brandLogo" para esta sidebar específica
 const AdminLogo = () => (

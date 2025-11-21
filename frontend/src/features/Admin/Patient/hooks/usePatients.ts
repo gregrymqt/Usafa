@@ -7,6 +7,7 @@ import type {
 } from '../types/patient.types';
 import * as patientService from '../services/patient.service';
 import { showErrorToast, showSuccessToast } from '../../utils/adminUtils';
+import { useDebounce } from '../../../../shared/utils/forPages.utils';
 import { ApiError } from '../../../../shared';
 
 /**
@@ -22,20 +23,34 @@ export const usePatients = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Lógica de Paginação e Scroll Infinito
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  // Hook para debounce do termo de busca
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   /**
-   * Busca os pacientes da API.
+   * Busca os pacientes da API com paginação e filtro.
    */
-  const fetchPatients = useCallback(async () => {
+  const fetchPatients = useCallback(async (search: string, pageNumber: number, isNewSearch = false) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await patientService.getPatients();
-      setPatients(data);
+      const response = await patientService.getPatients({
+        page: pageNumber,
+        size: 8,
+        search,
+      });
+      setPatients(prev => (isNewSearch ? response.content : [...prev, ...response.content]));
+      setHasMore(!response.last);
+      setPage(pageNumber);
     } catch (err) {
-      if(err instanceof ApiError){
-      setError(err.message);
-      showErrorToast('Não foi possível carregar os pacientes.');
+      if (err instanceof ApiError) {
+        setError(err.message);
+        showErrorToast('Não foi possível carregar os pacientes.');
       }
     } finally {
       setIsLoading(false);
@@ -57,12 +72,14 @@ export const usePatients = () => {
 
       const newPatient = await patientService.createPatient(apiData);
       setPatients((prev) => [newPatient, ...prev]);
+      // Recarrega os dados para refletir a adição na paginação correta
+      fetchPatients(searchTerm, 0, true);
       showSuccessToast('Paciente cadastrado com sucesso!');
-    } catch (err){
-      if(err instanceof ApiError){
-      setError(err.message);
-      showErrorToast(`Falha ao cadastrar paciente: ${err.message}`);
-      throw err; // Propaga o erro para o formulário
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+        showErrorToast(`Falha ao cadastrar paciente: ${err.message}`);
+        throw err; // Propaga o erro para o formulário
       }
     } finally {
       setIsLoading(false);
@@ -74,16 +91,17 @@ export const usePatients = () => {
   /**
    * Remove um paciente.
    */
-  const removePatient = async (id: number | string) => {
+  const removePatient = async (patientId: string) => {
     // (A confirmação com Swal é feita na UI)
     try {
-      await patientService.deletePatient(id);
-      setPatients((prev) => prev.filter((p) => p.id !== id));
+      await patientService.deletePatient(patientId);
+      // Recarrega os dados da página atual
+      fetchPatients(debouncedSearchTerm, 0, true); // Recarrega do início após deletar
       showSuccessToast('Paciente deletado com sucesso.');
     } catch (err) {
-      if(err instanceof ApiError){
-      setError(err.message);
-      showErrorToast(`Falha ao deletar paciente: ${err.message}`);
+      if (err instanceof ApiError) {
+        setError(err.message);
+        showErrorToast(`Falha ao deletar paciente: ${err.message}`);
       }
     }
   };
@@ -93,9 +111,8 @@ export const usePatients = () => {
    * Recebe os dados do formulário e converte a data.
    */
   const editPatient = async (
-    id: number | string,
-    formData: PatientFormData
-  ) => {
+    patientId: string,
+    formData: PatientFormData) => {
     setIsLoading(true);
     try {
       // Converte a data do formulário para o formato da API (ISO)
@@ -104,33 +121,49 @@ export const usePatients = () => {
         birthDate: convertFormDateToISO(formData.birthDate),
       };
 
-      const updatedPatient = await patientService.updatePatient(id, apiData);
+      const updatedPatient = await patientService.updatePatient(patientId, apiData);
       setPatients((prev) =>
-        prev.map((p) => (p.id === id ? updatedPatient : p))
+        prev.map((p) => (p.id === patientId ? updatedPatient : p))
       );
       showSuccessToast('Paciente atualizado com sucesso!');
     } catch (err) {
-      if(err instanceof ApiError){
-      setError(err.message);
-      showErrorToast(`Falha ao atualizar paciente: ${err.message}`);
-      throw err; // Propaga o erro
+      if (err instanceof ApiError) {
+        setError(err.message);
+        showErrorToast(`Falha ao atualizar paciente: ${err.message}`);
+        throw err; // Propaga o erro
       }
     } finally {
       setIsLoading(false);
     }
   };
 
+  /**
+   * Carrega a próxima página de resultados (para scroll infinito).
+   */
+  const loadMorePatients = useCallback(() => {
+    if (!isLoading && hasMore) {
+      fetchPatients(debouncedSearchTerm, page + 1);
+    }
+  }, [isLoading, hasMore, debouncedSearchTerm, page, fetchPatients]);
 
-  // Efeito inicial para carregar os dados
+  // Efeito para buscar os dados sempre que a página ou a busca mudarem
   useEffect(() => {
-    fetchPatients();
-  }, [fetchPatients]);
+    // Se o termo de busca mudou, reseta para a primeira página (página 0)
+    fetchPatients(debouncedSearchTerm, 0, true);
+  }, [debouncedSearchTerm, fetchPatients]);
 
   return {
     patients,
     isLoading,
     error,
-    fetchPatients,
+    hasMore,
+    // Controle de busca
+    searchTerm,
+    setSearchTerm,
+    // Scroll Infinito
+    loadMorePatients,
+    reloadPatients: () => fetchPatients(debouncedSearchTerm, 0, true),
+    // Funções de CRUD
     addPatient,
     removePatient,
     editPatient,

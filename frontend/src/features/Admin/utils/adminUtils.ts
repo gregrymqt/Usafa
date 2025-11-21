@@ -55,29 +55,3 @@ export const showDeleteConfirm = async (name: string): Promise<boolean> => {
 
   return result.isConfirmed;
 };
-
-// --- Stubs de Funcionalidades Futuras ---
-
-/**
- * Lógica de paginação
- * TODO: Implementar
- */
-export const usePagination = () => {
-  console.warn('usePagination hook não implementado.');
-  // Lógica de paginação (estado de página atual, total de páginas, etc.)
-  return {
-    currentPage: 1,
-    totalPages: 1,
-    // setPage: () => {},
-  };
-};
-
-/**
- * Lógica de Infinite Scroll
- * TODO: Implementar
- */
-export const useInfiniteScroll = (callback: () => void) => {
-  console.warn('useInfiniteScroll hook não implementado.');
-  // Lógica com IntersectionObserver para chamar o callback
-  // quando o usuário chegar ao fim da página.
-};

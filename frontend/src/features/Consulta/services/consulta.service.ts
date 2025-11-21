@@ -2,23 +2,30 @@ import {
   type Consulta,
   type ConsultaFormOptions,
   type ConsultaRequest,
+  type GetConsultasParams,
  } from '../types/consulta.types.ts';
 // Importa o seu cliente 'api' global
 import api from '../../../shared/services/api.service.ts'; // (Ajuste o caminho se necessário)
+import type { Page } from '../../../shared/utils/forPages.utils.ts';
 
 /**
  * Busca a lista de consultas existentes do usuário (para a Tabela)
  * Agora faz uma chamada de API real.
  */
-export const getConsultas = async (userId: string): Promise<Consulta[]> => {
+export const getConsultas = async (userId: string, params: GetConsultasParams): Promise<Page<Consulta>> => {
   try {
-    // Eu assumi que o endpoint para buscar consultas por usuário seja este:
-    // GET /consultas/user/{userId}
-    const consultas = await api.get<Consulta[]>(`/consultas/user/${userId}`);
+    const queryParams = new URLSearchParams({
+      page: params.page.toString(),
+      size: params.size.toString(),
+    });
+
+    if (params.search) {
+      queryParams.append('search', params.search);
+    }
+    const consultas = await api.get<Page<Consulta>>(`/consultas/user/${userId}?${queryParams.toString()}`);
     return consultas;
   } catch (error) {
     console.error('Erro ao buscar consultas:', error);
-    // Re-lança o erro para o hook 'useConsulta' poder capturá-lo
     throw new Error('Não foi possível carregar seu histórico de consultas.');
   }
 };

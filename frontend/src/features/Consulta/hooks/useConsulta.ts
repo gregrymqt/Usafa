@@ -11,6 +11,7 @@ import {
   subscribe,
   unsubscribe,
 } from '../../../shared/services/websocket.service';
+import { useDebounce } from '../../../shared/utils/forPages.utils';
 
 export const useConsulta = (userId: string) => {
   // --- Estados [cite: 3-5] ---
@@ -21,15 +22,34 @@ export const useConsulta = (userId: string) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false); 
   const [error, setError] = useState<string | null>(null);
   const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
+  
+  // --- Lógica de Busca e Paginação ---
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const fetchConsultas = useCallback(async (search: string, pageNumber: number, isNewSearch = false) => {
+    setIsLoadingConsultas(true);
+    setError(null);
+    try {
+      // Assumindo que getConsultas será atualizado para aceitar paginação e busca
+      const consultasData = await getConsultas(userId, { page: pageNumber, size: 10, search });
+      setConsultas(prev => isNewSearch ? consultasData.content : [...prev, ...consultasData.content]);
+      setHasMore(!consultasData.last);
+      setPage(pageNumber);
+    } catch (err) {
+      if (err instanceof Error) setError(err.message);
+      else setError('Falha ao carregar suas consultas.');
+    } finally {
+      setIsLoadingConsultas(false);
+    }
+  }, [userId]);
 
   // --- useEffect (Carregamento e WebSocket) [cite: 6-10] ---
   useEffect(() => {
-    const loadData = async () => {
+    const loadInitialOptions = async () => {
       try {
-        setIsLoadingConsultas(true);
-        const consultasData = await getConsultas(userId);
-        setConsultas(consultasData);
-
         const optionsData = await getFormOptions();
         setFormOptions(optionsData);
       } catch (err) {
@@ -39,25 +59,30 @@ export const useConsulta = (userId: string) => {
         setIsLoadingConsultas(false);
       }
     };
-    loadData();
+    loadInitialOptions();
 
     connectWebSocket();
     const topic = `/user/${userId}/queue/consultas`;
     const onConfirmationReceived = (summary: ConsultaSummary) => {
       setConfirmedConsulta(summary);
       // Opcional: Recarregar a lista quando receber confirmação
-      loadData(); 
+      fetchConsultas(debouncedSearchTerm, 0, true);
     };
 
     subscribe<ConsultaSummary>(topic, onConfirmationReceived);
     return () => {
       unsubscribe(topic);
     };
-  }, [userId]);
+  }, [userId, debouncedSearchTerm, fetchConsultas]);
+
+  // Efeito para buscar consultas quando o termo de busca muda
+  useEffect(() => {
+    fetchConsultas(debouncedSearchTerm, 0, true);
+  }, [debouncedSearchTerm, fetchConsultas]);
 
   // --- Manipulador de Envio ATUALIZADO [cite: 11] ---
   // Recebe Partial porque o form não manda o patientId
-  const handleSubmitConsulta = async (partialRequest:  Partial<ConsultaRequest>) => {
+  const handleSubmitConsulta = async (partialRequest: Partial<ConsultaRequest>) => {
     try {
       setIsSubmitting(true);
       setError(null); 
@@ -78,10 +103,9 @@ export const useConsulta = (userId: string) => {
       }, 5000);
       
       // Recarregar dados para atualizar lista de consultas e remover slot ocupado da lista
-      const updatedConsultas = await getConsultas(userId);
-      setConsultas(updatedConsultas);
       const updatedOptions = await getFormOptions();
       setFormOptions(updatedOptions);
+      fetchConsultas(searchTerm, 0, true); // Recarrega a lista de consultas
 
     } catch (err) { 
       if (err instanceof Error) setError(err.message);
@@ -90,6 +114,12 @@ export const useConsulta = (userId: string) => {
       setIsSubmitting(false); 
     }
   };
+
+  const loadMoreConsultas = useCallback(() => {
+    if (!isLoadingConsultas && hasMore) {
+      fetchConsultas(debouncedSearchTerm, page + 1);
+    }
+  }, [isLoadingConsultas, hasMore, debouncedSearchTerm, page, fetchConsultas]);
 
   const closeConfirmationModal = useCallback(() => { 
     setConfirmedConsulta(null);
@@ -100,10 +130,15 @@ export const useConsulta = (userId: string) => {
     isLoadingConsultas,
     formOptions,
     isSubmitting,
-    handleSubmitConsulta,
     showSuccessMessage,
     confirmedConsulta,
-    closeConfirmationModal,
     error,
+    searchTerm,
+    setSearchTerm,
+    hasMore,
+    loadMoreConsultas,
+    handleSubmitConsulta,
+    closeConfirmationModal,
+    refetchConsultas: () => fetchConsultas(debouncedSearchTerm, 0, true),
   };
 };

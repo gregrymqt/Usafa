@@ -26,3 +26,29 @@ export interface UserData {
   consultasAnteriores: Consulta[];
   picture: string;
 }
+
+export interface MeusDadosProps {
+  userData: UserData;
+  isUpdating: boolean;
+  updateError: string | null;
+  handleUpdateProfile: (data: UserProfileUpdateDTO) => Promise<boolean>;
+}
+
+
+export interface UserProfileUpdateDTO {
+  name: string;
+  cep: string;
+  picture: string;
+}
+
+
+export interface ProfileUpdateFormProps {
+  // O usuário atual, vindo do hook
+  user: UserData; 
+  // A função de update, vinda do hook
+  onUpdate: (data: UserProfileUpdateDTO) => Promise<boolean>; 
+  // O estado de loading, vindo do hook
+  isUpdating: boolean; 
+  // O erro de update, vindo do hook
+  updateError: string | null; 
+}

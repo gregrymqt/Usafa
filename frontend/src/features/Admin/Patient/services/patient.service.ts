@@ -1,18 +1,32 @@
 import api from '../../../../shared/services/api.service';
+import type { Page } from '../../../../shared/utils/forPages.utils';
 import type {
   Patient,
   NewPatientData,
   UpdatePatientData,
+  GetPatientsParams,
 } from '../types/patient.types';
 
 // O endpoint base para o recurso de pacientes no backend.
 const PATIENTS_ENDPOINT = '/admin/patients';
 
 /**
- * Busca a lista de pacientes.
+ * Busca a lista de pacientes com suporte para paginação e busca.
+ * @param params - Objeto contendo os parâmetros de paginação e busca.
  */
-export const getPatients = async (): Promise<Patient[]> => {
-  return await api.get<Patient[]>(PATIENTS_ENDPOINT);
+export const getPatients = async (
+  params: GetPatientsParams
+): Promise<Page<Patient>> => {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    size: params.size.toString(),
+  });
+
+  if (params.search) {
+    queryParams.append('search', params.search);
+  }
+
+  return await api.get<Page<Patient>>(`${PATIENTS_ENDPOINT}?${queryParams.toString()}`);
 };
 
 /**

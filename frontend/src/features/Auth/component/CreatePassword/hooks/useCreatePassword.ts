@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getUserByPublicId, createPassword } from '../../../services/auth.service';
 import type { UserSession } from '../../../types/auth.types';
-import { getPasswordValidationState } from '../../../../../shared/utils/validators';
+import { getPasswordValidationState } from '../../../../../shared/utils/validators.utils';
 
 
 export const useCreatePassword = () => {

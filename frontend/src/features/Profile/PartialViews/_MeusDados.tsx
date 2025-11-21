@@ -2,14 +2,7 @@ import React from 'react';
 import ProfileCard from '../components/card'; // [cite: 23]
 import { UserIcon } from '../components/icons'; // [cite: 23]
 import { ProfileUpdateForm } from '../components/ProfileUpdateForm'; // [cite: 25]
-import type { User } from '../hooks/userHook'; // (Assumindo que o hook exporta esse tipo)
-
-interface MeusDadosProps {
-  userData: User;
-  isUpdating: boolean;
-  updateError: string | null;
-  handleUpdateProfile: (data: any) => Promise<void>; // (Ajuste 'any' para o tipo do formulário)
-}
+import type { MeusDadosProps } from '../types/profile.type';
 
 export const _MeusDadosPartial: React.FC<MeusDadosProps> = ({
   userData,
@@ -23,7 +16,7 @@ export const _MeusDadosPartial: React.FC<MeusDadosProps> = ({
       <ProfileCard title="Meus Dados" icon={<UserIcon />}>
         <ProfileUpdateForm
           user={userData}
-          onUpdate={handleUpdateProfile} // [cite: 30]
+          onUpdate={handleUpdateProfile}
           isUpdating={isUpdating}
           updateError={updateError}
         />

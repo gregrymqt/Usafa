@@ -1,21 +1,9 @@
 // components/Profile/ProfileUpdateForm.tsx (Novo)
 
 import React, { useState, useEffect } from 'react';
-import { type UserData } from '../types/profile.type';
 import AuthForm from '../../../components/Form/AuthForm';
-import { type UserProfileUpdateDTO } from '../hooks/userHook';
 import type { InputField } from '../../../components/Form/types/form.type';
-
-interface ProfileUpdateFormProps {
-  // O usuário atual, vindo do hook
-  user: UserData; 
-  // A função de update, vinda do hook
-  onUpdate: (data: UserProfileUpdateDTO) => Promise<boolean>; 
-  // O estado de loading, vindo do hook
-  isUpdating: boolean; 
-  // O erro de update, vindo do hook
-  updateError: string | null; 
-}
+import type { ProfileUpdateFormProps } from '../types/profile.type';
 
 export const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({ 
   user, 
