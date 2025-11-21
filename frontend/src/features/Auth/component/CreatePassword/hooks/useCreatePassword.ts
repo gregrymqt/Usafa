@@ -68,7 +68,7 @@ export const useCreatePassword = () => {
 
     setIsLoading(true);
     try {
-      await createPassword({ publicId, password });
+      await createPassword({ publicId,  newPassword: password });
       alert('Senha criada com sucesso! Você será redirecionado para o login.');
       navigate('/login');
     } catch (err) {

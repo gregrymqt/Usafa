@@ -1,4 +1,4 @@
-import { type Usafa } from '../types';
+import { type Usafa } from '../types/maps.type';
 
 
 // Exportamos o array como uma constante

@@ -1,5 +1,5 @@
 import React from 'react';
-import './Table.scss';
+import './table.scss';
 import { type ColumnType, type TableDataType } from './types/index';
 
 /**

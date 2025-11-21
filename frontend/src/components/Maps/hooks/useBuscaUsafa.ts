@@ -2,14 +2,13 @@
 
 import { useState, useCallback } from 'react';
 import { USAFAS } from '../data/usafaData';
-import { type GeoLocation, type Usafa } from '../types';
+import { type GeoLocation, type SavedLocation, type Usafa } from '../types/maps.type';
 import {
   getCoordinatesFromCep,
   getSavedLocation,    // <--- ADICIONADO (GET)
   createSavedLocation, // <--- ADICIONADO (POST)
   updateSavedLocation, // <--- ADICIONADO (PUT)
-  type SavedLocation    // <--- ADICIONADO (Tipo do DB)
-} from '../services/api';
+} from '../services/maps.service';
 import { getHaversineDistance } from '../utils/geolocation';
 
 // Interface para o que o Hook retorna (Atualizada)
@@ -49,7 +48,7 @@ export const useBuscaUsafa = (): UseBuscaUsafaReturn => {
       setSavedLocation(data); // Salva o que veio do banco (pode ser null)
     } catch (err) {
       // Não tratamos 404 como erro, apenas erro de conexão
-      setError("Falha ao carregar dados salvos.");
+      setError("Falha ao carregar dados salvos." + (err instanceof Error ? err.message : ''));
     } finally {
       setIsLoading(false);
     }

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import AuthForm from '../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../components/Form/types/form.type';
 import type { NewDoctorData, Doctor } from '../types/doctor.type';
-import styles from '../styles/DoctorForm.module.css';
+import styles from './DoctorForm.module.scss';
 
 interface DoctorFormProps {
   onSubmit: (data: NewDoctorData) => Promise<void>;

@@ -1,8 +1,8 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
 import java.time.LocalDateTime;
-import java.time.format.TextStyle;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 
@@ -41,6 +41,7 @@ public interface IConsultaMapper {
     @Mapping(source = "horarioSlot.dataHoraInicio", target = "horario", qualifiedByName = "localDateTimeToTimeString")
     @Mapping(source = "status", target = "status", qualifiedByName = "statusToString") // [cite: 34]
     ConsultaDTO toDTO(Consulta consulta);
+    List<ConsultaDTO> toDTOs(List<Consulta> consultas);
 
     // Mapeia a entidade para um resumo (ideal para listas rápidas no painel do usuário)
     @Mapping(source = "publicId", target = "protocolo")

@@ -7,12 +7,13 @@ import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
 import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';
 
 // 3. IMPORTAR AS "PARTIAL VIEWS" (as páginas filhas do admin)
-import { _DoctorPartial } from './PartialViews/_Doctor';
-import { _PatientPartial } from './PartialViews/_Patient';
-import { _AppointmentPartial } from './PartialViews/_Appointment';
+
 
 // 4. IMPORTAR ÍCONES (substitua pelos seus)
 import { DoctorIcon, PatientIcon, AppointmentIcon } from './utils/AdminIcons.tsx';
+import { AppointmentPartial } from './PartialViews/_Appointment.tsx';
+import { DoctorPartial } from './PartialViews/_Doctor.tsx';
+import { PatientPartial } from './PartialViews/_Patient.tsx';
 
 // O "brandLogo" para esta sidebar específica
 const AdminLogo = () => (
@@ -26,17 +27,17 @@ const AdminDashboard: React.FC = () => {
     {
       name: 'Médicos',
       icon: <DoctorIcon />,
-      component: <_DoctorPartial />, // [cite: 2]
+      component: <DoctorPartial />, // [cite: 2]
     },
     {
       name: 'Pacientes',
       icon: <PatientIcon />,
-      component: <_PatientPartial />, // [cite: 2]
+      component: <PatientPartial />, // [cite: 2]
     },
     {
       name: 'Consultas',
       icon: <AppointmentIcon />,
-      component: <_AppointmentPartial />, // [cite: 3]
+      component: <AppointmentPartial />, // [cite: 3]
     },
   ];
 

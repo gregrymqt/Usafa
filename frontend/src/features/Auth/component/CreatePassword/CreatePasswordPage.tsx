@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from './styles.module.scss'; // Reutilizando os estilos
 import AuthForm from '../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../components/Form/types/form.type';
-import { useCreatePassword } from '../../hooks/useCreatePassword';
+import { useCreatePassword } from './hooks/useCreatePassword';
 
 // Componente auxiliar para os indicadores de validação de senha
 const ValidationIndicator: React.FC<{ label: string; isValid: boolean }> = ({ label, isValid }) => (

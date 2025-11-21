@@ -10,7 +10,6 @@ services:
     depends_on:
       - db
       - cache
-      - mq
       - mongo # <-- ADICIONADO
     networks: # <-- ADICIONADO
       - usafa-network
@@ -28,19 +27,21 @@ services:
       - usafa-network
 
   # 3. Banco de Dados PostgreSQL
+  # 3. Banco de Dados PostgreSQL
   db:
     image: postgres:17
     restart: always
-  environment: 
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      ports:
-        - "5432:5432"
-      volumes:
-        - pgdata:/var/lib/postgresql/data
-      networks: # <-- ADICIONADO
-        - usafa-network
+    environment: 
+        POSTGRES_DB: ${POSTGRES_DB_NAME}
+        POSTGRES_USER: ${POSTGRES_DB_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
+    # Note que agora ports, volumes e networks estão alinhados com 'environment' (à esquerda)
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - usafa-network
 
   # 4. Cache Redis
   cache:
@@ -54,16 +55,6 @@ services:
     volumes:
       - ./redis-data:/data  
 
-  # 5. Fila RabbitMQ
-  mq:
-    image: rabbitmq:3-management
-    restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672" 
-    networks: # <-- ADICIONADO
-      - usafa-network
-
   # 6. Banco de Dados MongoDB (NOVO)
   mongo:
     image: mongo:latest
@@ -72,8 +63,8 @@ services:
     ports:
       - "27017:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER} # Use variáveis do seu .env
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD} # Use variáveis do seu .env
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_DB_USER} # Use variáveis do seu .env
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_DB_PASSWORD} # Use variáveis do seu .env
       - MONGO_INITDB_DATABASE=${MONGO_DB_NAME} # Use variáveis do seu .env
     volumes:
       - mongo-data:/data/db

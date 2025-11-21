@@ -1,5 +1,8 @@
 // src/pages/AuthSuccessPage/AuthSuccessPage.module.scss
 
+
+@use "sass:color";
+
 // Variáveis de Cor (ajuste conforme seu design system)
 $primary-color: #007bff;
 $success-color: #28a745;
@@ -86,7 +89,7 @@ $text-light: #666;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: darken($primary-color, 10%);
+    background-color: color.adjust($primary-color, $lightness: -10%);
   }
 }
 

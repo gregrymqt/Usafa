@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import { useLogin } from './hooks/useLogin';
-import styles from './styles.module.scss';
+import styles from './Auth.module.scss';
 import { Link } from 'react-router-dom';
+import AuthForm from '../../components/Form/AuthForm';
+import type { InputField } from '../../components/Form/types/form.type';
 
 // 1. Importe o 'AuthForm' e o tipo 'InputField'
 //    (O seu script estava importando 'GenericForm', mas o componente se chama 'AuthForm')
-import AuthForm, { type InputField } from './../../components/Form/AuthForm'; 
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');

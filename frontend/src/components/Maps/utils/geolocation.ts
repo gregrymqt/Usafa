@@ -1,4 +1,4 @@
-import { type GeoLocation } from '../types';
+import { type GeoLocation } from '../types/maps.type';
 
 /**
  * Calcula a distância entre duas coordenadas usando a fórmula de Haversine.

@@ -2,7 +2,7 @@
 
 import { Route } from 'react-router-dom';
 import AuthSuccessPage from '../component/authSuccess/AuthSuccessPage';
-import Login from '..';
+import Login from '../Auth';
 import Register from '../component/register/RegisterPage';
 
 // 1. Importe os 3 componentes de autenticação.

@@ -3,7 +3,7 @@ import styles from './AppointmentForm.module.scss';
 import AuthForm from '../../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../../components/Form/types/form.type';
 import type { AppointmentStatus } from '../../types/appointment.type';
-import type { AppointmentFormProps } from './types/Appointment.types';
+import type { AppointmentFormProps } from './types/AppointmentForm.types';
 
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
@@ -11,11 +11,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   initialData = null,
   isLoading,
   patientOptions,
-  typeOptions, // Nova prop
-  slotOptions, // Nova prop (contém os horários reais do banco)
+  typeOptions, 
+  slotOptions, 
 }) => {
   
-  // Estados alinhados com o novo DTO
   const [patientId, setPatientId] = useState(initialData?.patientId || '');
   const [tipoConsultaId, setTipoConsultaId] = useState(initialData?.tipoConsultaId || '');
   const [horarioSlotId, setHorarioSlotId] = useState<number | undefined>(initialData?.horarioSlotId);
@@ -25,15 +24,26 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (horarioSlotId && patientId && tipoConsultaId) {
-      const formData = { 
-        patientId, 
-        tipoConsultaId, 
-        horarioSlotId, 
-        status, 
-        sintomas 
-      };
+      // Encontra o slot selecionado para obter a data e a hora
+      const selectedSlot = slotOptions.find(slot => slot.value === horarioSlotId);
+
+      if (!selectedSlot) {
+        console.error('Slot selecionado não encontrado!');
+        // Idealmente, mostrar um erro para o usuário aqui
+        return;
+      }
+
       try {
-        await onSubmit(formData);
+        // Agora o objeto enviado para onSubmit está correto
+        await onSubmit({
+          patientId,
+          tipoConsultaId,
+          horarioSlotId,
+          status,
+          sintomas,
+          date: selectedSlot.date, // Adicionado
+          time: selectedSlot.time, // Adicionado
+        });
       } catch (error) {
         console.error('Falha no submit admin:', error);
       }
@@ -62,11 +72,11 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       },
       {
         elementType: 'select',
-        name: 'horarioSlotId', // O Admin escolhe um slot real do banco
+        name: 'horarioSlotId', 
         label: 'Horário / Médico',
         value: horarioSlotId || '',
         onChange: (val) => setHorarioSlotId(Number(val)),
-        options: slotOptions, // Ex: [{value: 1, label: "25/10 14:00 - Dr. House"}]
+        options: slotOptions, 
         required: true,
         placeholder: 'Selecione um horário disponível'
       },
@@ -93,7 +103,8 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         placeholder: 'Detalhes adicionais...',
       },
     ],
-    [patientId, tipoConsultaId, horarioSlotId, status, sintomas, patientOptions, typeOptions, slotOptions]
+    // CORREÇÃO: Removido 'onCancel' desta lista abaixo
+    [patientId, tipoConsultaId, horarioSlotId, status, sintomas, patientOptions, typeOptions, slotOptions] 
   );
 
   return (

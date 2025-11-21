@@ -9,6 +9,9 @@ WORKDIR /app
 COPY pom.xml .
 COPY .mvn/ .mvn/
 COPY mvnw .
+
+RUN chmod +x mvnw
+
 # Baixa todas as dependências (sem o código fonte)
 # Se o pom.xml não mudar, o Docker reutiliza esta camada
 RUN ./mvnw dependency:go-offline

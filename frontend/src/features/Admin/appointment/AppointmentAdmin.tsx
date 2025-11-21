@@ -76,6 +76,9 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
                       horarioSlotId: appt.horarioSlotId,
                       tipoConsultaId: appt.tipoConsultaId,
                       status: appt.status,
+                      date: appt.date,
+                      time: appt.time,
+                      sintomas: appt.sintomas
                     };
                     onEditAppointment(appt.id, formData);
                   }}

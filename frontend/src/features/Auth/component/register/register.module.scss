@@ -1,5 +1,5 @@
 /* Importando e estendendo os estilos base para manter a consistência */
-@import '../styles.module.scss';
+@use  '../../Auth.module.scss';
 
 .registerPage {
   @extend .loginPage; // Herda todo o estilo da página de login
@@ -54,7 +54,7 @@
 }
 
 .loginLink {
-  @extend .signupLink; // Herda o estilo do link da página de login
+  @extend .loginLink; // Herda o estilo do link da página de login
 }
 
 /* --- Estilos para a caixa de validação da senha (UX) --- */

@@ -58,3 +58,8 @@ export interface AuthFormProps {
   buttonText: string;
   children?: React.ReactNode;
 }
+
+export interface SlotOption extends FormSelectOption {
+  date: string;
+  time: string;
+}

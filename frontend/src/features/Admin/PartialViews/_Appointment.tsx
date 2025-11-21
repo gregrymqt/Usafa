@@ -1,26 +1,26 @@
 import React, { useState, useMemo } from 'react';
-
-// --- Imports de Lógica ---
-import {
-  useAppointments,
-  splitDateTime,
-} from '../appointment/hooks/useAppointments'; 
-import { useDoctors } from '../doctors/hooks/useDoctors'; 
-import { usePatients } from '../Patient/hooks/usePatients'; 
-import type {
-  AppointmentFormData,
-  Appointment,
-  FormSelectOption,
-} from '../appointment/types/appointment.type'; 
-
-// --- Imports de UI ---
+import { Modal } from '../../../components/Modal/Modal';
 import styles from '../AdminDashboard.module.scss';
 import { AppointmentAdmin } from '../appointment/AppointmentAdmin';
 import { AppointmentForm } from '../appointment/components/AppointmentForm/AppointmentForm';
-import  { Modal } from '../../../components/Modal/Modal';
+import { useAppointments } from '../appointment/hooks/useAppointments';
+// Certifique-se de que AppointmentFormData está atualizado no seu arquivo de types para ter 'horarioSlotId' e 'tipoConsultaId'
+import type { AppointmentFormData, FormSelectOption } from '../appointment/types/appointment.type';
+import { usePatients } from '../Patient/hooks/usePatients'; // Assuming usePatients is correctly imported
 
-export const _AppointmentPartial: React.FC = () => {
-  // --- Lógica de Consultas (Completa) ---
+// Função auxiliar
+const splitDateTime = (dateString: string) => {
+  if (!dateString) return { date: '', time: '' };
+  const parts = dateString.split(/[T ]/);
+  return { 
+    date: parts[0] || '', 
+    time: parts[1]?.substring(0, 5) || '' 
+  };
+};
+
+export const AppointmentPartial: React.FC = () => {
+  
+  // --- Lógica de Consultas ---
   const {
     appointments,
     isLoading: isLoadingAppointments,
@@ -30,26 +30,14 @@ export const _AppointmentPartial: React.FC = () => {
     editAppointment,
   } = useAppointments();
 
-  // Hooks para popular os selects do formulário
-  const { doctors } = useDoctors();
   const { patients } = usePatients();
 
   // --- Estado do Modal ---
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-  const [editingAppointmentId, setEditingAppointmentId] = useState<
-    string | number | null
-  >(null);
-  const [editingAppointmentData, setEditingAppointmentData] =
-    useState<AppointmentFormData | null>(null);
+  const [editingAppointmentId, setEditingAppointmentId] = useState<string | number | null>(null);
+  const [editingAppointmentData, setEditingAppointmentData] = useState<AppointmentFormData | null>(null);
 
-  // --- Opções para os Selects ---
-  const doctorOptions: FormSelectOption[] = useMemo(() => {
-    return doctors.map((doc) => ({
-      value: doc.id,
-      label: doc.name,
-    }));
-  }, [doctors]);
-
+  // --- Opções ---
   const patientOptions: FormSelectOption[] = useMemo(() => {
     return patients.map((pat) => ({
       value: pat.id,
@@ -57,22 +45,44 @@ export const _AppointmentPartial: React.FC = () => {
     }));
   }, [patients]);
 
-  // --- Manipuladores de Modal (Consulta) ---
+  // TODO: Você precisa criar hooks para buscar esses dados do backend (Ex: useSpecialties, useSlots)
+  // Estou deixando vazio para COMPILAR, mas o select ficará vazio na tela. 
+  // CORREÇÃO: typeOptions e slotOptions devem ser do tipo correto esperado pelo AppointmentForm
+  const typeOptions: FormSelectOption[] = [];
+  // CORREÇÃO: slotOptions deve ser do tipo SlotOption[]
+  const slotOptions: { value: number; label: string; date: string; time: string }[] = [];
+
+  // --- Manipuladores de Modal ---
   const handleOpenCreateAppointmentModal = () => {
     setEditingAppointmentId(null);
     setEditingAppointmentData(null);
     setIsAppointmentModalOpen(true);
   };
 
-  const handleOpenEditAppointmentModal = (appointment: Appointment) => {
-    setEditingAppointmentId(appointment.id);
+  // CORREÇÃO: Recebe ID (string) pois é o que o AppointmentAdmin envia
+  const handleOpenEditAppointmentModal = (appointmentId: string) => {
+    // Busca o objeto completo na lista baseado no ID
+    const appointment = appointments.find(a => String(a.id) === appointmentId);
+
+    if (!appointment) return;
+
+    setEditingAppointmentId(appointmentId);
+    
     const { date, time } = splitDateTime(appointment.date);
+
+    // CORREÇÃO: Mapeando para os campos que o AppointmentForm NOVO espera
     setEditingAppointmentData({
       patientId: String(appointment.patient.id),
-      doctorId: String(appointment.doctor.id),
+      // doctorId: NÃO EXISTE MAIS NO FORMULÁRIO
+      // Você precisa decidir como preencher estes campos novos baseado no agendamento antigo:
+      tipoConsultaId: '', // Teria que vir de appointment.tipoConsulta.id se existir
+      horarioSlotId: appointment.horarioSlotId, // Teria que vir de appointment.slot.id se existir
+      
+      // Campos auxiliares mantidos se necessário, mas o form usa Slot agora
       date: date,
       time: time,
       status: appointment.status,
+      sintomas: appointment.sintomas || ''
     });
     setIsAppointmentModalOpen(true);
   };
@@ -86,18 +96,18 @@ export const _AppointmentPartial: React.FC = () => {
   const handleAppointmentFormSubmit = async (data: AppointmentFormData) => { 
     try {
       if (editingAppointmentId) {
-        await editAppointment(editingAppointmentId, data);
+        await editAppointment(String(editingAppointmentId), data);
       } else {
         await addAppointment(data);
       }
       handleCloseAppointmentModal();
     } catch (error) {
-      console.error('Falha ao salvar consulta, modal não será fechado.', error);
+      console.error('Falha ao salvar consulta.', error);
     }
   };
 
-  const handleDeleteAppointment = (appointment: Appointment) => { 
-    removeAppointment(appointment.id);
+  const handleDeleteAppointment = (id: string) => { 
+      removeAppointment(id);
   };
 
   return (
@@ -108,30 +118,32 @@ export const _AppointmentPartial: React.FC = () => {
         </button>
       </header>
 
-      {/* Conteúdo da Aba */}
       <AppointmentAdmin
         appointments={appointments}
         isLoading={isLoadingAppointments}
         error={errorAppointments}
-        onEditAppointment={handleOpenEditAppointmentModal}
-        onDeleteAppointment={handleDeleteAppointment}
+        // CORREÇÃO: Passando props de paginação obrigatórias (mesmo que dummy por enquanto)
+        hasMore={false}
+        loadMoreAppointments={() => {}}
+        // Passando as funções corrigidas
+        onEditAppointment={async (id) => handleOpenEditAppointmentModal(id)}
+        onDeleteAppointment={async (id) => handleDeleteAppointment(id)} 
       />
 
-      {/* Modal de Consultas */}
       <Modal
         isOpen={isAppointmentModalOpen}
         onClose={handleCloseAppointmentModal} 
-        title={
-          editingAppointmentId ? 'Atualizar Consulta' : 'Agendar Nova Consulta' 
-        }
+        title={editingAppointmentId ? 'Atualizar Consulta' : 'Agendar Nova Consulta'}
       >
         <AppointmentForm
           onSubmit={handleAppointmentFormSubmit}
           onCancel={handleCloseAppointmentModal}
           initialData={editingAppointmentData}
           isLoading={isLoadingAppointments}
-          doctorOptions={doctorOptions}
-         patientOptions={patientOptions} 
+          // CORREÇÃO: O form exige typeOptions e slotOptions, não doctorOptions
+          patientOptions={patientOptions}
+          typeOptions={typeOptions}
+          slotOptions={slotOptions}
         />
       </Modal>
     </>

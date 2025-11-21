@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { USAFAS } from '../../../components/Maps/data/usafaData';
-import { getCoordinatesFromCep } from '../../../components/Maps/services/api';
-import type { Usafa, GeoLocation } from '../../../components/Maps/types';
+import { getCoordinatesFromCep } from '../../../components/Maps/services/maps.service';
+import type { Usafa, GeoLocation } from '../../../components/Maps/types/maps.type';
 import { getHaversineDistance } from '../../../components/Maps/utils/geolocation';
 
 /**

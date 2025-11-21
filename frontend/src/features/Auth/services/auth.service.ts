@@ -1,5 +1,6 @@
 import api from '../../../shared/services/api.service';
-import type { LoginCredentials, RegisterData, UpdateUserAndCreatePasswordData, UpdateUserData, UserSession } from '../types/auth.types';
+import type { UpdateUserAndCreatePasswordData } from '../component/CreatePassword/types/createPassword.type';
+import type { LoginCredentials, UserSession, RegisterData, UpdateUserData } from '../types/auth.types';
 
 /**
  * Envia as credenciais de login para o endpoint /auth/login (usando fetch).

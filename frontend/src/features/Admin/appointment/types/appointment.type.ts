@@ -20,6 +20,8 @@ export interface Appointment {
   // --- Campos adicionados para permitir a edição ---
   horarioSlotId: number;
   tipoConsultaId: string;
+  sintomas?: string;
+  time: string; // Hora extraída do slot
 }
 
 /**
@@ -32,6 +34,8 @@ export interface AppointmentFormData {
   tipoConsultaId: string; // ID da Especialidade
   status: AppointmentStatus;
   sintomas?: string;
+  date: string; // Mantido para compatibilidade, mas não usado no form
+  time: string; // Mantido para compatibilidade, mas não usado no form
 }
 
 /**

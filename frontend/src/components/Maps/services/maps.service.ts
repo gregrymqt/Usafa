@@ -1,29 +1,7 @@
 // services/api.ts
-import { type GeoLocation } from '../types';
+import { type GeocodingResponse, type GeoLocation, type LocationPayload, type SavedLocation } from '../types/maps.type';
 import api from '../../../shared/services/api.service';
-
-// --- Tipos ---
-
-// (Seu tipo 'Usafa' de 'usafaData.ts' é para a *lista estática*)
-// Este é o tipo para o que salvamos no *banco de dados*
-export interface SavedLocation {
-  id: number; // ID do banco de dados
-  userPublicId: string;
-  usafaName: string; // Nome da USAFA mais próxima
-  cep: string;      // CEP que o usuário digitou
-}
-
-// Para criar ou atualizar, não precisamos do 'id' ou 'userPublicId' no corpo
-type LocationPayload = Omit<SavedLocation, 'id' | 'userPublicId'>;
-
-// ... (interface do GeocodingResponse continua a mesma) ...
-interface GeocodingResult {
-  geometry: { location: GeoLocation };
-}
-interface GeocodingResponse {
-  results: GeocodingResult[];
-  status: 'OK' | 'ZERO_RESULTS' | 'REQUEST_DENIED' | 'INVALID_REQUEST' | 'OVER_QUERY_LIMIT';
-}
+import { isAxiosError } from 'axios';
 
 
 /**
@@ -34,9 +12,9 @@ export const getSavedLocation = async (publicId: string): Promise<SavedLocation 
   try {
     // Vamos supor que seu endpoint GET seja /api/v1/usafas/user/{publicId}
     const response = await api.get<SavedLocation>(`/api/v1/usafas/user/${publicId}`);
-    return response.data;
-  } catch (error: any) {
-    if (error.response && error.response.status === 404) {
+    return response;
+  } catch (error: unknown) {
+    if (isAxiosError(error) && error.response?.status === 404) {
       return null; // Usuário não tem localização salva (não é um erro)
     }
     console.error('Erro ao buscar localização salva:', error);
@@ -82,7 +60,7 @@ export const createSavedLocation = async (locationData: LocationPayload, publicI
       ...locationData,
       userPublicId: publicId // Adiciona o publicId
     });
-    return response.data;
+    return response;
   } catch (error: unknown) {
     console.error('Erro ao criar localização (POST):', error);
     throw error;
@@ -97,7 +75,7 @@ export const updateSavedLocation = async (locationId: number, locationData: Loca
   try {
     // A rota PUT /api/v1/usafas/{id}
     const response = await api.put<SavedLocation>(`/api/v1/usafas/${locationId}`, locationData);
-    return response.data;
+    return response;
   } catch (error: unknown) {
     console.error('Erro ao atualizar localização (PUT):', error);
     throw error;

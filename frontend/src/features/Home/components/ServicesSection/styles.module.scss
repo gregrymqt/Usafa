@@ -1,33 +1,32 @@
 .servicesContainer {
   width: 100%;
-  padding: 2rem 1rem;
+  padding: 3rem 1rem; // Aumentei um pouco o padding vertical
   background-color: #f4f7f6;
+  overflow: hidden; // Garante que nada vaze da tela
 
   h2 {
     text-align: center;
     margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #333; // Cor sólida para o título
+    font-weight: 600;
   }
 }
 
 .carouselWrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  width: 100%;
+  max-width: 1200px; // Limita a largura em telas gigantes
+  margin: 0 auto; // Centraliza o carrossel na tela
+  display: block; // Removemos flex aqui para o Swiper gerenciar o layout
+  position: relative;
+  
+  // Ajuste para garantir que o Card não fique colado nas setas de navegação (se houver)
+  padding: 0 20px; 
 }
 
-.navButton {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s;
-
-  &:hover {
-    background-color: #e9e9e9;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
+// Se você precisar customizar as setas do Swiper futuramente:
+:global(.swiper-button-next),
+:global(.swiper-button-prev) {
+    color: #007bff; // Cor das setinhas padrão
+    transform: scale(0.7); // Deixa elas um pouco menores se necessário
 }
-

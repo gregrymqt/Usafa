@@ -1,4 +1,7 @@
 // Variáveis para fácil customização
+
+@use "sass:color";
+
 $primary-color: #3498db;
 $header-bg-color: #f2f2f2;
 $border-color: #ddd;
@@ -30,7 +33,7 @@ $table-border-radius: 8px;
       
       th {
         font-weight: bold;
-        color: darken($text-color, 10%);
+        color: color.adjust($text-color, $lightness: -10%);
       }
     }
   }

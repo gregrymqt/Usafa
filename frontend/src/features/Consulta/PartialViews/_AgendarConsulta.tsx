@@ -8,7 +8,7 @@ interface AgendarConsultaProps {
   handleSubmit: (request: ConsultaRequest) => Promise<void>;
 }
 
-export const _AgendarConsultaPartial: React.FC<AgendarConsultaProps> = ({
+export const AgendarConsultaPartial: React.FC<AgendarConsultaProps> = ({
   formOptions,
   isSubmitting,
   handleSubmit,

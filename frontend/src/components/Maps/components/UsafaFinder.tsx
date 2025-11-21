@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useBuscaUsafa } from '../hooks/useBuscaUsafa';
-import { useAuth } from '../hooks/useAuth'; // (Supondo que você tenha um hook de auth)
 import { UsafaDisplayCard } from './UsafaDisplayCard';
+import { useAuth } from '../../../features/Auth/hooks/useAuth';
 
 // Componente "Loading" que você tinha
 const LoadingSpinner = () => (

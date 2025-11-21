@@ -129,3 +129,21 @@
     color: #4285F4; // Cor do 'G' do Google
   }
 }
+
+.loginLink{
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666; // Cor sutil para o texto ao redor do link
+
+  a {
+    color: #007bff; // Usa a cor primária para destacar a ação
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline; // Feedback claro de que é um link clicável
+    }
+  }
+
+}

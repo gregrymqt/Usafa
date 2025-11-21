@@ -1,4 +1,4 @@
-import type { GeoLocation, Usafa } from "../types";
+import type { GeoLocation, Usafa } from "../types/maps.type";
 
 interface UsafaMapProps {
   usafa: Usafa;

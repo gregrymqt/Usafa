@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import styles from './styles.module.scss';
+import styles from './register.module.scss';
 import AuthForm from '../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../components/Form/types/form.type';
 import { useRegister } from './hooks/useRegister';

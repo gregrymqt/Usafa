@@ -10,7 +10,8 @@ import { DoctorAdmin } from '../doctors/DoctorAdmin';
 import { DoctorForm } from '../doctors/components/DoctorForm';
 import { Modal } from '../../../components/Modal/Modal';
 
-export const _DoctorPartial: React.FC = () => {
+// CORREÇÃO 1: Removido o "_" do nome. Componentes devem ser PascalCase (Ex: DoctorPartial) para usar Hooks.
+export const DoctorPartial: React.FC = () => {
   // --- Lógica de Médicos (Completa) ---
   const {
     doctors,
@@ -19,9 +20,11 @@ export const _DoctorPartial: React.FC = () => {
     addDoctor,
     removeDoctor,
     editDoctor,
+    // Se o seu hook useDoctors já tiver paginação, desestruture 'hasMore' e 'loadMore' aqui.
+    // Caso contrário, usaremos valores padrão abaixo.
   } = useDoctors(); 
 
-  const [isDoctorModalOpen, setIsDoctorModalOpen] = useState(false); 
+  const [isDoctorModalOpen, setIsDoctorModalOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
 
   // --- Manipuladores de Modal (Médico) ---
@@ -60,8 +63,6 @@ export const _DoctorPartial: React.FC = () => {
   return (
     <>
       <header className={styles.adminHeader}>
-        {/* O H1 foi para o componente pai (index) */}
-        {/* O botão de "Adicionar" agora vive dentro da parcial */}
         <button onClick={handleOpenCreateDoctorModal} className={styles.addButton}>
           Adicionar Médico
         </button>
@@ -74,6 +75,11 @@ export const _DoctorPartial: React.FC = () => {
         error={errorDoctors}
         onEditDoctor={handleOpenEditDoctorModal}
         onDeleteDoctor={handleDeleteDoctor}
+        
+        // CORREÇÃO 2: Adicionadas as props obrigatórias de paginação.
+        // Como seu hook useDoctors atual não parece retornar isso, passamos valores "dummy" para compilar.
+        hasMore={false} 
+        loadMoreDoctors={() => {}} 
      /> 
 
       {/* Modal de Médicos */}

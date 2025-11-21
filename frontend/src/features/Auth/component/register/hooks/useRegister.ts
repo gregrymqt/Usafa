@@ -1,18 +1,11 @@
 // Seu hook refatorado (ex: src/hooks/useRegister.ts)
 
 import { useState, useMemo } from 'react';
-import { register } from '../services/auth.service';
-// 1. Importa os validadores do novo arquivo
-import {
-  validateEmail,
-  validateCpf,
-  validateCep,
-  getPasswordValidationState,
-  isPasswordValid as checkPasswordValidity,
-  validatePhone, // Renomeado para evitar conflito
-} from '../../../shared/utils/validators';
-import type { UserSession } from '../types/auth.types';
-import { useAuth } from './useAuth';
+import { getPasswordValidationState, validateEmail, validateCpf, validateCep, validatePhone, isPasswordValid } from '../../../../../shared/utils/validators.utils';
+import { useAuth } from '../../../hooks/useAuth';
+import type { UserSession } from '../../../types/auth.types';
+import { register } from '../../../services/auth.service';
+
 
 export const useRegister = () => {
   const [name, setName] = useState('');
@@ -34,7 +27,7 @@ export const useRegister = () => {
   }, [password]);
 
   // 3. A lógica de verificação também saiu
-  const isPasswordValid = checkPasswordValidity(passwordValidation);
+  const isPasswordValidResult = isPasswordValid(passwordValidation);
 
   // --- LÓGICA DE VALIDAÇÃO REMOVIDA DE DENTRO DO SUBMIT ---
 
@@ -58,7 +51,7 @@ export const useRegister = () => {
       return;
     }
 
-    if (!isPasswordValid) {
+    if (!isPasswordValidResult) {
       setError('A senha não atende a todos os critérios.');
       return;
     }

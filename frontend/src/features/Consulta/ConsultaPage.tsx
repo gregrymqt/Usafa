@@ -7,11 +7,11 @@ import { Modal } from '../../components/Modal/Modal.tsx'; // [cite: 14]
 import { ConsultaSummarys } from './components/modal/ConsultaSummary.tsx'; // 
 import { useConsulta } from './hooks/useConsulta'; // 
 
-// 2. Importar as novas parciais
-import { _ListaConsultasPartial } from './PartialViews/_ListaConsultas';
-import { _AgendarConsultaPartial } from './PartialViews/_AgendarConsulta';
+
 import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout.tsx';
 import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type.ts';
+import { AgendarConsultaPartial } from './PartialViews/_AgendarConsulta.tsx';
+import { ListaConsultasPartial } from './PartialViews/_ListaConsultas.tsx';
 
 // 3. Ícones (Substitua pelos seus)
 const ListIcon = () => <span>L</span>;
@@ -42,9 +42,11 @@ const ConsultaPage: React.FC = () => {
       name: 'Minhas Consultas',
       icon: <ListIcon />,
       component: (
-        <_ListaConsultasPartial
+        <ListaConsultasPartial
           consultas={consultas}
           isLoading={isLoadingConsultas}
+          hasMore={false}         
+          loadMore={() => {}}      
         />
       ),
     },
@@ -52,7 +54,7 @@ const ConsultaPage: React.FC = () => {
       name: 'Agendar Nova',
       icon: <CalendarIcon />,
       component: (
-        <_AgendarConsultaPartial
+        <AgendarConsultaPartial
           formOptions={formOptions}
           isSubmitting={isSubmitting}
           handleSubmit={handleSubmitConsulta}

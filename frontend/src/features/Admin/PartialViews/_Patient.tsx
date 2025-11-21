@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 
 // --- Imports de Lógica ---
-import { usePatients } from '../Patient/hooks/usePatients';     
-import type { Patient, PatientFormData } from '../Patient/types/patient.types';     
+import { usePatients } from '../Patient/hooks/usePatients';
+import type { Patient, PatientFormData } from '../Patient/types/patient.types';
 
 // --- Imports de UI ---
 import styles from '../AdminDashboard.module.scss';
-import { PatientAdmin } from '../Patient/PatientAdmin';     
-import { PatientForm } from '../Patient/components/PatientForm';    
+import { PatientAdmin } from '../Patient/PatientAdmin';
+import { PatientForm } from '../Patient/components/PatientForm';
 import { Modal } from '../../../components/Modal/Modal';
 
-export const _PatientPartial: React.FC = () => {
+export const PatientPartial: React.FC = () => {
   // --- Lógica de Pacientes (Completa) ---
   const {
     patients,
@@ -43,7 +43,7 @@ export const _PatientPartial: React.FC = () => {
   const handlePatientFormSubmit = async (data: PatientFormData) => { 
     try {
       if (editingPatient) {
-        await editPatient(editingPatient.id, data);
+        await editPatient(editingPatient.id.toString(), data);
       } else {
         await addPatient(data);
       }
@@ -54,7 +54,7 @@ export const _PatientPartial: React.FC = () => {
   };
 
   const handleDeletePatient = (patient: Patient) => { 
-    removePatient(patient.id);
+    removePatient(patient.id.toString());
   };
 
   return (
@@ -72,6 +72,10 @@ export const _PatientPartial: React.FC = () => {
         error={errorPatients}
         onEditPatient={handleOpenEditPatientModal}
         onDeletePatient={handleDeletePatient}
+        
+        // --- CORREÇÃO: Adicionadas as props obrigatórias de paginação ---
+        hasMore={false}
+        loadMorePatients={() => {}}
       />
 
       {/* Modal de Pacientes */}

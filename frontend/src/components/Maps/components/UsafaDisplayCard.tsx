@@ -1,6 +1,5 @@
 import React from 'react';
-import { type GeoLocation, type Usafa } from '../types'; // Importe seus tipos
-import { UsafaMap } from './UsafaMap'; // O componente de mapa que você já tem
+import { type GeoLocation, type Usafa } from '../types/maps.type'; // Importe seus tipos
 
 interface UsafaDisplayCardProps {
   /** A Usafa para exibir */
