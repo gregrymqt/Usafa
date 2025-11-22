@@ -17,3 +17,5 @@ Log/
 
 # Arquivos de ambiente (NUNCA comitar!)
 .env
+
+redis-data/

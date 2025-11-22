@@ -37,7 +37,7 @@ export const useLogin= () => {
   };
 
   const handleGoogleLogin = () => {
-    const googleLoginUrl = `${import.meta.env.VITE_API_URL}/oauth2/authorization/google`;
+    const googleLoginUrl = `${import.meta.env.APP_OAUTH2_REDIRECT_URL}/oauth2/authorization/google`;
     window.location.href = googleLoginUrl;
   };
 
