@@ -1,6 +1,5 @@
 package br.edu.fatecpg.usafa.features.roles.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize; // Importante
@@ -8,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.edu.fatecpg.usafa.features.roles.interfaces.IRoleService;
 import br.edu.fatecpg.usafa.models.Role;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -15,15 +15,11 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/roles")
-@PreAuthorize("hasRole('ADMIN')") // <-- TRAVA DE SEGURANÇA! Só ADMIN mexe aqui.
+@PreAuthorize("hasRole('ADMIN')") 
+@RequiredArgsConstructor
 public class RoleController {
 
     private final IRoleService roleService;
-
-    @Autowired
-    public RoleController(IRoleService roleService) {
-        this.roleService = roleService;
-    }
 
     /**
      * Endpoint para pegar todas as roles existentes do banco.

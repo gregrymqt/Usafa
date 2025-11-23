@@ -19,8 +19,7 @@ import br.edu.fatecpg.usafa.features.auth.dtos.ResponseGoogleDTO;
 import br.edu.fatecpg.usafa.features.auth.dtos.UpdateUserByPublicIdDTO;
 import br.edu.fatecpg.usafa.features.auth.interfaces.IUserAppService;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
-import br.edu.fatecpg.usafa.features.roles.repositories.IRolesRepository;
-import br.edu.fatecpg.usafa.models.Role;
+import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.models.User;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
@@ -28,8 +27,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections; // 3. Importar
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,9 +38,10 @@ public class UserAppService implements IUserAppService {
 
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final IRolesRepository roleRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final UserUtils userUtils;
+
 
     // --- LOGIN MANUAL ---
     @Override
@@ -60,7 +58,7 @@ public class UserAppService implements IUserAppService {
             String token = jwtUtils.generateToken(userDetails);
 
             // 4. Retorna DTO padronizado
-            return buildResponseDTO(userDetails, token);
+            return userUtils.buildResponseDTO(userDetails, token);
 
         } catch (BadCredentialsException e) {
             // Encapsula erro de segurança em erro de negócio para não vazar detalhes
@@ -98,12 +96,12 @@ public class UserAppService implements IUserAppService {
         }
 
         // 3. Atribui Role e Salva
-        assignDefaultRole(newUser);
+        userUtils.assignDefaultRole(newUser);
         User savedUser = userRepository.save(newUser);
 
         // 4. Gera token e retorna
         String token = jwtUtils.generateToken(savedUser);
-        return buildResponseDTO(savedUser, token);
+        return userUtils.buildResponseDTO(savedUser, token);
     }
 
     // --- LOGIN / REGISTRO VIA GOOGLE ---
@@ -126,7 +124,7 @@ public class UserAppService implements IUserAppService {
             }
 
             // Verifica se falta preencher dados obrigatórios do sistema
-            if (isProfileIncomplete(userToSave)) {
+            if (userUtils.isProfileIncomplete(userToSave)) {
                 needsCompletion = true;
             }
 
@@ -142,7 +140,7 @@ public class UserAppService implements IUserAppService {
             userToSave.setGoogleId(googleUser.googleId());
             userToSave.setCreatedByAdmin(false);
             
-            assignDefaultRole(userToSave);
+            userUtils.assignDefaultRole(userToSave);
         }
 
         User savedUser = userRepository.save(userToSave);
@@ -184,48 +182,7 @@ public class UserAppService implements IUserAppService {
                     // Gera novo token com as claims atualizadas (se o token carregar dados do user)
                     String token = jwtUtils.generateToken(savedUser);
                     
-                    return buildResponseDTO(savedUser, token);
+                    return userUtils.buildResponseDTO(savedUser, token);
                 });
-    }
-
-    // ---------------------------------------------------------
-    // MÉTODOS PRIVADOS (HELPERS)
-    // ---------------------------------------------------------
-
-    private void assignDefaultRole(User user) {
-        Role defaultRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new BusinessRuleException("Erro interno: Role padrão não configurada."));
-        user.setRoles(Collections.singleton(defaultRole));
-    }
-
-    private boolean isProfileIncomplete(User user) {
-        return user.getCpf() == null || user.getCpf().isBlank() ||
-               user.getCep() == null || user.getCep().isBlank() ||
-               user.getPhone() == null || user.getPhone().isBlank() ||
-               user.getBirthDate() == null;
-    }
-
-    /**
-     * Centraliza a criação do ResponseDTO para evitar código duplicado
-     */
-    private ResponseDTO buildResponseDTO(User user, String token) {
-        List<String> roles = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
-
-        String birthDateFormatted = (user.getBirthDate() != null)
-                ? user.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
-                : null;
-
-        return new ResponseDTO(
-                token,
-                user.getPublicId().toString(),
-                user.getName(),
-                user.getEmail(),
-                user.getCep(),
-                user.getPhone(),
-                birthDateFormatted,
-                roles
-        );
     }
 }

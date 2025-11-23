@@ -1,31 +1,26 @@
 package br.edu.fatecpg.usafa.features.roles.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Importante
 
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.roles.interfaces.IRoleService;
-import br.edu.fatecpg.usafa.features.roles.repositories.IRolesRepository;
+import br.edu.fatecpg.usafa.features.roles.repositories.IRoleRepository;
 import br.edu.fatecpg.usafa.models.Role;
 import br.edu.fatecpg.usafa.models.User;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class RoleService implements IRoleService {
 
     // Nossos "pontos de acesso" ao banco de dados
-    private final IRolesRepository roleRepository;
+    private final IRoleRepository roleRepository;
     private final IUserRepository userRepository;
-
-    @Autowired
-    public RoleService(IRolesRepository roleRepository, IUserRepository userRepository) {
-        this.roleRepository = roleRepository;
-        this.userRepository = userRepository;
-    }
 
     /**
      * Método para pegar todas as roles existentes do banco.
