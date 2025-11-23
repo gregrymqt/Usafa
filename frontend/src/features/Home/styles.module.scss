@@ -3,10 +3,11 @@
 }
 
 .mainCarouselSection {
-  // O carrossel principal pode ocupar a tela inteira na primeira dobra
   height: 60vh;
   min-height: 400px;
-  background-color: #e0e0e0; // Cor de fundo enquanto a imagem carrega
+  background-color: #e0e0e0;
+  overflow: hidden; // <--- Adicione isso para segurança
+  position: relative; // <--- Importante para posicionamento absoluto interno
 
   @media (min-width: 768px) {
     height: 80vh;

@@ -2,6 +2,11 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import type { SwiperOptions } from 'swiper/types';
 import { Navigation, Pagination, A11y, Autoplay } from 'swiper/modules';
 
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/autoplay'; // This import is correct for Swiper v10+
+
 // Note: Swiper v12 may handle CSS differently. Check documentation if styles are missing.
 
 import styles from './styles.module.scss';
