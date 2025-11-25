@@ -44,8 +44,18 @@ export const getUserByPublicId = async (publicId: string): Promise<UserSession> 
  * @returns Uma promessa que resolve para os dados da resposta de atualizar usuário.
  * @throws {Error} Se a API retornar com um erro.
  */
-export const updateUserByPublicId = async (publicId: string, userData: UpdateUserData): Promise<UserSession> => {
-  return api.put<UserSession>(`/auth/id/${publicId}`, userData);
+// Adicione o parâmetro token ao seu serviço PUT
+export const updateUserByPublicId = async (
+  publicId: string, 
+  userData: UpdateUserData, 
+  token?: string // ⚠️ NOVO PARÂMETRO OPCIONAL
+): Promise<UserSession> => {
+  
+  const config = token 
+    ? { headers: { Authorization: `Bearer ${token}` } } 
+    : {};
+
+  return api.put<UserSession>(`/auth/id/${publicId}`, userData, config); 
 };
 
 

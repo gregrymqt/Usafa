@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Modal } from '../../../components/Modal/Modal';
 import styles from '../AdminDashboard.module.scss';
-import { AppointmentAdmin } from '../appointment/AppointmentAdmin';
-import { AppointmentForm } from '../appointment/components/AppointmentForm/AppointmentForm';
-import { useAppointments } from '../appointment/hooks/useAppointments';
+import { AppointmentAdmin } from '../components/appointment/AppointmentAdmin';
+import { AppointmentForm } from '../components/appointment/components/AppointmentForm/AppointmentForm';
+import { useAppointments } from '../components/appointment/hooks/useAppointments';
 // Certifique-se de que AppointmentFormData está atualizado no seu arquivo de types para ter 'horarioSlotId' e 'tipoConsultaId'
-import type { AppointmentFormData, FormSelectOption } from '../appointment/types/appointment.type';
-import { usePatients } from '../Patient/hooks/usePatients'; // Assuming usePatients is correctly imported
+import type { AppointmentFormData, FormSelectOption } from '../components/appointment/types/appointment.type';
+import { usePatients } from '../components/Patient/hooks/usePatients'; // Assuming usePatients is correctly imported
 
 // Função auxiliar
 const splitDateTime = (dateString: string) => {

@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.features.location.mappers;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import br.edu.fatecpg.usafa.features.location.dtos.LocationCreateDTO;
 import br.edu.fatecpg.usafa.features.location.dtos.LocationDTO;

@@ -8,7 +8,6 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -38,7 +37,6 @@ public class JwtUtils {
      * MODIFICADO: Agora inclui um JTI (JWT ID)
      */
 
-    @Async
     public String generateToken(UserDetails userDetails) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
@@ -61,7 +59,6 @@ public class JwtUtils {
     /**
      * Extrai o username (email) de um token JWT.
      */
-    @Async
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
@@ -108,7 +105,6 @@ public class JwtUtils {
 
     // --- MÉTODOS PRIVADOS (Seu código original) ---
 
-    @Async
     public boolean validateToken(String token) {
         try {
             getParser().parseSignedClaims(token);

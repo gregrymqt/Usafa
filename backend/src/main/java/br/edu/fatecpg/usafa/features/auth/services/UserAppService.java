@@ -1,22 +1,6 @@
-// br/edu/fatecpg/usafa/features/auth/UserAppService.java
+package br.edu.fatecpg.usafa.features.auth.services;
 
-package br.edu.fatecpg.usafa.features.auth.services; // (Ajuste o package se necessário)
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority; // 2. Importar
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import br.edu.fatecpg.usafa.features.auth.dtos.LoginGoogleRequestDTO;
-import br.edu.fatecpg.usafa.features.auth.dtos.LoginRequestDTO;
-import br.edu.fatecpg.usafa.features.auth.dtos.RegisterRequestDTO;
-import br.edu.fatecpg.usafa.features.auth.dtos.ResponseDTO;
-import br.edu.fatecpg.usafa.features.auth.dtos.ResponseGoogleDTO;
-import br.edu.fatecpg.usafa.features.auth.dtos.UpdateUserByPublicIdDTO;
+import br.edu.fatecpg.usafa.features.auth.dtos.*;
 import br.edu.fatecpg.usafa.features.auth.interfaces.IUserAppService;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
@@ -25,6 +9,14 @@ import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,7 +25,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@Slf4j // 1. Habilita o logger
 public class UserAppService implements IUserAppService {
 
     private final IUserRepository userRepository;
@@ -42,40 +34,42 @@ public class UserAppService implements IUserAppService {
     private final JwtUtils jwtUtils;
     private final UserUtils userUtils;
 
-
     // --- LOGIN MANUAL ---
     @Override
     public ResponseDTO processManualLogin(LoginRequestDTO data) {
+        log.info("Tentativa de login manual para o email: {}", data.email());
         try {
-            // 1. Autentica via Spring Security
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(data.email(), data.password()));
 
-            // 2. Recupera o UserDetails (User)
             User userDetails = (User) authentication.getPrincipal();
+            log.info("Usuário autenticado com sucesso: {}", userDetails.getId());
 
-            // 3. Gera o token
             String token = jwtUtils.generateToken(userDetails);
+            log.debug("Token gerado para login manual.");
 
-            // 4. Retorna DTO padronizado
             return userUtils.buildResponseDTO(userDetails, token);
 
         } catch (BadCredentialsException e) {
-            // Encapsula erro de segurança em erro de negócio para não vazar detalhes
+            log.warn("Falha no login manual: Credenciais inválidas para {}", data.email());
             throw new BusinessRuleException("E-mail ou senha inválidos.");
+        } catch (Exception e) {
+            log.error("Erro inesperado no login manual", e);
+            throw e;
         }
     }
 
     // --- REGISTRO MANUAL ---
     @Override
-    @Transactional // Garante que o usuário e a role sejam salvos juntos ou nada feito
+    @Transactional
     public ResponseDTO processManualRegistration(RegisterRequestDTO data) {
-        // 1. Fail-fast: Valida duplicidade
+        log.info("Iniciando registro manual para: {}", data.email());
+
         if (userRepository.findByEmail(data.email()).isPresent()) {
+            log.warn("Tentativa de registro duplicado para email: {}", data.email());
             throw new BusinessRuleException("Este e-mail já está em uso.");
         }
 
-        // 2. Prepara o usuário
         User newUser = new User();
         newUser.setName(data.name());
         newUser.setEmail(data.email());
@@ -85,21 +79,18 @@ public class UserAppService implements IUserAppService {
         newUser.setPhone(data.phone());
         newUser.setCreatedByAdmin(false);
 
-        // Tratamento seguro de data
         try {
-            // Assume formato ISO (YYYY-MM-DD) ou similar vindo do front
-            // Se vier com hora (ex: 2000-01-01T00:00:00), usamos substring ou parse seguro
             String dateStr = data.birthDate().length() >= 10 ? data.birthDate().substring(0, 10) : data.birthDate();
             newUser.setBirthDate(LocalDate.parse(dateStr));
         } catch (Exception e) {
+            log.error("Erro ao fazer parse da data: {}", data.birthDate(), e);
             throw new BusinessRuleException("Formato de data de nascimento inválido.");
         }
 
-        // 3. Atribui Role e Salva
         userUtils.assignDefaultRole(newUser);
         User savedUser = userRepository.save(newUser);
+        log.info("Novo usuário salvo com ID: {}", savedUser.getId());
 
-        // 4. Gera token e retorna
         String token = jwtUtils.generateToken(savedUser);
         return userUtils.buildResponseDTO(savedUser, token);
     }
@@ -108,30 +99,33 @@ public class UserAppService implements IUserAppService {
     @Override
     @Transactional
     public ResponseGoogleDTO processGoogleLogin(LoginGoogleRequestDTO googleUser) {
+        log.info("Processando Login Google para email: {}", googleUser.email());
+        
         Optional<User> existingUserOpt = userRepository.findByEmail(googleUser.email());
         User userToSave;
         boolean isNewUser = false;
         boolean needsCompletion = false;
 
         if (existingUserOpt.isPresent()) {
-            // --- USUÁRIO EXISTENTE ---
+            log.info("Usuário Google já existe no banco via email.");
             userToSave = existingUserOpt.get();
-            userToSave.setName(googleUser.name()); // Atualiza nome se mudou no Google
+            userToSave.setName(googleUser.name());
             userToSave.setPicture(googleUser.picture());
             
             if (userToSave.getGoogleId() == null) {
-                userToSave.setGoogleId(googleUser.googleId()); // Vincula conta existente ao Google
+                log.info("Vinculando Google ID ao usuário existente.");
+                userToSave.setGoogleId(googleUser.googleId());
             }
 
-            // Verifica se falta preencher dados obrigatórios do sistema
             if (userUtils.isProfileIncomplete(userToSave)) {
+                log.info("Usuário existente precisa completar cadastro.");
                 needsCompletion = true;
             }
 
         } else {
-            // --- NOVO USUÁRIO ---
+            log.info("Novo usuário identificado via Google. Criando registro...");
             isNewUser = true;
-            needsCompletion = true; // Novo usuário Google SEMPRE precisa completar CPF/CEP etc.
+            needsCompletion = true;
 
             userToSave = new User();
             userToSave.setName(googleUser.name());
@@ -143,13 +137,19 @@ public class UserAppService implements IUserAppService {
             userUtils.assignDefaultRole(userToSave);
         }
 
+        log.debug("Salvando usuário no banco...");
         User savedUser = userRepository.save(userToSave);
-        String token = jwtUtils.generateToken(savedUser);
-        
-        // Obtém roles para retorno
+        log.info("Usuário Google salvo/atualizado com sucesso. ID: {}", savedUser.getId());
+
+        // --- PONTO CRÍTICO DO SEU ERRO ---
+        log.debug("Chamando jwtUtils.generateToken...");
+        String token = jwtUtils.generateToken(savedUser); 
+        // Se a linha acima for Async e retornar String, o Java lança a exceção aqui.
+        log.debug("Token JWT gerado com sucesso.");
+
         List<String> roles = savedUser.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .toList(); // Java 16+ (ou .collect(Collectors.toList()))
+                .toList();
 
         return new ResponseGoogleDTO(
                 token,
@@ -160,14 +160,16 @@ public class UserAppService implements IUserAppService {
         );
     }
 
-    // --- ATUALIZAÇÃO DE CADASTRO (COMPLETAR DADOS) ---
+    // --- ATUALIZAÇÃO ---
     @Override
     @Transactional
     public Optional<ResponseDTO> updateUserByPublicId(String publicId, UpdateUserByPublicIdDTO data) {
+        log.info("Atualizando dados do usuário PublicID: {}", publicId);
         UUID uuid;
         try {
             uuid = UUID.fromString(publicId);
         } catch (IllegalArgumentException e) {
+             log.warn("PublicID inválido recebido: {}", publicId);
              throw new BusinessRuleException("ID do usuário inválido.");
         }
 
@@ -175,13 +177,13 @@ public class UserAppService implements IUserAppService {
                 .map(user -> {
                     user.setCep(data.cep());
                     user.setCpf(data.cpf());
-                    // Se houver outros campos para completar, adicione aqui
+                    user.setPhone(data.phone());
+                    user.setBirthDate(LocalDate.parse(data.birthDate()));
                     
                     User savedUser = userRepository.save(user);
+                    log.info("Usuário atualizado com sucesso.");
                     
-                    // Gera novo token com as claims atualizadas (se o token carregar dados do user)
                     String token = jwtUtils.generateToken(savedUser);
-                    
                     return userUtils.buildResponseDTO(savedUser, token);
                 });
     }

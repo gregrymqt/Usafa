@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import type { LoginCredentials, UserSession } from '../types/auth.types';
-import { login } from '../services/auth.service';
-import { validateEmail } from '../../../shared/utils/validators.utils'; // Só precisamos deste validador
-import { useAuth } from './useAuth';
+import { useState } from "react";
+import type { LoginCredentials, UserSession } from "../types/auth.types";
+import { login } from "../services/auth.service";
+import { validateEmail } from "../../../shared/utils/validators.utils"; // Só precisamos deste validador
+import { useAuth } from "./useAuth";
 
-export const useLogin= () => {
+export const useLogin = () => {
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { handleLoginSuccess } = useAuth();
@@ -14,9 +15,9 @@ export const useLogin= () => {
     setError(null);
 
     if (!validateEmail(credentials.email) || !credentials.password) {
-       setError('Email ou senha inválidos.');
-       setIsLoading(false);
-       return;
+      setError("Email ou senha inválidos.");
+      setIsLoading(false);
+      return;
     }
 
     try {
@@ -24,12 +25,11 @@ export const useLogin= () => {
       //    Assume que `login` retorna o ResponseDTO { token, publicId }
       const response: UserSession = await login(credentials);
 
-     handleLoginSuccess(response);
-
+      handleLoginSuccess(response);
     } catch (err) {
       // 6. Define uma mensagem de erro para a UI
-      setError('Email ou senha inválidos. Tente novamente.');
-      console.error('Falha no login:', err);
+      setError("Email ou senha inválidos. Tente novamente.");
+      console.error("Falha no login:", err);
     } finally {
       // 7. Garante que o estado de loading seja desativado
       setIsLoading(false);
@@ -37,7 +37,12 @@ export const useLogin= () => {
   };
 
   const handleGoogleLogin = () => {
-    const googleLoginUrl = `${import.meta.env.GENERAL_URL}/oauth2/authorization/google`;
+    // Agora buscando VITE_GENERAL_URL
+    const googleLoginUrl = `${
+      import.meta.env.VITE_GENERAL_URL
+    }/oauth2/authorization/google`;
+
+    console.log("URL Gerada:", googleLoginUrl); // Debug para confirmar
     window.location.href = googleLoginUrl;
   };
 

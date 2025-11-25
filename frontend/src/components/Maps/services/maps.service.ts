@@ -27,23 +27,18 @@ export const getSavedLocation = async (publicId: string): Promise<SavedLocation 
  * Busca as coordenadas (lat/lng) de um CEP usando a API de Geocoding do Google.
  */
 export const getCoordinatesFromCep = async (cep: string): Promise<GeoLocation> => {
-  const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-  if (!apiKey) {
-    throw new Error('Chave de API do Google Maps não configurada.');
-  }
-  const geoURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${cep}, Brasil&key=${apiKey}`;
-
   try {
-    const response = await fetch(geoURL);
-    const data: GeocodingResponse = await response.json();
-
-    if (!response.ok || data.status !== 'OK' || !data.results || data.results.length === 0) {
+    // Agora chama o nosso backend, que é mais seguro
+    const response = await api.get<GeocodingResponse>(`/api/v1/maps/geocode?cep=${cep}`);
+    const data = response; // O 'api.service' já extrai o 'data'
+    
+    if (data.status !== 'OK' || !data.results || data.results.length === 0) {
       throw new Error(data.status === 'ZERO_RESULTS' ? 'CEP não encontrado.' : 'Erro ao buscar coordenadas do CEP.');
     }
     return data.results[0].geometry.location;
   } catch (error) {
-    console.error('Falha ao buscar na API do Google:', error);
-    throw new Error('Não foi possível conectar à API de geolocalização.');
+    console.error('Falha ao buscar geolocalização no backend:', error);
+    throw new Error('Não foi possível obter as coordenadas do CEP.');
   }
 };
 

@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.ArrayList;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

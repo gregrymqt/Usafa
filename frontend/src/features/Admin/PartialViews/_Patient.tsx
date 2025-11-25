@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 
 // --- Imports de Lógica ---
-import { usePatients } from '../Patient/hooks/usePatients';
-import type { Patient, PatientFormData } from '../Patient/types/patient.types';
+import { usePatients } from '../components/Patient/hooks/usePatients';
+import type { Patient, PatientFormData } from '../components/Patient/types/patient.types';
 
 // --- Imports de UI ---
 import styles from '../AdminDashboard.module.scss';
-import { PatientAdmin } from '../Patient/PatientAdmin';
-import { PatientForm } from '../Patient/components/PatientForm';
+import { PatientAdmin } from '../components/Patient/PatientAdmin';
+import { PatientForm } from '../components/Patient/components/PatientForm';
 import { Modal } from '../../../components/Modal/Modal';
 
 export const PatientPartial: React.FC = () => {

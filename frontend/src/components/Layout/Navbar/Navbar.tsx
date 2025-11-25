@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import styles from './styles.module.scss';
 import { FaBars, FaTimes } from 'react-icons/fa';
+import { useAuth } from '../../../features/Auth/hooks/useAuth';
+import UserDropdown from './components/userDropDown';
+// Certifique-se que o caminho está certo para o arquivo acima
 
 const Navbar: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isAuthenticated } = useAuth(); 
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // Função auxiliar para fechar a sidebar (passada pro filho)
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
   };
 
   return (
     <nav className={styles.navbar}>
       <div className={styles.navbarContainer}>
         <div className={styles.navbarLogo}>
-          <a href="/">
-            {/* Insira sua logo aqui */}
+          <Link to="/" onClick={closeSidebar}>
             <span>Usafa</span>
-          </a>
+          </Link>
         </div>
 
         <div className={styles.menuIcon} onClick={toggleSidebar}>
@@ -25,31 +34,42 @@ const Navbar: React.FC = () => {
 
         <ul className={`${styles.navMenu} ${isSidebarOpen ? styles.active : ''}`}>
           <li className={styles.navItem}>
-            <a href="/consultas" className={styles.navLinks}>
+            <Link to="/consultas" className={styles.navLinks} onClick={closeSidebar}>
               Consultas
-            </a>
+            </Link>
           </li>
           <li className={styles.navItem}>
-            <a href="/remedios" className={styles.navLinks}>
+            <Link to="/remedios" className={styles.navLinks} onClick={closeSidebar}>
               Remédios
-            </a>
+            </Link>
           </li>
           <li className={styles.navItem}>
-            <a href="/exames" className={styles.navLinks}>
+            <Link to="/exames" className={styles.navLinks} onClick={closeSidebar}>
               Exames
-            </a>
+            </Link>
           </li>
+
+          {/* Lógica para o MENU MOBILE */}
           <li className={styles.navItemLogin}>
-            <a href="/login" className={styles.navLinksLogin}>
-              Entrar
-            </a>
+            {isAuthenticated ? (
+              <UserDropdown closeSidebar={closeSidebar} />
+            ) : (
+              <Link to="/login" className={styles.navLinksLogin} onClick={closeSidebar}>
+                Entrar
+              </Link>
+            )}
           </li>
         </ul>
 
+        {/* Lógica para o MENU DESKTOP */}
         <div className={styles.navLogin}>
-          <a href="/login" className={styles.btn}>
-            Entrar
-          </a>
+          {isAuthenticated ? (
+            <UserDropdown closeSidebar={closeSidebar} />
+          ) : (
+            <Link to="/login" className={styles.btn}>
+              Entrar
+            </Link>
+          )}
         </div>
       </div>
     </nav>

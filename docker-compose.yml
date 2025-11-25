@@ -1,33 +1,55 @@
-
 services:
-  # 1. Aplicativo Spring Boot
+  # 1. Backend (Modo Desenvolvimento)
   backend:
-    build: ./backend
+    # Em vez de ler o Dockerfile, usamos uma imagem Java JDK pura
+    image: eclipse-temurin:21-jdk-alpine
+    container_name: backend_dev
     restart: always
     ports:
       - "8080:8080"
-    env_file: .env # Correto, injeta todas as variáveis [cite: 1]
+    env_file: .env
+    environment:
+    - SERVER_FORWARD_HEADERS_STRATEGY=framework
+    - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    - SPRING_JPA_SHOW_SQL=true
     depends_on:
       - db
       - cache
-      - mongo # <-- ADICIONADO
-    networks: # <-- ADICIONADO
+      - mongo
+    networks:
       - usafa-network
+    working_dir: /app
+    volumes:
+      - ./backend:/app          # Espelha o código
+      - /app/target             # Ignora pasta de build
+      - maven-repo:/root/.m2    # Persiste as dependências baixadas (para não baixar tudo sempre)
+      - ./logs:/app/logs
+    # O comando que dá permissão e roda o app
+    command: /bin/sh -c "chmod +x mvnw && ./mvnw spring-boot:run"
 
-  # 2. Aplicação Frontend
+  # 2. Frontend (Modo Desenvolvimento)
   frontend:
-    build: ./frontend
+    image: node:20-alpine
+    container_name: frontend_dev
     restart: always
     ports:
-      - "3000:80"
+      - "3000:5173"
+    # Carrega o arquivo para o Docker entender as variáveis
     env_file: .env 
     depends_on:
       - backend
-    networks: # <-- ADICIONADO
+    networks:
       - usafa-network
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_GENERAL_URL=${VITE_GENERAL_URL} 
+      
+    command: /bin/sh -c "npm install && npm run dev -- --host"
 
-  # 3. Banco de Dados PostgreSQL
-  # 3. Banco de Dados PostgreSQL
+  # --- BANCOS DE DADOS (IGUAIS AO ANTERIOR) ---
   db:
     image: postgres:17
     restart: always
@@ -35,7 +57,6 @@ services:
         POSTGRES_DB: ${POSTGRES_DB_NAME}
         POSTGRES_USER: ${POSTGRES_DB_USER}
         POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
-    # Note que agora ports, volumes e networks estão alinhados com 'environment' (à esquerda)
     ports:
       - "5432:5432"
     volumes:
@@ -43,19 +64,17 @@ services:
     networks:
       - usafa-network
 
-  # 4. Cache Redis
   cache:
     image: redis:latest
     command: redis-server --appendonly yes
     restart: always
     ports:
       - "6379:6379"
-    networks: # <-- ADICIONADO
+    networks:
       - usafa-network
     volumes:
       - ./redis-data:/data  
 
-  # 6. Banco de Dados MongoDB (NOVO)
   mongo:
     image: mongo:latest
     container_name: mongo
@@ -63,20 +82,19 @@ services:
     ports:
       - "27017:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_DB_USER} # Use variáveis do seu .env
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_DB_PASSWORD} # Use variáveis do seu .env
-      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME} # Use variáveis do seu .env
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_DB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
     volumes:
       - mongo-data:/data/db
-    networks: # <-- ADICIONADO
+    networks:
       - usafa-network
 
-# Bloco de Volumes (Atualizado)
 volumes:
   pgdata:
-  mongo-data: # <-- ADICIONADO
+  mongo-data:
+  maven-repo: # Volume novo para salvar as dependências do Java
 
-# Bloco de Redes (Novo)
 networks:
   usafa-network:
     driver: bridge

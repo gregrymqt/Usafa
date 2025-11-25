@@ -55,12 +55,16 @@ public class User implements UserDetails {
 
     private String picture;
 
+    @Column(nullable = true, unique = true) // Deixe explícito que pode ser nulo
     private String cpf;
 
+    @Column(nullable = true)
     private String cep;
 
+    @Column(nullable = true, unique = true)
     private String phone;
-
+    
+    @Column(nullable = true)
     private LocalDate birthDate;
 
     @Column(nullable = false)

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 
 // --- Imports de Lógica ---
-import { useDoctors } from '../doctors/hooks/useDoctors';
-import type { Doctor, NewDoctorData } from '../doctors/types/doctor.type';
+import { useDoctors } from '../components/doctors/hooks/useDoctors';
+import type { Doctor, NewDoctorData } from '../components/doctors/types/doctor.type';
 
 // --- Imports de UI ---
 import styles from '../AdminDashboard.module.scss';
-import { DoctorAdmin } from '../doctors/DoctorAdmin';
-import { DoctorForm } from '../doctors/components/DoctorForm';
+import { DoctorAdmin } from '../components/doctors/DoctorAdmin';
+import { DoctorForm } from '../components/doctors/components/DoctorForm';
 import { Modal } from '../../../components/Modal/Modal';
 
 // CORREÇÃO 1: Removido o "_" do nome. Componentes devem ser PascalCase (Ex: DoctorPartial) para usar Hooks.

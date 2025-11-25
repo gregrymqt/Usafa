@@ -1,13 +1,15 @@
 import type { UserSession } from '../../features/Auth/types/auth.types';
-import { ApiError} from '../exceptions/ApiError'; // 1. IMPORTA O NOVO ApiError
+import { ApiError } from '../exceptions/ApiError';
 import type { ApiErrorResponse } from '../exceptions/types/ApiErrorResponse';
 
 // --- 1. Configuração Central ---
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+// IMPORTANTE: Garanta que sua variável no .env é VITE_GENERAL_URL ou VITE_API_URL
+// Se no .env está VITE_GENERAL_URL, mude aqui para usar ela.
+const API_BASE_URL = import.meta.env.VITE_GENERAL_URL || 'http://localhost:8080/api/v1';
+
 export const USER_STORAGE_KEY = 'seu-app-User-token';
 
-
-// --- 2. Funções Auxiliares de Autenticação ---
+// --- 2. Funções Auxiliares (IGUAIS AO SEU) ---
 export const getStorageItem = <T>(key: string): T | null => {
   const item = localStorage.getItem(key);
   return item ? (JSON.parse(item) as T) : null;
@@ -28,22 +30,12 @@ const handleLogoutInternal = () => {
   }
 };
 
-/**
- * 1. Chama o backend para adicionar o token à blocklist.
- * 2. Limpa os dados locais (mesmo se a chamada falhar).
- */
 export const logout = async (): Promise<void> => {
   try {
-    // 1. Tenta invalidar o token no backend.
-    // O 'api.post' vai automaticamente incluir o token no header
-    // (porque o 'apiFetch' o adiciona)
-    await api.post('/auth/logout', {}); // Envia requisição para a blocklist
-    
+    await api.post('/auth/logout', {});
   } catch (error) {
-    // Mesmo se falhar (ex: offline), o 'finally' vai deslogar localmente
     console.error('[API Logout] Falha ao invalidar token no backend:', error);
   } finally {
-    // 2. Limpa a sessão local e redireciona
     removeStorageItem(USER_STORAGE_KEY);
     if (window.location.pathname !== '/login') {
       window.location.href = '/login';
@@ -51,26 +43,32 @@ export const logout = async (): Promise<void> => {
   }
 };
 
-// --- 3. O Wrapper "apiFetch" (Modificado) ---
+// --- 3. O Wrapper "apiFetch" (CORRIGIDO) ---
 const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
   
-  // --- Lógica do "Request Interceptor" ---
   const token = getStorageItem<UserSession>(USER_STORAGE_KEY)?.token || null;
+
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
+    // 1. CORREÇÃO: Header obrigatório para o Ngrok Free não bloquear a API
+    'ngrok-skip-browser-warning': 'true' 
   };
+
   const mergedHeaders = new Headers({
     ...defaultHeaders,
     ...(options.headers || {}),
   });
-  if (token) {
+
+  // 2. CORREÇÃO: Só adiciona o token do Storage se NÃO tiver um Authorization manual
+  // Isso permite que a gente passe um token específico na hora de completar o cadastro do Google
+  if (token && !mergedHeaders.has('Authorization')) {
     mergedHeaders.set('Authorization', `Bearer ${token}`);
   }
+
   const url = `${API_BASE_URL}${endpoint}`;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos
+  const timeoutId = setTimeout(() => controller.abort(), 10000); 
 
-  // --- Lógica do "Response Interceptor" ---
   try {
     const response = await fetch(url, {
       ...options,
@@ -80,22 +78,17 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
 
     clearTimeout(timeoutId);
 
-    // 8. TRATAMENTO DE ERRO (MODIFICADO)
     if (!response.ok) {
-      // Tenta extrair o corpo do erro (ex: { "message": "...", "status": 400 })
       let errorData: ApiErrorResponse | null = null;
       try {
         errorData = await response.json();
       } catch {
-        // O corpo do erro não é JSON ou está vazio
+        // Ignora erro de parse
       }
 
-      // 2. LANÇA A NOVA CLASSE ApiError
       if (errorData && errorData.message) {
-        // Se o back-end enviou um erro estruturado
         throw ApiError.fromResponse(errorData);
       } else {
-        // Se foi um erro genérico (ex: 500 sem corpo)
         throw new ApiError(
           `Erro ${response.status}: ${response.statusText}`,
           response.status
@@ -103,7 +96,6 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
       }
     }
 
-    // 9. Resposta de Sucesso (Status 2xx)
     if (response.status === 204) {
       return null as T;
     }
@@ -112,18 +104,14 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
   } catch (error: unknown) {
     clearTimeout(timeoutId);
 
-    // --- Tratamento Global de Erros (MODIFICADO) ---
-
-    // 3. VERIFICA SE É UMA INSTÂNCIA DO ApiError (agora com type assertion)
     if (error instanceof ApiError) {
       switch (error.status) {
         case 401:
           console.warn('[API 401] Token expirado ou inválido. Deslogando...');
-          // 3. Chama o logout INTERNO (não precisa chamar a API de novo)
           handleLogoutInternal(); 
           break;
         case 403:
-          console.error('[API 403] Acesso negado. Você não tem permissão.');
+          console.error('[API 403] Acesso negado.');
           break;
         case 500:
         case 502:
@@ -141,8 +129,7 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
   }
 };
 
-// --- 4. Exportação ---
-// (Sem alterações, mas removi os comentários "CORREÇÃO")
+// --- 4. Exportação (IGUAL) ---
 export const api = {
   get: <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
     return apiFetch<T>(endpoint, { ...options, method: 'GET' });

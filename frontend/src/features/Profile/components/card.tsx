@@ -12,7 +12,7 @@ interface ProfileCardProps {
  * utilizando o componente genérico Card.
  */
 export const ProfileCard: React.FC<ProfileCardProps> = ({ title, icon, children }) => (
-  <Card>
+  <Card title={title} description="">
     <>
       <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-gray-50">
         <div className="text-blue-600">{icon}</div>

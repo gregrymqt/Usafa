@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ApiError } from '../../../shared';
 import { type UserData, type UserProfileUpdateDTO } from '../types/profile.type';
 // Importe as duas funções da sua API
-import { getAuthenticatedUserData, updateUserData } from '../services/profile.type'; 
+import { getAuthenticatedUserData, updateUserData } from '../services/profile.service'; 
 
 /**
  * Hook customizado para gerenciar os dados do perfil do usuário autenticado.
