@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import br.edu.fatecpg.usafa.features.auth.dtos.ResponseDTO;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.roles.repositories.IRoleRepository;
 import br.edu.fatecpg.usafa.models.Role;
 // (Ajuste esses imports para seus models e repositórios corretos)
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID; // 3. Importar UUID
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class UserUtils {
     private final IUserRepository userRepository;
     private static final Logger logger = LoggerFactory.getLogger(UserUtils.class);
     private final IRoleRepository roleRepository;
+    private final ICacheService cacheService;
 
     private static final List<String> ADMIN_EMAILS = Arrays.asList(
             "lucasvicentedesouza021@gmail.com",
@@ -38,7 +41,6 @@ public class UserUtils {
             "karinkarinbagietto@gmail.com",
             "Matsumotoygor2@gmail.com",
             "jcorjr04@gmail.com");
-
 
     /**
      * Busca a entidade User com base na autenticação do Spring Security.
@@ -53,7 +55,7 @@ public class UserUtils {
         if (email == null) {
             return Optional.empty();
         }
-        
+
         return userRepository.findByEmail(email);
     }
 
@@ -69,19 +71,41 @@ public class UserUtils {
             return Optional.empty();
         }
 
+        // 1. Define uma chave única para o cache deste usuário
+        final String cacheKey = "user:publicId:" + publicId;
+
+        // 2. Tenta buscar o usuário do cache primeiro
+        User cachedUser = cacheService.get(cacheKey, User.class);
+        if (cachedUser != null) {
+            // Cache HIT: Usuário encontrado no cache, retorna imediatamente
+            logger.info("Cache HIT para o usuário com publicId: {}", publicId);
+            return Optional.of(cachedUser);
+        }
+
+        // 3. Cache MISS: Usuário não está no cache, continua com a lógica original
+        logger.info("Cache MISS para o usuário com publicId: {}. Buscando no banco de dados.", publicId);
+
         UUID uuid;
         try {
-            // 1. Tenta converter a String para UUID
             uuid = UUID.fromString(publicId);
         } catch (IllegalArgumentException e) {
-            // 2. Se a string não for um UUID válido, loga e retorna vazio
             logger.warn("Tentativa de busca com ID público inválido (não-UUID): {}", publicId);
             return Optional.empty();
         }
 
-        // 3. Busca no repositório com o UUID
-        // (Assumindo que IUserRepository tem 'findByPublicId(UUID id)')
-        return userRepository.findByPublicId(uuid);
+        // 4. Busca no repositório
+        Optional<User> userFromDb = userRepository.findByPublicId(uuid);
+
+        // 5. Se o usuário foi encontrado no banco, salva no cache antes de retornar
+        if (userFromDb.isPresent()) {
+            logger.info("Usuário com publicId: {} encontrado no banco. Salvando no cache.", publicId);
+            // Salva no cache com um tempo de vida (TTL - Time To Live) de 1 hora, por
+            // exemplo.
+            // Ajuste o tempo conforme a necessidade da sua aplicação.
+            cacheService.saveWithTtl(cacheKey, userFromDb.get(), 1, TimeUnit.HOURS);
+        }
+
+        return userFromDb;
     }
 
     // ---------------------------------------------------------
@@ -102,9 +126,9 @@ public class UserUtils {
 
     public boolean isProfileIncomplete(User user) {
         return user.getCpf() == null || user.getCpf().isBlank() ||
-               user.getCep() == null || user.getCep().isBlank() ||
-               user.getPhone() == null || user.getPhone().isBlank() ||
-               user.getBirthDate() == null;
+                user.getCep() == null || user.getCep().isBlank() ||
+                user.getPhone() == null || user.getPhone().isBlank() ||
+                user.getBirthDate() == null;
     }
 
     /**
@@ -127,7 +151,6 @@ public class UserUtils {
                 user.getCep(),
                 user.getPhone(),
                 birthDateFormatted,
-                roles
-        );
+                roles);
     }
 }

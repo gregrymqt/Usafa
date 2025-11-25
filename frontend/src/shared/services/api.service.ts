@@ -46,7 +46,13 @@ export const logout = async (): Promise<void> => {
 // --- 3. O Wrapper "apiFetch" (CORRIGIDO) ---
 const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
   
-  const token = getStorageItem<UserSession>(USER_STORAGE_KEY)?.token || null;
+  const session = getStorageItem<UserSession>(USER_STORAGE_KEY);
+  const token = session?.token || null;
+
+  // --- DEBUG TEMPORÁRIO (Olhe no Console do Navegador) ---
+  console.log("Tentando acessar:", endpoint);
+  console.log("Token encontrado?", !!token); // Tem que ser TRUE
+  // -------------------------------------------------------
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',

@@ -1,65 +1,91 @@
-// hooks/useUserProfileData.ts (Modificado)
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import type { UserData, UserProfileUpdateDTO } from '../types/profile.type';
+import { updateUserData } from '../services/profile.service';
 import { ApiError } from '../../../shared';
-import { type UserData, type UserProfileUpdateDTO } from '../types/profile.type';
-// Importe as duas funções da sua API
-import { getAuthenticatedUserData, updateUserData } from '../services/profile.service'; 
+import { useAuth } from '../../Auth/hooks/useAuth';
 
-/**
- * Hook customizado para gerenciar os dados do perfil do usuário autenticado.
- * Lida com o carregamento (GET) e a atualização (UPDATE) dos dados.
- */
 export const useUserProfileData = () => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Estados específicos para a operação de atualização
+  const { user, updateSessionUser } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  /**
-   * Busca os dados do perfil do usuário autenticado na API.
-   */
-  const loadProfileData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const user = await getAuthenticatedUserData();
-      setUserData(user);
-    } catch (err) {
-      const errorMessage = err instanceof ApiError ? err.message : 'Erro ao carregar dados do perfil.';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const [userData, setUserData] = useState<UserData | null>(() => {
+    if (!user) return null;
 
-  // Efeito para carregar os dados iniciais quando o hook é montado.
+    return {
+      email: user.email,
+      cep: user.cep,
+      nome: user.name,
+      cpf: 'Não informado',
+      cartaoSus: '',
+      endereco: '',
+      picture: '',
+      proximasConsultas: [],
+      consultasAnteriores: [],
+      publicId: user.publicId,
+      birthDate: user.birthDate,
+      phone: user.phone,
+    } as UserData;
+  });
+
+  // CORREÇÃO AQUI:
   useEffect(() => {
-    loadProfileData();
-  }, [loadProfileData]);
+    if (user) {
+      setUserData(prev => {
+        // Se não houver estado anterior (ex: login inicial), retorna o objeto novo
+        if (!prev) {
+            // Aqui você poderia recriar o objeto inicial se necessário, 
+            // ou deixar o fluxo seguir se garantir que prev existe.
+            // Assumindo que se user existe, prev deveria existir pela lógica inicial,
+            // mas por segurança:
+             return {
+                email: user.email,
+                cep: user.cep,
+                nome: user.name,
+                cpf: 'Não informado',
+                cartaoSus: '',
+                endereco: '',
+                picture: '',
+                proximasConsultas: [],
+                consultasAnteriores: [],
+                publicId: user.publicId,
+                birthDate: user.birthDate,
+                phone: user.phone,
+             } as UserData;
+        }
 
-  /**
-   * Envia os dados atualizados do perfil para a API.
-   * @param updateData - Os dados do formulário a serem enviados.
-   * @returns `true` em caso de sucesso, `false` em caso de falha.
-   */
+        // Se os dados essenciais não mudaram, não faz nada (evita loop)
+        if (prev.nome === user.name && prev.cep === user.cep && prev.email === user.email) {
+          return prev;
+        }
+
+        // Se mudou algo, atualiza
+        return {
+          ...prev,
+          nome: user.name,
+          cep: user.cep,
+          email: user.email
+        };
+      });
+    }
+  }, [user?.name, user?.cep, user?.email]); // Dependências Primitivas
+
   const handleUpdateProfile = async (updateData: UserProfileUpdateDTO) => {
     setUpdateError(null);
     setIsUpdating(true);
     try {
-      const updatedUser = await updateUserData(updateData);
+      const updatedUserApi = await updateUserData(updateData);
       
-      // Sucesso: Atualiza o estado local com os novos dados retornados pela API.
-      // Isso garante que a UI reflita as informações mais recentes.
-      setUserData(updatedUser); 
+      setUserData(updatedUserApi);
+
+      updateSessionUser({
+        name: updatedUserApi.nome,
+        cep: updatedUserApi.cep,
+      });
       
       return true; 
-      
     } catch (err) {
-      const errorMsg = err instanceof ApiError ? err.message : 'Erro ao atualizar o perfil.';
+      const errorMsg = err instanceof ApiError ? err.message : 'Erro ao atualizar.';
       setUpdateError(errorMsg);
       return false;
     } finally {
@@ -69,13 +95,8 @@ export const useUserProfileData = () => {
 
   return { 
     userData, 
-    isLoading, 
-    error,
-    // Propriedades e métodos para a atualização
-    isUpdating,
-    updateError,
-    handleUpdateProfile,
-    // Função para recarregar os dados manualmente, se necessário
-    refetchProfile: loadProfileData,
+    isUpdating, 
+    updateError, 
+    handleUpdateProfile
   };
 };

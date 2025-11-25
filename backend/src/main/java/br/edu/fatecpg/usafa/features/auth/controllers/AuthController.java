@@ -1,13 +1,10 @@
 package br.edu.fatecpg.usafa.features.auth.controllers;
 
-import java.util.List;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,10 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fatecpg.usafa.features.auth.dtos.*;
 import br.edu.fatecpg.usafa.features.auth.interfaces.IUserAppService;
-import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
-import br.edu.fatecpg.usafa.features.roles.interfaces.IRoleService;
-import br.edu.fatecpg.usafa.models.Role;
 import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -30,23 +24,17 @@ public class AuthController {
 
     // Injeção da interface, não da classe concreta
     private final IUserAppService userAppService;
-    private final UserUtils userUtils;
     private final JwtUtils jwtUtils; // 5. Injetar JwtUtils
     private final ICacheService cacheService; // 6. Injetar ICacheService
-    private final IRoleService roleService; // 7. Injetar IRoleService
 
 
     @Autowired
     public AuthController(IUserAppService userAppService,
-            UserUtils userUtils,
-            IRoleService roleService,
             JwtUtils jwtUtils,
             ICacheService cacheService) {
         this.userAppService = userAppService;
         this.jwtUtils = jwtUtils;
-        this.userUtils = userUtils;
         this.cacheService = cacheService;
-        this.roleService = roleService;
     }
 
     /**
@@ -73,36 +61,6 @@ public class AuthController {
         // O serviço agora retorna o DTO com o token para login automático.
         ResponseDTO response = userAppService.processManualRegistration(data);
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Endpoint para registrar um novo usuário.
-     * 
-     * @param data O DTO contendo os dados de registro.
-     * @return Um ResponseEntity com uma mensagem de sucesso.
-     */
-    @GetMapping("id/{id}")
-    public ResponseEntity<ResponseDTO> getUserByPublicId(@PathVariable String id) {
-        return userUtils.getUserByPublicId(id)
-                .map(user -> {
-                    List<String> roles = roleService.getUserRoles(user.getPublicId().toString()).stream()
-                            .map(Role::getName)
-                            .toList();
-
-                    ResponseDTO response = new ResponseDTO(
-                            null, // O token não é gerado neste endpoint
-                            user.getPublicId().toString(),
-                            user.getName(),
-                            user.getEmail(),
-                            user.getCep(),
-                            user.getPhone(),
-                            (user.getBirthDate() != null)
-                                    ? user.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
-                                    : null,
-                            roles);
-                    return ResponseEntity.ok(response);
-                })
-                .orElse(ResponseEntity.notFound().build());
     }
 
     /**

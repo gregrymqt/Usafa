@@ -16,13 +16,13 @@ export const ListaConsultasPartial: React.FC<ListaConsultasProps> = ({
   hasMore,  // <-- Recebe aqui
   loadMore, // <-- Recebe aqui
 }) => {
+  const listaSegura = Array.isArray(consultas) ? consultas : [];
   return (
     <div>
       <h2>Suas Consultas Agendadas</h2>
       <ConsultaList
-        consultas={consultas}
+        consultas={listaSegura} // Passamos a lista segura
         isLoading={isLoading}
-        // CORREÇÃO 2: Repassar as propriedades para o componente filho
         hasMore={hasMore} 
         loadMore={loadMore}
       />

@@ -19,37 +19,52 @@ export const useAuthSuccess = () => {
   const navigate = useNavigate();
   const { user, handleGoogleUpdateSuccess } = useAuth();
 
-  /**
-   * Determina para qual página redirecionar com base na role do usuário.
-   */
   const getRedirectPath = (roles: string[]): string => {
-    return roles.includes('ROLE_ADMIN') ? '/admin/dashboard' : '/profile';
+    return roles.includes("ROLE_ADMIN") ? "/admin" : "/profile";
   };
 
   useEffect(() => {
-    // Pega os parâmetros da URL
     const token = searchParams.get("token");
     const publicId = searchParams.get("publicId");
     const isGoogleLogin = searchParams.get("isGoogleLogin") === "true";
     const needsCompletion = searchParams.get("needsCompletion") === "true";
-    const rolesParam = searchParams.get("roles")?.split(',') ?? [];
+    const rolesParam = searchParams.get("roles")?.split(",") ?? [];
+
+    // Decodifica URI components caso venham com %20 (espaços)
+    const nameParam = decodeURIComponent(searchParams.get("name") || "Usuário");
+    const emailParam = decodeURIComponent(searchParams.get("email") || "");
+    const pictureParam = decodeURIComponent(searchParams.get("picture") || "");
 
     // 1. É LOGIN COM GOOGLE
     if (token && publicId && isGoogleLogin) {
-      // 1a. O perfil PRECISA ser completado?
       if (needsCompletion) {
-        // <-- ESTA É A MUDANÇA
-        // Sim -> Mostra o formulário para completar o cadastro
         tempToken.current = token;
         setGooglePublicId(publicId);
         setStatus("google_form");
       } else {
-        // 1b. Não, perfil está COMPLETO -> Redireciona direto
+        // 1b. Perfil COMPLETO
+
+        // Montamos o objeto de sessão com os dados REAIS vindos do Java
+        const sessionData = {
+          token: token,
+          publicId: publicId,
+          roles: rolesParam,
+          name: nameParam, // Agora temos o nome real!
+          email: emailParam, // Agora temos o email real!
+          avatar: pictureParam, // Se seu UserSession tiver campo de foto/avatar
+          isAuthenticated: true,
+        };
+
+        // Atualiza o contexto global
+        // @ts-expect-error: The sessionData might not perfectly match UserSession due to missing fields like 'id' or 'refreshToken' which are not always present in the initial Google login flow.
+        handleGoogleUpdateSuccess(sessionData);
+
         setStatus("redirecting");
+
         const redirectPath = getRedirectPath(rolesParam);
         const timer = setTimeout(() => {
           navigate(redirectPath);
-        }, 2000);
+        }, 1000);
         return () => clearTimeout(timer);
       }
     }
@@ -67,8 +82,7 @@ export const useAuthSuccess = () => {
         setStatus("error");
       }
     }
-  }, [searchParams, navigate, user]);
-
+  }, [searchParams, navigate, user, handleGoogleUpdateSuccess]);
   /**
    * Função chamada pelo formulário de CPF/CEP.
    */
@@ -89,7 +103,7 @@ export const useAuthSuccess = () => {
       const updatedUser: UserSession = await updateUserByPublicId(
         googlePublicId,
         data,
-        tokenToSend ?? ''
+        tokenToSend ?? ""
       );
 
       // Salva a sessão COMPLETA do Google

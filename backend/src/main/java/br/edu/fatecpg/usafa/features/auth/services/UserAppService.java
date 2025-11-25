@@ -100,7 +100,7 @@ public class UserAppService implements IUserAppService {
     @Transactional
     public ResponseGoogleDTO processGoogleLogin(LoginGoogleRequestDTO googleUser) {
         log.info("Processando Login Google para email: {}", googleUser.email());
-        
+
         Optional<User> existingUserOpt = userRepository.findByEmail(googleUser.email());
         User userToSave;
         boolean isNewUser = false;
@@ -111,7 +111,7 @@ public class UserAppService implements IUserAppService {
             userToSave = existingUserOpt.get();
             userToSave.setName(googleUser.name());
             userToSave.setPicture(googleUser.picture());
-            
+
             if (userToSave.getGoogleId() == null) {
                 log.info("Vinculando Google ID ao usuário existente.");
                 userToSave.setGoogleId(googleUser.googleId());
@@ -133,7 +133,7 @@ public class UserAppService implements IUserAppService {
             userToSave.setPicture(googleUser.picture());
             userToSave.setGoogleId(googleUser.googleId());
             userToSave.setCreatedByAdmin(false);
-            
+
             userUtils.assignDefaultRole(userToSave);
         }
 
@@ -143,7 +143,7 @@ public class UserAppService implements IUserAppService {
 
         // --- PONTO CRÍTICO DO SEU ERRO ---
         log.debug("Chamando jwtUtils.generateToken...");
-        String token = jwtUtils.generateToken(savedUser); 
+        String token = jwtUtils.generateToken(savedUser);
         // Se a linha acima for Async e retornar String, o Java lança a exceção aqui.
         log.debug("Token JWT gerado com sucesso.");
 
@@ -151,12 +151,16 @@ public class UserAppService implements IUserAppService {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
+        // Atualize o return para incluir os dados do savedUser
         return new ResponseGoogleDTO(
                 token,
                 savedUser.getPublicId().toString(),
                 roles,
                 isNewUser,
-                needsCompletion
+                needsCompletion,
+                savedUser.getName(), // Novo
+                savedUser.getEmail(), // Novo
+                savedUser.getPicture() // Novo
         );
     }
 
@@ -169,8 +173,8 @@ public class UserAppService implements IUserAppService {
         try {
             uuid = UUID.fromString(publicId);
         } catch (IllegalArgumentException e) {
-             log.warn("PublicID inválido recebido: {}", publicId);
-             throw new BusinessRuleException("ID do usuário inválido.");
+            log.warn("PublicID inválido recebido: {}", publicId);
+            throw new BusinessRuleException("ID do usuário inválido.");
         }
 
         return userRepository.findByPublicId(uuid)
@@ -179,10 +183,10 @@ public class UserAppService implements IUserAppService {
                     user.setCpf(data.cpf());
                     user.setPhone(data.phone());
                     user.setBirthDate(LocalDate.parse(data.birthDate()));
-                    
+
                     User savedUser = userRepository.save(user);
                     log.info("Usuário atualizado com sucesso.");
-                    
+
                     String token = jwtUtils.generateToken(savedUser);
                     return userUtils.buildResponseDTO(savedUser, token);
                 });

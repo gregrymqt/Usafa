@@ -49,6 +49,17 @@ export const useAuth = () => {
     setStorageItem<UserSession>(USER_STORAGE_KEY, userSession);
   };
 
+  const updateSessionUser = (updatedData: Partial<UserSession>) => {
+    if (user) {
+      // Cria um novo objeto mesclando o que já existia (token, roles) com os dados novos
+      const newSession = { ...user, ...updatedData };
+      setStorageItem<UserSession>(USER_STORAGE_KEY, newSession);
+      
+      // Dica: Em aplicações maiores, aqui você dispararia um evento para atualizar o contexto
+      // Mas para recarregar a tela simples, o React vai gerenciar via estado do hook local
+    }
+  };
+
   // 5. LÓGICA DE LOGOUT
   //    Apenas chama a função 'logout' do api.ts.
   //    Essa função (apiLogout) já é completa:
@@ -60,12 +71,13 @@ export const useAuth = () => {
   };
 
   // 6. Retorna as funções e dados para a aplicação
-  return {
+return {
     user,
     isAuthenticated,
     hasRole,
     handleLoginSuccess,
-    handleGoogleUpdateSuccess,
+    handleGoogleUpdateSuccess, // Pode remover se usar o updateSessionUser, são parecidos
+    updateSessionUser, // <--- EXPOR A NOVA FUNÇÃO
     handleLogout
   };
 };

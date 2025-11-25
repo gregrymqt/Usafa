@@ -13,7 +13,7 @@ export const _MeusDadosPartial: React.FC<MeusDadosProps> = ({
   return (
     // Adiciona um wrapper para centralizar o formulário
     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <ProfileCard title="Meus Dados" icon={<UserIcon />}>
+      <ProfileCard title="Editar Dados" icon={<UserIcon />}>
         <ProfileUpdateForm
           user={userData}
           onUpdate={handleUpdateProfile}

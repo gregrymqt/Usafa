@@ -1,28 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 // Importamos 'Omit' para dizer que o formulário não sabe o 'patientId' (o hook que sabe)
-import { type ConsultaRequest } from '../../types/consulta.types'; 
-import styles from './ConsultaForm.module.scss';
-import AuthForm from '../../../../components/Form/AuthForm';
-import type { FormField } from '../../../../components/Form/types/form.type';
-import type { ConsultaFormProps } from './types/ConsultaForm.type';
+import { type ConsultaRequest } from "../../types/consulta.types";
+import styles from "./ConsultaForm.module.scss";
+import AuthForm from "../../../../components/Form/AuthForm";
+import type { FormField } from "../../../../components/Form/types/form.type";
+import type { ConsultaFormProps } from "./types/ConsultaForm.type";
 
 // Tipo local para o estado do formulário (tudo menos o patientId)
-type ConsultaFormState = Omit<ConsultaRequest, 'patientId'>;
+type ConsultaFormState = Omit<ConsultaRequest, "patientId">;
 
-export const ConsultaForm: React.FC<ConsultaFormProps> = ({ options, isSubmitting, onSubmit }) => {
-  
+export const ConsultaForm: React.FC<ConsultaFormProps> = ({
+  options,
+  isSubmitting,
+  onSubmit,
+}) => {
   // Estado inicial atualizado [cite: 22]
   const [formData, setFormData] = useState<Partial<ConsultaFormState>>({
-    tipoConsultaId: '',     // Substitui tipoId
+    tipoConsultaId: "", // Substitui tipoId
     horarioSlotId: undefined, // Substitui dia/horario/medico
-    sintomas: ''
+    sintomas: "",
   });
 
   // Manipulador de mudanças genérico [cite: 23]
-  const handleChange = (field: keyof ConsultaFormState, value: string | number) => {
+  const handleChange = (
+    field: keyof ConsultaFormState,
+    value: string | number
+  ) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: value 
+      [field]: value,
     }));
   };
 
@@ -31,45 +37,50 @@ export const ConsultaForm: React.FC<ConsultaFormProps> = ({ options, isSubmittin
     // Validamos se os campos obrigatórios estão preenchidos
     if (formData.tipoConsultaId && formData.horarioSlotId) {
       // Convertemos para o tipo esperado (cast seguro pois validamos acima)
-      await onSubmit(formData as unknown as ConsultaRequest); 
-      
+      await onSubmit(formData as unknown as ConsultaRequest);
+
       // Limpa o form [cite: 25]
       setFormData({
-        tipoConsultaId: '',
+        tipoConsultaId: "",
         horarioSlotId: undefined,
-        sintomas: ''
+        sintomas: "",
       });
     }
   };
 
   const fields: FormField[] = [
     {
-      elementType: 'select',
-      name: 'tipoConsultaId', // [cite: 27]
-      label: 'Especialidade / Tipo',
-      value: formData.tipoConsultaId || '',
-      onChange: (val) => handleChange('tipoConsultaId', val),
+      elementType: "select",
+      name: "tipoConsultaId", // [cite: 27]
+      label: "Especialidade / Tipo",
+      value: formData.tipoConsultaId || "",
+      onChange: (val) => handleChange("tipoConsultaId", val),
       options: options.tipos,
       required: true,
     },
     {
-      elementType: 'select',
-      name: 'horarioSlotId', // NOVO: Substitui Médico, Dia e Horário
-      label: 'Horários Disponíveis',
-      value: formData.horarioSlotId || '',
-      onChange: (val) => handleChange('horarioSlotId', Number(val)), // Converte para number (Long no Java)
+      elementType: "select",
+      name: "horarioSlotId", // NOVO: Substitui Médico, Dia e Horário
+      label: "Horários Disponíveis",
+      value: formData.horarioSlotId || "",
+      onChange: (val) => handleChange("horarioSlotId", Number(val)), // Converte para number (Long no Java)
       options: options.horarios, // Vem do mapper.slotsToOptions() do backend
       required: true,
-      placeholder: 'Selecione data e médico...'
+      // Pequena melhoria de UX no placeholder ou texto de ajuda
+      placeholder:
+        options.horarios.length > 0
+          ? "Selecione um horário disponível..."
+          : "Nenhum horário disponível para esta data",
+      disabled: options.horarios.length === 0, // Desabilita se não houver slots
     },
     {
-      elementType: 'textarea',
-      name: 'sintomas', // [cite: 29]
-      label: 'Sintomas (Opcional)',
-      placeholder: 'Descreva brevemente seus sintomas...',
-      value: formData.sintomas || '',
-      onChange: (val) => handleChange('sintomas', val),
-    }
+      elementType: "textarea",
+      name: "sintomas", // [cite: 29]
+      label: "Sintomas (Opcional)",
+      placeholder: "Descreva brevemente seus sintomas...",
+      value: formData.sintomas || "",
+      onChange: (val) => handleChange("sintomas", val),
+    },
   ];
 
   return (

@@ -23,6 +23,7 @@ import AuthSuccessPage from './features/Auth/component/authSuccess/AuthSuccessPa
 import Register from './features/Auth/component/register/RegisterPage.tsx';
 import Login from './pages/Login.tsx';
 import CreatePasswordPage from './features/Auth/component/CreatePassword/CreatePasswordPage.tsx';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary.tsx';
 
 function App() {
   return (
@@ -52,7 +53,14 @@ function App() {
           {/* Rotas PROTEGIDAS (ROLE_USER) */}
           <Route element={<UserProtectedRoute />}>
             <Route path="/profile" element={<Profile />} />
-            <Route path="/mconsulta" element={<Consulta />} /> 
+            <Route 
+              path="/consulta" 
+              element={
+                <ErrorBoundary>
+                  <Consulta />
+                </ErrorBoundary>
+              } 
+            /> 
           </Route>
 
           {/* Rotas ADMIN (ROLE_ADMIN) */}

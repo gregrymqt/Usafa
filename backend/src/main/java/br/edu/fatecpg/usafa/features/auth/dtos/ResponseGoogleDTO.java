@@ -14,11 +14,15 @@ import java.util.List;
  * ser completado (faltando CPF, CEP, etc.),
  * seja o usuário novo ou não.
  */
+// ResponseGoogleDTO.java
 public record ResponseGoogleDTO(
-        String token,
-        String publicId,
-        List<String> roles,
-        boolean isNewUser,
-        boolean needsCompletion // <-- NOVO CAMPO
-) {
-}
+    String token,
+    String publicId,
+    List<String> roles,
+    boolean isNewUser,
+    boolean needsCompletion,
+    // Novos campos adicionados:
+    String name,
+    String email,
+    String picture
+) {}

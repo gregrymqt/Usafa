@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
+  NotificationEnvelope,
   type Consulta,
   type ConsultaFormOptions,
   type ConsultaRequest,
@@ -14,7 +15,7 @@ import {
 import { useDebounce } from '../../../shared/utils/forPages.utils';
 
 export const useConsulta = (userId: string) => {
-  // --- Estados [cite: 3-5] ---
+  // --- Estados ---
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [isLoadingConsultas, setIsLoadingConsultas] = useState(true); 
   const [formOptions, setFormOptions] = useState<ConsultaFormOptions | null>(null);
@@ -23,89 +24,123 @@ export const useConsulta = (userId: string) => {
   const [error, setError] = useState<string | null>(null);
   const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
   
-  // --- Lógica de Busca e Paginação ---
+  // --- Paginação e Busca ---
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  
+  // Ref para o WebSocket conseguir ler o termo atual sem reiniciar conexão
+  const searchTermRef = useRef(debouncedSearchTerm);
 
+  useEffect(() => {
+    searchTermRef.current = debouncedSearchTerm;
+  }, [debouncedSearchTerm]);
+
+  // --- 1. Busca de Consultas (HTTP) ---
   const fetchConsultas = useCallback(async (search: string, pageNumber: number, isNewSearch = false) => {
+    if (!userId) return; // Proteção contra ID vazio
+
     setIsLoadingConsultas(true);
     setError(null);
     try {
-      // Assumindo que getConsultas será atualizado para aceitar paginação e busca
       const consultasData = await getConsultas(userId, { page: pageNumber, size: 10, search });
-      setConsultas(prev => isNewSearch ? consultasData.content : [...prev, ...consultasData.content]);
-      setHasMore(!consultasData.last);
+      
+      // --- CORREÇÃO AQUI ---
+      // Adicionamos '|| []' para garantir que nunca seja undefined
+      const novosItens = consultasData.content || []; 
+
+      setConsultas(prev => isNewSearch ? novosItens : [...prev, ...novosItens]);
+      
+      // Verifica se 'last' existe, senão assume true para parar a paginação
+      setHasMore(consultasData.last === false); 
       setPage(pageNumber);
     } catch (err) {
       if (err instanceof Error) setError(err.message);
       else setError('Falha ao carregar suas consultas.');
+      
+      // Opcional: Se der erro, zera a lista na busca nova para não mostrar dados velhos
+      if (isNewSearch) setConsultas([]); 
     } finally {
       setIsLoadingConsultas(false);
     }
   }, [userId]);
 
-  // --- useEffect (Carregamento e WebSocket) [cite: 6-10] ---
+  // --- 2. Carga Inicial ---
   useEffect(() => {
-    const loadInitialOptions = async () => {
-      try {
-        const optionsData = await getFormOptions();
-        setFormOptions(optionsData);
-      } catch (err) {
-        if (err instanceof Error) setError(err.message);
-        else setError('Falha ao carregar dados da página.');
-      } finally {
-        setIsLoadingConsultas(false);
+    if (userId) {
+      getFormOptions()
+        .then(setFormOptions)
+        .catch(err => console.error("Erro ao carregar opções:", err));
+      
+      // Busca inicial (apenas se não tiver busca digitada)
+      if (!debouncedSearchTerm) {
+         fetchConsultas('', 0, true);
       }
-    };
-    loadInitialOptions();
+    }
+  }, [userId]); // Removi fetchConsultas daqui para evitar loops, ele já é chamado no efeito abaixo
 
-    connectWebSocket();
-    const topic = `/user/${userId}/queue/consultas`;
-    const onConfirmationReceived = (summary: ConsultaSummary) => {
-      setConfirmedConsulta(summary);
-      // Opcional: Recarregar a lista quando receber confirmação
-      fetchConsultas(debouncedSearchTerm, 0, true);
-    };
-
-    subscribe<ConsultaSummary>(topic, onConfirmationReceived);
-    return () => {
-      unsubscribe(topic);
-    };
-  }, [userId, debouncedSearchTerm, fetchConsultas]);
-
-  // Efeito para buscar consultas quando o termo de busca muda
+  // --- 3. Reação à Busca ---
   useEffect(() => {
-    fetchConsultas(debouncedSearchTerm, 0, true);
-  }, [debouncedSearchTerm, fetchConsultas]);
+    if (userId) {
+        fetchConsultas(debouncedSearchTerm, 0, true);
+    }
+  }, [debouncedSearchTerm, fetchConsultas, userId]);
 
-  // --- Manipulador de Envio ATUALIZADO [cite: 11] ---
-  // Recebe Partial porque o form não manda o patientId
+
+  // --- 4. Função Auxiliar de WebSocket (Interna) ---
+  // Esta função não roda automaticamente, só quando chamamos.
+  const setupWebSocketListener = () => {
+    console.log("Iniciando conexão WebSocket sob demanda...");
+    connectWebSocket(); 
+    
+    const topic = `/user/${userId}/queue/consultas`;
+
+    const onNotificationReceived = (envelope: NotificationEnvelope<ConsultaSummary>) => {
+      console.log("WebSocket Recebeu:", envelope.message);
+      
+      const summary = envelope.data; 
+      setConfirmedConsulta(summary);
+      
+      // Atualiza a tabela
+      fetchConsultas(searchTermRef.current, 0, true);
+    };
+
+    // Inscreve-se para ouvir a resposta
+    subscribe<NotificationEnvelope<ConsultaSummary>>(topic, onNotificationReceived);
+  };
+
+
+  // --- 5. Ação de Enviar (Modificada) ---
   const handleSubmitConsulta = async (partialRequest: Partial<ConsultaRequest>) => {
     try {
       setIsSubmitting(true);
       setError(null); 
+      
+      // A) Inicia a escuta do WebSocket ANTES do envio HTTP
+      // Isso garante que se o backend for muito rápido, já estamos ouvindo.
+      setupWebSocketListener();
 
-      // MONTAGEM DO DTO COMPLETO
       const fullRequest: ConsultaRequest = {
-        patientId: userId, // Injetamos o ID do usuário aqui [cite: 3]
+        patientId: userId,
         tipoConsultaId: partialRequest.tipoConsultaId!,
         horarioSlotId: Number(partialRequest.horarioSlotId!),
         sintomas: partialRequest.sintomas || ''
       };
 
+      // B) Faz o envio HTTP
       await requestConsulta(fullRequest);
 
       setShowSuccessMessage(true); 
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 5000);
+      setTimeout(() => setShowSuccessMessage(false), 5000);
       
-      // Recarregar dados para atualizar lista de consultas e remover slot ocupado da lista
+      // Atualiza opções para remover o horário agendado da lista
       const updatedOptions = await getFormOptions();
       setFormOptions(updatedOptions);
-      fetchConsultas(searchTerm, 0, true); // Recarrega a lista de consultas
+      
+      // Atualiza a lista via HTTP também (redundância segura)
+      fetchConsultas(searchTerm, 0, true);
 
     } catch (err) { 
       if (err instanceof Error) setError(err.message);
@@ -123,7 +158,10 @@ export const useConsulta = (userId: string) => {
 
   const closeConfirmationModal = useCallback(() => { 
     setConfirmedConsulta(null);
-  }, []);
+    // Opcional: Se quiser desconectar o socket ao fechar o modal para economizar mais:
+    const topic = `/user/${userId}/queue/consultas`;
+    unsubscribe(topic);
+  }, [userId]);
 
   return { 
     consultas,

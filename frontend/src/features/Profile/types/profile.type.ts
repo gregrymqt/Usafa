@@ -17,14 +17,17 @@ export interface Consulta {
  * (Este é o tipo principal do seu usuário)
  */
 export interface UserData {
-  nome: string;
-  cpf: string;
+  publicId: string;
+  nome: string;    // O Form usa 'nome'
+  email: string;
+  cep: string;
   cartaoSus: string;
   endereco: string;
-  cep: string;
   proximasConsultas: Consulta[];
   consultasAnteriores: Consulta[];
   picture: string;
+  phone?: string;
+  birthDate?: string;
 }
 
 export interface MeusDadosProps {

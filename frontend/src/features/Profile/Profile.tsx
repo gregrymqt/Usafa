@@ -1,54 +1,54 @@
-
-// 2. Importar o hook e as novas parciais
-import { useUserProfileData } from './hooks/userHook'; // [cite: 26]
+// ... imports anteriores
+import { useUserProfileData } from './hooks/userHook'; 
 import { _MeusDadosPartial } from './PartialViews/_MeusDados';
+import { _VisualizarDadosPartial } from './PartialViews/_VisualizarDados';
 import { _UsafaPartial } from './PartialViews/_Usafa';
-import { UserIcon, MapPinIcon } from './components/icons'; // [cite: 23]
+import { UserIcon, MapPinIcon } from './components/icons'; 
 import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
 import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';
+import { MinhasConsultasPartial } from './components/consultas/_MinhasConsultasPartial';
 
-// Logo para esta sidebar específica
+// Ícone de Calendário Simples (Se não tiver no seu pacote de icones)
+const CalendarIcon = () => (
+  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>
+);
+
 const ProfileLogo = () => (
   <span style={{ fontWeight: 700 }}>Meu Perfil</span>
 );
 
 export default function Profile() {
-  // 3. O hook é chamado aqui, no componente "pai"
   const { 
     userData, 
-    isLoading, 
-    error,
     isUpdating,
     updateError,
     handleUpdateProfile
-  } = useUserProfileData(); // [cite: 26-27]
+  } = useUserProfileData();
 
-  // 4. Tratamento de loading e erro (continua igual)
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-xl font-semibold text-gray-700">Carregando perfil...</div>
-      </div>
-    ); // [cite: 27-28]
-  }
-
-  if (error || !userData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
-          <strong>Erro:</strong> {error || 'Não foi possível carregar os dados do perfil.'}
-        </div>
-      </div>
-    ); // [cite: 28-29]
+  if (!userData) {
+    return <div>Você precisa estar logado.</div>;
   }
   
-  // 5. Definir as "views" desta sidebar
   const profileViews: ISidebarView[] = [
     {
-      name: 'Meus Dados',
+      name: 'Visualizar Dados',
+      icon: <UserIcon />,
+      component: <_VisualizarDadosPartial userData={userData} />,
+    },
+    {
+      name: 'Minhas Consultas', // [Nova View] - Coloquei em segundo lugar por relevância
+      icon: <CalendarIcon />,
+      component: <MinhasConsultasPartial userId={userData.publicId} />, // Passando o ID necessário
+    },
+    {
+      name: 'Editar Dados',
       icon: <UserIcon />,
       component: (
-        // 6. Passar os dados do hook para a parcial via props
         <_MeusDadosPartial
           userData={userData}
           isUpdating={isUpdating}
@@ -61,12 +61,11 @@ export default function Profile() {
       name: 'Minha USAFA',
       icon: <MapPinIcon />,
       component: (
-        <_UsafaPartial cep={userData.cep} /> // [cite: 33]
+        <_UsafaPartial cep={userData.cep} />
       ),
     },
   ];
 
-  // 7. Renderizar o Layout Genérico
   return (
     <SidebarLayout 
       views={profileViews}

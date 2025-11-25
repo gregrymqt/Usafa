@@ -30,11 +30,11 @@ export const ConsultaList: React.FC<ConsultaListProps> = ({
 
   const renderContent = () => {
     // Mostra o loading inicial apenas se a lista estiver vazia
-    if (isLoading && consultas.length === 0) {
+    if (isLoading && consultas?.length === 0) {
       return <div className={styles.loading}>Carregando histórico...</div>;
     }
 
-    if (consultas.length === 0) {
+    if (consultas?.length === 0) {
       return <p className={styles.empty}>Você ainda não possui consultas.</p>;
     }
 

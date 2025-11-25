@@ -9,7 +9,7 @@ import { useInfiniteScroll } from '../../../../shared/utils/forPages.utils';
 // --- Componente da Aba de Consultas ---
 
 export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
-  appointments,
+  appointments = [], // <--- CORREÇÃO AQUI: Garante que nunca seja undefined
   isLoading,
   error,
   hasMore,
@@ -42,6 +42,7 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
   );
 
   const renderContent = () => {
+    // Agora appointments nunca será undefined, o .length funciona seguro
     if (isLoading && appointments.length === 0) {
       return <p className={styles.loading}>Carregando consultas...</p>; 
     }
@@ -64,15 +65,16 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
             >
               <div className={styles.cardHeader}>
                 <div className={styles.cardInfo}>
-                  <h3>{appt.patient.name}</h3>
-                  <p>com {appt.doctor.name}</p>
+                  {/* Verifica se patient/doctor existem antes de acessar .name para evitar crash extra */}
+                  <h3>{appt.patient?.name || 'Paciente Desconhecido'}</h3>
+                  <p>com {appt.doctor?.name || 'Médico não atribuído'}</p>
                 </div>
 
                 <ActionMenu
                   onUpdate={() => {
                     // Constrói o objeto esperado pelo formulário de edição
                     const formData: AppointmentFormData = {
-                      patientId: appt.patient.id.toString(),
+                      patientId: appt.patient?.id?.toString() || '',
                       horarioSlotId: appt.horarioSlotId,
                       tipoConsultaId: appt.tipoConsultaId,
                       status: appt.status,

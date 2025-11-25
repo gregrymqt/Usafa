@@ -4,9 +4,8 @@ import styles from './DoctorAdmin.module.scss';
 import { ActionMenu } from "../../../../components/ActionMenu/ActionMenu";
 import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
 
-
 export const DoctorAdmin: React.FC<DoctorAdminProps> = ({
-  doctors,
+  doctors = [], // <--- CORREÇÃO AQUI: Se doctors for undefined, vira []
   isLoading,
   error,
   hasMore,
@@ -31,6 +30,7 @@ export const DoctorAdmin: React.FC<DoctorAdminProps> = ({
 
   // --- Renderização ---
   const renderContent = () => {
+    // Agora doctors nunca será undefined, então .length sempre funciona
     if (isLoading && doctors.length === 0) {
       return <p className={styles.loading}>Carregando médicos...</p>;
     }

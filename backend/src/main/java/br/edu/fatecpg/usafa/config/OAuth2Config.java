@@ -42,8 +42,9 @@ public class OAuth2Config {
 
                 LoginGoogleRequestDTO userGoogleDTO = new LoginGoogleRequestDTO(name, email, googleID, picture);
 
-                // O erro provavelmente acontece nesta linha abaixo:
                 ResponseGoogleDTO loginResponse = userService.processGoogleLogin(userGoogleDTO);
+                
+                String rolesString = String.join(",", loginResponse.roles());
 
                 String redirectUrl = UriComponentsBuilder.fromUriString(oauth2RedirectUrl)
                         .queryParam("token", loginResponse.token())
@@ -51,6 +52,12 @@ public class OAuth2Config {
                         .queryParam("isGoogleLogin", true)
                         .queryParam("isNewUser", loginResponse.isNewUser())
                         .queryParam("needsCompletion", loginResponse.needsCompletion())
+                        .queryParam("roles", rolesString)
+                        // --- NOVOS PARÂMETROS ---
+                        .queryParam("name", loginResponse.name())
+                        .queryParam("email", loginResponse.email())
+                        .queryParam("picture", loginResponse.picture())
+                        .build() // Use build().toUriString() para garantir encoding correto
                         .toUriString();
 
                 response.sendRedirect(redirectUrl);

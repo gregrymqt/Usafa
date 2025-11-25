@@ -32,12 +32,19 @@ export interface SavedLocation {
 // Para criar ou atualizar, não precisamos do 'id' ou 'userPublicId' no corpo
 export type LocationPayload = Omit<SavedLocation, 'id' | 'userPublicId'>;
 
-// ... (interface do GeocodingResponse continua a mesma) ...
-export interface GeocodingResult {
-  geometry: { location: GeoLocation };
-}
 
-export interface GeocodingResponse {
-  results: GeocodingResult[];
-  status: 'OK' | 'ZERO_RESULTS' | 'REQUEST_DENIED' | 'INVALID_REQUEST' | 'OVER_QUERY_LIMIT';
+export interface BrasilApiResponse {
+  cep: string;
+  state: string;
+  city: string;
+  neighborhood: string;
+  street: string;
+  service: string;
+  location: {
+    type: string;
+    coordinates: {
+      longitude: number | string; // Às vezes APIs retornam string, é bom prevenir
+      latitude: number | string;
+    };
+  };
 }

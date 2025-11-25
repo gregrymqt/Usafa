@@ -12,6 +12,7 @@ import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout.tsx'
 import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type.ts';
 import { AgendarConsultaPartial } from './PartialViews/_AgendarConsulta.tsx';
 import { ListaConsultasPartial } from './PartialViews/_ListaConsultas.tsx';
+import { useAuth } from '../Auth/hooks/useAuth.ts';
 
 // 3. Ícones (Substitua pelos seus)
 const ListIcon = () => <span>L</span>;
@@ -24,6 +25,8 @@ const ConsultaLogo = () => (
 
 const ConsultaPage: React.FC = () => {
   // 4. O hook é chamado aqui, no componente "pai"
+
+  const {user } = useAuth();
   const {
     consultas,
     isLoadingConsultas,
@@ -33,8 +36,8 @@ const ConsultaPage: React.FC = () => {
     showSuccessMessage,
     confirmedConsulta,
     closeConfirmationModal,
-    error,
-  } = useConsulta("user-123-fake-id"); // [cite: 16-17]
+    error, 
+  } = useConsulta(user?.publicId?.toString() || ''); // [cite: 16-17]
 
   // 5. Definir as "views" desta sidebar
   const consultaViews: ISidebarView[] = [

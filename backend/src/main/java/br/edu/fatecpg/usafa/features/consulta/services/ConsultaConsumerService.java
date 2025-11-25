@@ -82,9 +82,10 @@ public class ConsultaConsumerService {
             // Usa o serviço genérico "send"
             notificationService.send(
                 request.getPatientId(),
-                "SOLICITACAO_RECEBIDA", // Tipo para o front saber que é um aviso de "Aguarde"
+                "SOLICITACAO_RECEBIDA", 
                 "Recebemos seu pedido! Aguardando confirmação da secretaria.",
-                savedDoc
+                savedDoc,
+                "/queue/consultas" // <--- ADICIONADO: Garante que vai para a fila que o React ouve
             );
 
         } catch (BusinessRuleException e) {

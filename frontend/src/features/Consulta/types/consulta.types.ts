@@ -55,3 +55,9 @@ export interface GetConsultasParams {
   size: number;
   search: string;
 }
+
+export interface NotificationEnvelope<T> {
+  type: string;
+  message: string;
+  data: T;
+}

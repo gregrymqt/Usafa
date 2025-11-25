@@ -34,18 +34,8 @@ const Navbar: React.FC = () => {
 
         <ul className={`${styles.navMenu} ${isSidebarOpen ? styles.active : ''}`}>
           <li className={styles.navItem}>
-            <Link to="/consultas" className={styles.navLinks} onClick={closeSidebar}>
+            <Link to="/consulta" className={styles.navLinks} onClick={closeSidebar}>
               Consultas
-            </Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link to="/remedios" className={styles.navLinks} onClick={closeSidebar}>
-              Remédios
-            </Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link to="/exames" className={styles.navLinks} onClick={closeSidebar}>
-              Exames
             </Link>
           </li>
 

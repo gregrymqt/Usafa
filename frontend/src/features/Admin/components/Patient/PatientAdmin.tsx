@@ -5,7 +5,7 @@ import { ActionMenu } from '../../../../components/ActionMenu/ActionMenu';
 import { useInfiniteScroll } from '../../../../shared/utils/forPages.utils';
 
 export const PatientAdmin: React.FC<PatientAdminProps> = ({
-  patients,
+  patients = [], // <--- CORREÇÃO AQUI: Garante que nunca seja undefined
   isLoading,
   error,
   hasMore,
@@ -28,6 +28,7 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
   );
 
   const renderContent = () => {
+    // Agora patients nunca será undefined, então .length não vai quebrar
     if (isLoading && patients.length === 0) {
       return <p className={styles.loading}>Carregando pacientes...</p>;
     }

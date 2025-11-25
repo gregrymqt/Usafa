@@ -1,0 +1,96 @@
+// src/components/Profile/PartialViews/_MinhasConsultas.scss
+
+.minhas-consultas-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1rem 0;
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    h2 {
+      font-size: 1.5rem;
+      color: #333;
+      margin: 0;
+    }
+
+    // Botão de recarregar ou filtro poderia vir aqui
+  }
+
+  // Container responsivo para a tabela (Mobile First)
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto; // Permite rolagem horizontal no mobile
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  // Estilização dos Status (Badges)
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+
+    &.pendente { background-color: #fff3cd; color: #856404; }
+    &.confirmada { background-color: #d4edda; color: #155724; }
+    &.realizada { background-color: #cce5ff; color: #004085; }
+    &.agendada { background-color: #e2e3e5; color: #383d41; }
+    &.cancelada { background-color: #f8d7da; color: #721c24; }
+  }
+
+  // Controles de Paginação
+  .pagination-controls {
+    display: flex;
+    justify-content: center; // Centralizado no mobile
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    @media (min-width: 768px) {
+      justify-content: flex-end; // A direita no desktop
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &:not(:disabled):hover {
+        background-color: #f0f0f0;
+        border-color: #ccc;
+      }
+    }
+
+    span {
+      font-size: 0.9rem;
+      color: #666;
+    }
+  }
+  
+  // Feedback visual de erro ou vazio
+  .empty-state, .error-state {
+    text-align: center;
+    padding: 2rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    color: #666;
+  }
+  .error-state { color: #d32f2f; background: #fdecea; }
+}
