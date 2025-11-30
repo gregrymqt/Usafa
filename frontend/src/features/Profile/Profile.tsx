@@ -1,4 +1,5 @@
 // ... imports anteriores
+import styles from './Profile.module.scss';
 import { useUserProfileData } from './hooks/userHook'; 
 import { _MeusDadosPartial } from './PartialViews/_MeusDados';
 import { _VisualizarDadosPartial } from './PartialViews/visualizarDados/_VisualizarDados';
@@ -19,7 +20,7 @@ const CalendarIcon = () => (
 );
 
 const ProfileLogo = () => (
-  <span style={{ fontWeight: 700 }}>Meu Perfil</span>
+  <span className={styles.profileLogo}>Meu Perfil</span>
 );
 
 export default function Profile() {
@@ -31,7 +32,7 @@ export default function Profile() {
   } = useUserProfileData();
 
   if (!userData) {
-    return <div>Você precisa estar logado.</div>;
+    return <div className={styles.unauthenticatedContainer}>Você precisa estar logado.</div>;
   }
   
   const profileViews: ISidebarView[] = [

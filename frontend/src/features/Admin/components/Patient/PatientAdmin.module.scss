@@ -1,5 +1,5 @@
-@import '../../../../styles/variables'; // Ajuste o caminho conforme necessário
-
+@use '../../../../styles/variables' as *; // Ajuste o caminho conforme necessário
+@use 'sass:color';
 /* --- Estilos do Formulário de Busca --- */
 .searchForm {
   display: flex;
@@ -58,7 +58,7 @@
   background-color: $text-secondary; // Cinza escuro para limpar
 
   &:hover:not(:disabled) {
-    background-color: darken($text-secondary, 10%);
+    background-color: color.adjust($text-secondary, $lightness: -10%);
   }
 }
 

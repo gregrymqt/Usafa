@@ -1,5 +1,5 @@
 import React from 'react';
-import './styles.scss'; 
+import './ConsultaPage.module.scss'; 
 
 // Componentes
 import { Modal } from '../../components/Modal/Modal';

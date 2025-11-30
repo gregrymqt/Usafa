@@ -1,4 +1,4 @@
-@import '../../styles/variables';
+@use '../../styles/variables' as *;
 
 .homeContainer {
   width: 100%;
@@ -24,7 +24,7 @@
 
 .infiniteScrollSection {
   padding: 2rem 1rem;
-  max-width: $gallery-width;
+  max-width: $gallery-max-width;
   margin: 0 auto;
 
   h2 {

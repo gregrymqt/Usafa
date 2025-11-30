@@ -1,4 +1,5 @@
-@import '../../../../styles/variables';
+@use '../../../../styles/variables' as *;
+@use 'sass:color';
 
 .consultaFormSection {
   // --- Container Principal ---
@@ -110,7 +111,7 @@
     }
 
     &:disabled {
-      background-color: lighten($primary-color, 20%);
+      background-color: color.adjust($primary-color, $lightness: 20%);
       cursor: wait;
     }
   }

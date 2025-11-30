@@ -2,8 +2,8 @@ import React from 'react';
 // 1. Importa o NOVO hook (que apenas calcula)
 import { useUsafaCalculator } from '../../hooks/useUsafaCalculator'; 
 import styles from './BuscaUsafa.module.scss'; // Importa o novo arquivo SCSS
+import { UsafaMap } from '../../../../components/Maps/components/Map/UsafaMap';
 // 2. Importa o seu componente de mapa
-import { UsafaMap } from '../../../../components/Maps/components/UsafaMap'; // (Ajuste o caminho)
 
 interface BuscaUsafaProps {
   cep: string;

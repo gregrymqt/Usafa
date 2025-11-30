@@ -1,4 +1,4 @@
-@import '../../../../styles/variables'; // Ajuste o caminho conforme sua estrutura
+@use  '../../../../styles/variables' as *; // Ajuste o caminho conforme sua estrutura
 
 .profileContainer {
   display: flex;

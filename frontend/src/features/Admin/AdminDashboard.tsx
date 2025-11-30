@@ -5,13 +5,14 @@ import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.
 import { DoctorIcon, PatientIcon, AppointmentIcon } from './utils/AdminIcons';
 
 // Ícones
-import { FaUserCircle, FaClipboardList } from 'react-icons/fa'; 
+import { FaUserCircle, FaClipboardList, FaHome } from 'react-icons/fa'; 
 
 // Views Existentes
 import { AppointmentPartial } from './PartialViews/_Appointment';
 import { DoctorPartial } from './PartialViews/_Doctor';
 import { PatientPartial } from './PartialViews/_Patient';
 import { ProfilePartial } from './components/profile/_Profile';
+import HomeAdmin from './components/HomeAdmin/HomeAdmin';
 import TipoConsultaManager from './components/appointmentType/AppointmentTypeAdmin';
 
 // Nova View (Ajuste o caminho '../Admin/TipoConsulta' se a pasta estiver em outro local)
@@ -27,6 +28,11 @@ const AdminDashboard: React.FC = () => {
       name: 'Meu Perfil',
       icon: <FaUserCircle />, 
       component: <ProfilePartial />,
+    },
+    {
+      name: 'Gestão da Home',
+      icon: <FaHome />,
+      component: <HomeAdmin />,
     },
     {
       name: 'Tipos de Consulta', // Nova aba adicionada

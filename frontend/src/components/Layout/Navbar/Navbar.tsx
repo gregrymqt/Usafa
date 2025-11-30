@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from './styles.module.scss';
+import styles from './Navbar.module.scss';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../../../features/Auth/hooks/useAuth';
 import UserDropdown from './components/userDropDown';

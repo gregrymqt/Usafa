@@ -1,4 +1,4 @@
-@import '../../../../styles/variables'; // Ajuste o caminho conforme sua estrutura de pastas
+@use '../../../../styles/variables' as *; // Ajuste o caminho conforme sua estrutura de pastas
 
 // Container Principal
 .container {

@@ -1,0 +1,50 @@
+@use '../../../styles/variables' as *;
+
+/* Estilos Mobile-First */
+.footer {
+  background-color: $bg-light;
+  padding: 20px 0;
+  color: $text-color;
+  font-size: 0.9rem;
+}
+
+.footerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footerContact {
+  margin-bottom: 15px;
+
+  a {
+    color: $text-color;
+    margin: 0 10px;
+    text-decoration: none;
+    font-size: 1.5rem;
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+}
+
+.footerInfo {
+  font-size: 0.8rem;
+}
+
+/* Estilos para telas maiores (Desktop) */
+@media screen and (min-width: $breakpoint-md) {
+  .footerContainer {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .footerContact {
+    margin-bottom: 0;
+  }
+}

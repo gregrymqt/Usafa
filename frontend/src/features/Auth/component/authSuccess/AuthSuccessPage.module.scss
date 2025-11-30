@@ -1,5 +1,5 @@
 @use "sass:color";
-@import '../../../../styles/variables'; // Ajuste o caminho
+@use '../../../../styles/variables' as *; // Ajuste o caminho
 
 .authSuccessPage {
   display: flex;

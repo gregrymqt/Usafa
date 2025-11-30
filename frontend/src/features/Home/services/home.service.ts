@@ -1,31 +1,13 @@
-import api from '../../../shared/services/api.service'; 
-import type { ServicePic } from '../types/home.type';
+import api from '../../../shared/services/api.service';
+import { HomeContent } from '../types/home.type';
 
-/**
- * Busca fotos da API real com paginação (usando fetch).
- * @param page - O número da página a ser buscada.
- * @param limit - Quantidade de itens por página.
- * @returns Uma promessa que resolve para um array de ServicePic.
- */
-export const SearchPics = async (page: number = 1, limit: number = 5): Promise<ServicePic[]> => {
+export const getHomeContent = async (): Promise<HomeContent[]> => {
   try {
-    console.log(`Buscando fotos da API: página ${page}, limite ${limit}`);
-
-    // --- MUDANÇA AQUI ---
-    // 1. O fetch não tem 'params', então criamos a query string manualmente.
-    const params = new URLSearchParams({ 
-      page: String(page), 
-      size: String(limit) 
-    });
-
-    // 2. Chamamos api.get com a URL completa
-    const data: ServicePic[] = await api.get(`/pictures?${params.toString()}`);
-    
-    // 3. Nosso wrapper fetch já retorna os dados (não 'response.data')
-    return data;
-
+    // Chama o endpoint que você mostrou: @GetMapping public ResponseEntity<List<HomeContentDto>>...
+    const response = await api.get<HomeContent[]>('/home/content');
+    return response || []; // Garante retorno de array
   } catch (error) {
-    console.error("Falha ao buscar fotos da API:", error);
-    return []; // Retorna um array vazio em caso de erro [cite: 18]
+    console.error("Erro ao buscar conteúdo da home", error);
+    return [];
   }
 };

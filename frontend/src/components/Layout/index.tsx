@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar/Navbar';
 import Footer from './Footer/Footer';
-import styles from './styles.module.scss';
+import styles from './index.module.scss';
 
 const Layout: React.FC = () => {
   return (

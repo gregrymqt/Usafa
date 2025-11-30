@@ -1,4 +1,5 @@
-@import '../../../../../styles/variables'; // Ajuste o caminho
+@use '../../../../../styles/variables' as *; // Ajuste o caminho
+@use 'sass:color';
 
 // Usamos :global para estilizar o botão dentro do AuthForm (estilo do botão azul/primary)
 :global(.authFormSubmitButton) {
@@ -27,7 +28,7 @@
 
   &:hover:not(:disabled) {
     background-color: $bg-secondary-btn-hover;
-    border-color: darken($border-color, 10%);
+    border-color: color.adjust($border-color, $lightness: -10%);
   }
 
   &:disabled {

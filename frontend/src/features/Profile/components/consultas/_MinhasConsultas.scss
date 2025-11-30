@@ -1,4 +1,4 @@
-@import '../../../../styles/variables'; // Ajuste o caminho conforme necessário
+@use '../../../../styles/variables' as *; // Ajuste o caminho conforme necessário
 
 .minhas-consultas-container {
   display: flex;

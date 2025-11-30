@@ -1,4 +1,5 @@
-@import '../../styles/variables'; // Ajuste o caminho
+@use '../../styles/variables' as *; // Ajuste o caminho
+@use 'sass:color';
 
 .loginPage {
   display: flex;
@@ -85,7 +86,7 @@
   }
 
   &:disabled {
-    background-color: lighten($primary-color, 20%);
+    background-color: color.adjust($primary-color, $lightness: 20%);
     cursor: not-allowed;
   }
 }

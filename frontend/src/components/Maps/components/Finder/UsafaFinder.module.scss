@@ -1,4 +1,4 @@
-@import '../../../styles/variables';
+@use  '../../../styles/variables' as *;
 
 .finderContainer {
   max-width: 36rem; // Aprox 576px

@@ -1,3 +1,5 @@
+$bg-carousel: #f0f0f0;
+
 // --- Paleta de Cores Principais ---
 $primary-color: #007bff;       // Mantendo seu azul padrão
 $primary-hover: #0056b3;
@@ -6,6 +8,7 @@ $text-strong: #1f2937;         // Texto forte (títulos/labels) [NOVO]
 $text-secondary: #6b7280;      // Texto secundário
 $text-light: #9ca3af;          // Placeholders
 $white: #ffffff;
+$text-muted: #6c757d;        // Texto desativado ou menos importante
 
 // --- Cores Específicas de Autenticação ---
 $google-blue: #4285F4;         // Cor oficial do Google
@@ -38,11 +41,13 @@ $bg-hover: #f4f4f4;
 $bg-input: #f9fafb;
 $bg-secondary-btn: #e2e8f0;    // Botão cinza/cancelar [NOVO]
 $bg-secondary-btn-hover: #cbd5e0; 
+$bg-dropdown: #f0f0f0;
 
 // --- Bordas e Formas ---
 $border-color: #d1d5db;        // Ajustado para cinza suave
 $border-light: #e5e7eb;        // Borda mais leve para divisórias
 $border-focus: $primary-color; // Foco usa a cor primária [NOVO]
+$border-strong: #9ca3af;      // Borda mais escura para inputs [NOVO]
 $radius-sm: 0.25rem;
 $radius-md: 0.5rem;            // 8px
 $radius-lg: 1rem;              // 16px [NOVO]
@@ -61,6 +66,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 $shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); // Sombra do form [NOVO]
 $shadow-navbar: 0 2px 4px rgba(0, 0, 0, 0.1);
 $shadow-dropdown: 0px 8px 16px 0px rgba(0,0,0,0.2);
+$shadow-focus: 0 0 0 2px rgba($primary-color, 0.2); // Sombra de foco para inputs [NOVO]
 
 // --- Breakpoints ---
 $breakpoint-md: 768px;

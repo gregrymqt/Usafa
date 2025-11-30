@@ -76,6 +76,7 @@ export const PatientPartial: React.FC = () => {
         // --- CORREÇÃO: Adicionadas as props obrigatórias de paginação ---
         hasMore={false}
         loadMorePatients={() => {}}
+        onSearch={() => {}}
       />
 
       {/* Modal de Pacientes */}

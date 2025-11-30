@@ -1,0 +1,60 @@
+@use '../../styles/variables' as *;
+
+.consulta-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: $gallery-max-width;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: $bg-body; // Fundo levemente cinza
+}
+
+// Layout para desktop
+@media (min-width: $breakpoint-xl) {
+  .consulta-page {
+    flex-direction: row;
+    padding: 2rem;
+    
+    // O formulário (Sticky)
+    > :last-child {
+      flex: 0 0 400px;
+      align-self: flex-start;
+      position: sticky;
+      top: 2rem;
+    }
+
+    // A tabela de listagem
+    > :first-child {
+      flex: 1;
+    }
+  }
+}
+
+// Mensagem de sucesso (Toast)
+.success-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: $success-text; // Verde escuro para fundo do toast
+  color: $white;
+  padding: 1rem 1.5rem;
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  z-index: $z-index-toast;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

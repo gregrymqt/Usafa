@@ -133,6 +133,7 @@ export const AppointmentPartial: React.FC = () => {
           patientOptions={patientOptions}
           typeOptions={typeOptions}
           slotOptions={slotOptions}
+          onTypeChange={() => {}} // Dummy function for now
         />
       </Modal>
     </>

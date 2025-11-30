@@ -1,4 +1,4 @@
-@import 'src/styles/variables'; // Caminho para seu _variables.scss
+@use '../../../../../../styles/variables' as *; // Caminho para seu _variables.scss
 
 .formContainer {
   display: flex;

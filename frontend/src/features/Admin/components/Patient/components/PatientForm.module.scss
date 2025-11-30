@@ -1,5 +1,5 @@
-@import '../../../../../styles/variables'; // Ajuste o caminho
-
+@use '../../../../../styles/variables' as *; // Ajuste o caminho
+@use 'sass:color';
 .formContainer {
   background-color: $white;
   padding: 1.5rem;
@@ -103,7 +103,7 @@
 
   &:hover:not(:disabled) {
     background-color: $bg-secondary-btn-hover; // Cinza um pouco mais escuro
-    border-color: darken($border-color, 10%);
+    border-color: color.adjust($border-color, $lightness: -10%);
   }
 
   &:disabled {

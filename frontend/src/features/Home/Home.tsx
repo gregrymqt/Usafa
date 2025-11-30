@@ -1,76 +1,67 @@
-import React from "react";
-import Carousel from "../../components/Carousel/Carousel";
-import ServicesSection from "./components/ServicesSection/Service";
-import AboutSection from "./components/AboutSection/About";
-import styles from "./Home.module.scss";
-import { useHomeLogic } from "./hooks/useHomeLogic"; // Importe o hook que criamos acima
+import React from 'react';
+
+import styles from './Home.module.scss';
+import Carousel from '../../components/Carousel/Carousel';
+import AboutSection from './components/AboutSection/About';
+import ServicesSection from './components/ServicesSection/Service';
+import { useHomeLogic } from './hooks/useHomeLogic';
 
 const Home: React.FC = () => {
-  // Toda a lógica é consumida em uma linha
   const { 
-    mainCarouselImages, 
-    galleryItems, 
     loading, 
-    hasMore, 
-    lastElementRef 
+    carouselItems, 
+    serviceItems, 
+    aboutItem, 
+    galleryItems 
   } = useHomeLogic();
+
+  if (loading) {
+    return <div className={styles.loader}>Carregando conteúdo...</div>;
+  }
 
   return (
     <div className={styles.homeContainer}>
-      {/* Seção 1: Carrossel Principal */}
-      <section className={styles.mainCarouselSection}>
-        <Carousel
-          items={mainCarouselImages}
-          renderItem={(item) => (
-            <img
-              src={item.url}
-              alt={item.title}
-              className={styles.mainCarouselImage}
-            />
-          )}
-          swiperOptions={{
-            pagination: { clickable: true },
-            autoplay: { delay: 5000, disableOnInteraction: false },
-            slidesPerView: 1,
-            spaceBetween: 10,
-            breakpoints: {
-              640: { slidesPerView: 2, spaceBetween: 20 },
-              1024: { slidesPerView: 3, spaceBetween: 30 },
-              1400: { slidesPerView: 4, spaceBetween: 40 },
-            },
-          }}
-        />
-      </section>
+      
+      {/* 1. Carrossel Principal (Só renderiza se tiver itens) */}
+      {carouselItems.length > 0 && (
+        <section className={styles.mainCarouselSection}>
+          <Carousel
+            items={carouselItems}
+            renderItem={(item) => (
+              <img
+                src={item.imageUrl} // Agora vem do banco
+                alt={item.title}
+                className={styles.mainCarouselImage}
+              />
+            )}
+            swiperOptions={{
+              pagination: { clickable: true },
+              autoplay: { delay: 5000 },
+              slidesPerView: 1,
+            }}
+          />
+        </section>
+      )}
 
-      {/* Seção 2: Serviços */}
-      <section>
-        <ServicesSection />
-      </section>
+      {/* 2. Seção de Serviços Dinâmica */}
+      <ServicesSection items={serviceItems} />
 
-      {/* Seção 3: Sobre Nós */}
-      <AboutSection />
+      {/* 3. Sobre Nós Dinâmico */}
+      <AboutSection data={aboutItem} />
 
-      {/* Seção Bônus: Scroll Infinito de Fotos */}
-      <section className={styles.infiniteScrollSection}>
-        <h2>Galeria de Fotos</h2>
-        <div className={styles.galleryGrid}>
-          {galleryItems.map((item, index) => {
-            const isLastItem = galleryItems.length === index + 1;
-            return (
-              <div
-                key={item.id}
-                ref={isLastItem ? lastElementRef : null}
-                className={styles.galleryItem}
-              >
-                <img src={item.url} alt={item.title} />
+      {/* 4. Galeria (Se quiser manter como lista simples vinda do CMS) */}
+      {galleryItems.length > 0 && (
+        <section className={styles.gallerySection}>
+          <h2>Galeria</h2>
+          <div className={styles.galleryGrid}>
+            {galleryItems.map(item => (
+              <div key={item.id} className={styles.galleryItem}>
+                <img src={item.imageUrl} alt={item.title} />
               </div>
-            );
-          })}
-        </div>
-
-        {loading && <p className={styles.loader}>Carregando mais fotos...</p>}
-        {!hasMore && <p className={styles.endMessage}>Você chegou ao fim!</p>}
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

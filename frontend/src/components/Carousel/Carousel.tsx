@@ -9,7 +9,7 @@ import 'swiper/css/autoplay'; // This import is correct for Swiper v10+
 
 // Note: Swiper v12 may handle CSS differently. Check documentation if styles are missing.
 
-import styles from './styles.module.scss';
+import styles from './Carousel.module.scss';
 import type { CarouselProps } from './types/card.type';
 
 // O <T> torna o componente genérico para qualquer tipo de array de itens.

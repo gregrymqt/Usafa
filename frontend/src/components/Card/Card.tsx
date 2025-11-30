@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './styles.module.scss';
+import styles from './Card.module.scss';
 import type { CardProps } from './types/card.type';
 
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUserCircle, FaCaretDown, FaSignOutAlt, FaUserShield } from 'react-icons/fa';
-import styles from '../styles.module.scss'; 
+import styles from '../Navbar.module.scss'; 
 import { useAuth } from '../../../../features/Auth/hooks/useAuth';
 
 // Interface para receber a função do Pai

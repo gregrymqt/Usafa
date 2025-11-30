@@ -1,8 +1,9 @@
 /* Importando Variáveis */
-@import '../../../../styles/variables'; // Ajuste o caminho
+@use '../../../../styles/variables' as *; // Ajuste o caminho
+@use 'sass:color'; // Importa o módulo de cores do SASS
 
 /* Importando styles do Auth base se necessário para os extends funcionarem no SASS modules */
-/* @use './Auth.module.scss'; <--- Verifique se precisa disso dependendo da sua config */
+ @use '../../Auth.module.scss' as *;
 
 .registerPage {
   @extend .loginPage;
@@ -95,7 +96,7 @@
 
   // Usando variáveis globais de status
   .invalid {
-    color: $text-light; 
+    color: $text-light;
   }
 
   .valid {
