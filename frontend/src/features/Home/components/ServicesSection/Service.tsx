@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 // Se certifique que o caminho do import está correto na sua pasta
 import Carousel from "../../../../components/Carousel/Carousel"; 
-import styles from "./styles.module.scss";
+import styles from "./Service.module.scss";
 import type { SwiperOptions } from "swiper/types";
 import { Card } from "../../../../components/Card/Card";
 import type { CardData } from "./types/servicesSection.types";

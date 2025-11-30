@@ -1,0 +1,49 @@
+@import '../../styles/variables';
+
+.servicesContainer {
+  width: 100%;
+  padding: 3rem 1rem;
+  background-color: $bg-light; // Fundo claro padrão (#f8f9fa)
+  overflow: hidden;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: $text-strong; // Texto escuro forte
+    font-weight: 700;
+  }
+  
+  @media (min-width: $breakpoint-md) {
+    padding: 4rem 2rem;
+    
+    h2 {
+      margin-bottom: 3rem;
+    }
+  }
+}
+
+.carouselWrapper {
+  width: 100%;
+  max-width: $gallery-max-width; // 1200px padrão global
+  margin: 0 auto;
+  display: block;
+  position: relative;
+  padding: 0 1rem; 
+
+  @media (min-width: $breakpoint-md) {
+    padding: 0 20px;
+  }
+}
+
+// Customização Global do Swiper dentro deste escopo
+:global(.swiper-button-next),
+:global(.swiper-button-prev) {
+  color: $primary-color !important; // Força o azul padrão nas setas
+  transform: scale(0.8);
+  font-weight: bold;
+}
+
+:global(.swiper-pagination-bullet-active) {
+  background-color: $primary-color !important;
+}

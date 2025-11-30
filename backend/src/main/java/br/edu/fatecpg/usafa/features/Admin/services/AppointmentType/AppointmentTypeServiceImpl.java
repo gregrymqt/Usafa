@@ -1,9 +1,9 @@
-package br.edu.fatecpg.usafa.features.admin.services.Appointment;
+package br.edu.fatecpg.usafa.features.admin.services.AppointmentType;
 
 
 import br.edu.fatecpg.usafa.features.admin.dtos.appointmentType.AppointmentTypeRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointmentType.AppointmentTypeResponseDto;
-import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentTypeService;
+import br.edu.fatecpg.usafa.features.admin.interfaces.AppointmentType.IAppointmentTypeService;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.admin.utils.appointmentType.AppointmentTypeHelper;
 import br.edu.fatecpg.usafa.models.TipoConsulta;

@@ -2,7 +2,7 @@ import React from "react";
 import Carousel from "../../components/Carousel/Carousel";
 import ServicesSection from "./components/ServicesSection/Service";
 import AboutSection from "./components/AboutSection/About";
-import styles from "./styles.module.scss";
+import styles from "./Home.module.scss";
 import { useHomeLogic } from "./hooks/useHomeLogic"; // Importe o hook que criamos acima
 
 const Home: React.FC = () => {

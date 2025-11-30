@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.admin.controllers;
+package br.edu.fatecpg.usafa.features.admin.controllers.Appointment;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

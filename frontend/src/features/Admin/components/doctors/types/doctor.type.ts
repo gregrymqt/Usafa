@@ -13,7 +13,13 @@ export interface Doctor {
 /**
  * Tipo para criação de um novo Doutor (sem o 'id')
  */
-export type NewDoctorData = Omit<Doctor, 'id'>;
+export interface NewDoctorData {
+  name: string;
+  email: string;
+  crm: string;
+  specialty: string;
+  imageFile?: File; // Adicionado para envio do arquivo
+}
 
 /**
  * Tipo para atualização de um Doutor (todos os campos são opcionais)

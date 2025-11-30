@@ -4,9 +4,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
+import br.edu.fatecpg.usafa.features.picture.interfaces.IPictureService;
 import br.edu.fatecpg.usafa.features.profile.dtos.UserProfileResponseDTO;
 import br.edu.fatecpg.usafa.features.profile.dtos.UserProfileUpdateDTO;
 import br.edu.fatecpg.usafa.features.profile.interfaces.IUserProfileService;
@@ -15,96 +17,82 @@ import br.edu.fatecpg.usafa.models.Picture;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 @Service
-@RequiredArgsConstructor // Injeção de dependência via construtor (Melhor prática)
+@RequiredArgsConstructor
 @Slf4j
 public class UserProfileService implements IUserProfileService {
 
     private final IUserRepository userRepository;
-    private final ICacheService cacheService; // Seu serviço de cache corrigido
+    private final ICacheService cacheService;
+    
+    // INJEÇÃO DA SERVICE DE IMAGEM
+    private final IPictureService pictureService;
 
-    // Prefixo para organizar as chaves no Redis (ex: user:profile:lucas@gmail.com)
     private static final String CACHE_PREFIX = "user:profile:";
 
-    /**
-     * Busca os dados de perfil.
-     * Estratégia: Read-Through (Cache -> Banco -> Cache)
-     */
     @Override
     @Transactional(readOnly = true)
     public UserProfileResponseDTO getUserProfile(String email) {
         String cacheKey = CACHE_PREFIX + email;
 
-        // 1. Tenta buscar do Cache
         UserProfileResponseDTO cachedProfile = cacheService.get(cacheKey, UserProfileResponseDTO.class);
         if (cachedProfile != null) {
             log.info("Perfil recuperado do cache para: {}", email);
             return cachedProfile;
         }
 
-        // 2. Se não está no cache, busca no banco
-        log.info("Perfil não encontrado no cache. Buscando no banco para: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado."));
 
         UserProfileResponseDTO response = new UserProfileResponseDTO(user);
-
-        // 3. Salva no Cache (TTL de 1 hora, por exemplo, já que perfil muda pouco)
         cacheService.saveWithTtl(cacheKey, response, 1, TimeUnit.HOURS);
 
         return response;
     }
 
     /**
-     * Atualiza o perfil.
-     * Estratégia: Write-Through / Cache Invalidation (Atualiza Banco -> Remove do
-     * Cache)
+     * Agora aceita MultipartFile para fazer o upload real
      */
     @Override
     @Transactional
-    public UserProfileResponseDTO updateUserProfile(String email, UserProfileUpdateDTO updateDTO) {
-        // 1. Busca usuário (Fail-fast)
+    public UserProfileResponseDTO updateUserProfile(String email, UserProfileUpdateDTO updateDTO, MultipartFile file) {
+        // 1. Busca usuário
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado para atualização."));
 
-        // 2. Atualiza os campos
+        // 2. Atualiza dados textuais
         user.setName(updateDTO.name());
         user.setCep(updateDTO.cep());
 
-        // Só atualiza a foto se vier algo diferente de null/vazio
-        String newPictureUrl = updateDTO.picture();
-        if (newPictureUrl != null && !newPictureUrl.isBlank()) {
-            Picture currentPicture = user.getPicture();
+        // 3. Lógica da Foto usando PictureService
+        if (file != null && !file.isEmpty()) {
+            log.info("Processando nova foto de perfil para: {}", email);
+            
+            // Faz o upload físico e gera a URL
+            Picture uploadedPicture = pictureService.uploadAndGetPicture(file, "perfil_usuario");
 
+            Picture currentPicture = user.getPicture();
             if (currentPicture != null) {
-                // Se já existe uma foto, atualiza a URL dela
-                log.info("Atualizando URL da foto de perfil existente para o usuário: {}", email);
-                currentPicture.setUrl(newPictureUrl);
-                // O JPA/Hibernate gerenciará a atualização por causa da relação
+                // Atualiza existente
+                currentPicture.setUrl(uploadedPicture.getUrl());
+                currentPicture.setTitle("Foto de " + user.getName());
             } else {
-                // Se não existe, cria uma nova entidade Picture
-                log.info("Criando nova foto de perfil para o usuário: {}", email);
+                // Cria nova entidade Picture
                 Picture newPicture = Picture.builder()
-                        .url(newPictureUrl)
-                        .group("perfil") // Grupo definido para fotos de perfil
-                        .title("Foto de Perfil de " + user.getName())
+                        .url(uploadedPicture.getUrl())
+                        .group("perfil_usuario")
+                        .title("Foto de " + user.getName())
                         .build();
                 user.setPicture(newPicture);
             }
         }
 
-        // 3. Salva no banco
+        // 4. Salva e Invalida Cache
         User updatedUser = userRepository.save(user);
-        log.info("Perfil atualizado no banco para: {}", email);
-
-        // 4. INVALIDA O CACHE (Crucial!)
-        // Como o dado mudou, o cache antigo é inválido. Deletamos para forçar uma nova
-        // busca no próximo get.
+        
         String cacheKey = CACHE_PREFIX + email;
         cacheService.delete(cacheKey);
-        log.info("Cache invalidado para: {}", email);
-
+        
         return new UserProfileResponseDTO(updatedUser);
     }
 }

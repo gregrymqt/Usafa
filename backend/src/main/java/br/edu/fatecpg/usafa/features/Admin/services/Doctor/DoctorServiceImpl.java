@@ -1,12 +1,11 @@
 package br.edu.fatecpg.usafa.features.admin.services.Doctor;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
@@ -15,6 +14,7 @@ import br.edu.fatecpg.usafa.features.admin.repositories.IMedicoRepository;
 import br.edu.fatecpg.usafa.features.admin.utils.doctor.DoctorHelper;
 import br.edu.fatecpg.usafa.features.admin.utils.doctor.DoctorMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
+import br.edu.fatecpg.usafa.features.picture.interfaces.IPictureService;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
 import br.edu.fatecpg.usafa.models.Picture;
@@ -31,6 +31,7 @@ public class DoctorServiceImpl implements IDoctorService {
     // Repositórios e Serviços principais
     private final IMedicoRepository medicoRepository;
     private final ICacheService cacheService;
+    private final IPictureService pictureService;
 
     // Classes auxiliares
     private final DoctorHelper helper;
@@ -40,139 +41,111 @@ public class DoctorServiceImpl implements IDoctorService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DoctorResponseDto> getAllDoctors() {
-        log.info("Buscando todos os médicos");
+    public Page<DoctorResponseDto> getAllDoctors(Pageable pageable, String search) {
+        log.info("Buscando médicos com paginação: {}, termo de busca: '{}'", pageable, search);
 
-        // 1. Tentar buscar do cache
         try {
-            @SuppressWarnings("unchecked")
-            List<DoctorResponseDto> cachedDoctors = cacheService.get(CACHE_KEY_ALL_DOCTORS, List.class);
-            if (cachedDoctors != null) {
-                log.info("Retornando {} médicos do cache", cachedDoctors.size());
-                return cachedDoctors;
+            Page<Medico> medicosPage;
+
+            // Se houver um termo de busca, filtra por nome ou CRM
+            if (search != null && !search.trim().isEmpty()) {
+                log.info("Realizando busca por '{}'", search);
+                // Você precisará criar este método no seu IMedicoRepository
+                medicosPage = medicoRepository.findByNomeContainingIgnoreCaseOrCrmContainingIgnoreCase(search, search, pageable);
+            } else {
+                // Senão, busca todos os médicos de forma paginada
+                log.info("Buscando todos os médicos paginados");
+                medicosPage = medicoRepository.findAll(pageable);
             }
-        } catch (Exception e) {
-            log.warn("Erro ao buscar do cache: {}", e.getMessage());
-        }
 
-        try {
-            // 2. Cache miss: Buscar do banco
-            log.info("Cache miss. Buscando do banco de dados...");
-            List<Medico> medicos = medicoRepository.findAll();
-
-            // 3. Mapear para DTO
-            List<DoctorResponseDto> dtos = medicos.stream()
-                    .map(mapper::toDto) // Usa o Mapper
-                    .collect(Collectors.toList());
-
-            // 4. Salvar no cache por 10 minutos
-            cacheService.saveWithTtl(CACHE_KEY_ALL_DOCTORS, dtos, 10, TimeUnit.MINUTES);
-            return dtos;
+            // Mapeia a página de entidades para uma página de DTOs
+            return medicosPage.map(mapper::toDto);
 
         } catch (DataAccessException e) {
             log.error("Erro de banco de dados ao buscar médicos: {}", e.getMessage());
-            throw new DatabaseOperationException("Erro ao buscar médicos", e); 
+            throw new DatabaseOperationException("Erro ao buscar médicos", e);
         }
     }
 
     @Override
     @Transactional
-    public DoctorResponseDto createDoctor(DoctorRequestDto doctorDto) {
-        log.info("Criando novo médico com CRM: {}", doctorDto.getCrm());
+    public DoctorResponseDto createDoctor(DoctorRequestDto doctorDto, MultipartFile file) {
+        log.info("Criando novo médico CRM: {}", doctorDto.getCrm());
 
-        // 1. Validar e buscar entidades (delegado ao Helper)
         TipoConsulta especialidade = helper.findSpecialtyByName(doctorDto.getSpecialty());
 
-        // 2. Mapear DTO para Entidade
         Medico medico = new Medico();
         medico.setNome(doctorDto.getName());
-        medico.setEmail(doctorDto.getEmail()); // Campo adicionado
-        medico.setCrm(doctorDto.getCrm());     // Campo adicionado
-        medico.setTipoConsulta(especialidade); 
+        medico.setEmail(doctorDto.getEmail());
+        medico.setCrm(doctorDto.getCrm());
+        medico.setTipoConsulta(especialidade);
 
-        // Lógica para criar a Picture
-        String pictureUrl = doctorDto.getPicture();
-        if (pictureUrl != null && !pictureUrl.isBlank()) {
+        // Lógica de Foto
+        if (file != null && !file.isEmpty()) {
+            Picture uploadedPicture = pictureService.uploadAndGetPicture(file, "perfil_medico");
+
             Picture newPicture = Picture.builder()
-                    .url(pictureUrl)
-                    .group("perfil_medico") // Grupo específico para médicos
-                    .title("Foto de Perfil de Dr(a). " + doctorDto.getName())
+                    .url(uploadedPicture.getUrl())
+                    .group("perfil_medico")
+                    .title("Dr(a). " + doctorDto.getName())
                     .build();
             medico.setPicture(newPicture);
         }
-        
+
         try {
-            // 3. Salvar
             Medico savedMedico = medicoRepository.save(medico);
-            log.info("Médico criado com ID: {}", savedMedico.getPublicId());
-
-            // 4. Invalidar cache
-            cacheService.delete(CACHE_KEY_ALL_DOCTORS); 
-
-            // 5. Retornar DTO (delegado ao Mapper)
+            cacheService.delete(CACHE_KEY_ALL_DOCTORS);
             return mapper.toDto(savedMedico);
-
         } catch (DataAccessException e) {
             log.error("Erro de banco de dados ao salvar médico: {}", e.getMessage());
             // Trata exceção de constraint (ex: email ou CRM duplicado)
             if (e.getMessage().contains("ConstraintViolationException")) {
-                 throw new BusinessRuleException("Email ou CRM já cadastrado.", e); 
+                throw new BusinessRuleException("Email ou CRM já cadastrado.", e);
             }
-            throw new DatabaseOperationException("Erro ao salvar médico", e); 
+            throw new DatabaseOperationException("Erro ao salvar médico", e);
         }
     }
 
     @Override
     @Transactional
-    public DoctorResponseDto updateDoctor(String id, DoctorRequestDto doctorDto) { 
+    public DoctorResponseDto updateDoctor(String id, DoctorRequestDto doctorDto, MultipartFile file) {
         log.info("Atualizando médico ID: {}", id);
 
-        // 1. Buscar entidades (delegado ao Helper)
         Medico medico = helper.findDoctorByPublicId(id);
         TipoConsulta especialidade = helper.findSpecialtyByName(doctorDto.getSpecialty());
 
-        // 2. Atualizar a entidade
         medico.setNome(doctorDto.getName());
-        medico.setEmail(doctorDto.getEmail()); // Campo adicionado
-        medico.setCrm(doctorDto.getCrm());     // Campo adicionado
-        medico.setTipoConsulta(especialidade); 
+        medico.setEmail(doctorDto.getEmail());
+        medico.setCrm(doctorDto.getCrm());
+        medico.setTipoConsulta(especialidade);
 
-        // Lógica para atualizar ou criar a Picture
-        String newPictureUrl = doctorDto.getPicture();
-        if (newPictureUrl != null && !newPictureUrl.isBlank()) {
+        // Lógica de Foto
+        if (file != null && !file.isEmpty()) {
+            Picture uploadedPicture = pictureService.uploadAndGetPicture(file, "perfil_medico");
+
             Picture currentPicture = medico.getPicture();
             if (currentPicture != null) {
-                // Se já existe, apenas atualiza a URL
-                log.info("Atualizando URL da foto de perfil para o médico: {}", medico.getPublicId());
-                currentPicture.setUrl(newPictureUrl);
+                currentPicture.setUrl(uploadedPicture.getUrl());
             } else {
-                // Se não existe, cria uma nova
-                log.info("Criando nova foto de perfil para o médico: {}", medico.getPublicId());
                 Picture newPicture = Picture.builder()
-                        .url(newPictureUrl)
+                        .url(uploadedPicture.getUrl())
                         .group("perfil_medico")
-                        .title("Foto de Perfil de Dr(a). " + medico.getNome())
+                        .title("Dr(a). " + medico.getNome())
                         .build();
                 medico.setPicture(newPicture);
             }
         }
 
         try {
-            // 3. Salvar
             Medico updatedMedico = medicoRepository.save(medico);
-
-            // 4. Invalidar cache
             cacheService.delete(CACHE_KEY_ALL_DOCTORS);
-
-            // 5. Retornar DTO (delegado ao Mapper)
             return mapper.toDto(updatedMedico);
-
         } catch (DataAccessException e) {
             log.error("Erro de banco de dados ao atualizar médico: {}", e.getMessage());
-             if (e.getMessage().contains("ConstraintViolationException")) {
-                 throw new BusinessRuleException("Email ou CRM já cadastrado.", e); 
+            if (e.getMessage().contains("ConstraintViolationException")) {
+                throw new BusinessRuleException("Email ou CRM já cadastrado.", e);
             }
-            throw new DatabaseOperationException("Erro ao atualizar médico", e); 
+            throw new DatabaseOperationException("Erro ao atualizar médico", e);
         }
     }
 
@@ -186,18 +159,18 @@ public class DoctorServiceImpl implements IDoctorService {
 
         // 2. REGRA DE NEGÓCIO (delegado ao Helper)
         helper.validateDoctorHasNoAppointments(medico);
-        
+
         try {
             // 3. Deletar
             medicoRepository.delete(medico);
 
             // 4. Invalidar cache
-            cacheService.delete(CACHE_KEY_ALL_DOCTORS); 
+            cacheService.delete(CACHE_KEY_ALL_DOCTORS);
             log.info("Médico ID {} deletado e cache invalidado", id);
 
         } catch (DataAccessException e) {
             log.error("Erro de banco de dados ao deletar médico: {}", e.getMessage());
-            throw new DatabaseOperationException("Erro ao deletar médico", e); 
+            throw new DatabaseOperationException("Erro ao deletar médico", e);
         }
     }
 }

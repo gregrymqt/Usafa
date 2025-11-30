@@ -168,6 +168,35 @@ export const api = {
       body: JSON.stringify(body),
     });
   },
+
+  postFormData: <T>(endpoint: string, formData: FormData, options: RequestInit = {}): Promise<T> => {
+    // Removemos o Content-Type para o browser setar o boundary do multipart automaticamente
+    const headers = { ...(options.headers || {}) };
+    // @ts-expect-error
+    delete headers['Content-Type'];
+
+    return apiFetch<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: formData,
+      headers: headers,
+    });
+  },
+
+  putFormData: <T>(endpoint: string, formData: FormData, options: RequestInit = {}): Promise<T> => {
+      const headers = { ...(options.headers || {}) };
+      // @ts-expect-error
+      delete headers['Content-Type'];
+  
+      return apiFetch<T>(endpoint, {
+        ...options,
+        method: 'PUT',
+        body: formData,
+        headers: headers,
+      });
+    },
 };
+
+
 
 export default api;

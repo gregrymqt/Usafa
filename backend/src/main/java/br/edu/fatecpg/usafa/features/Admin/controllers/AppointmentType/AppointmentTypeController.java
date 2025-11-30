@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.admin.controllers;
+package br.edu.fatecpg.usafa.features.admin.controllers.AppointmentType;
 
 
 import jakarta.validation.Valid;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.edu.fatecpg.usafa.features.admin.dtos.appointmentType.AppointmentTypeRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointmentType.AppointmentTypeResponseDto;
-import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentTypeService;
+import br.edu.fatecpg.usafa.features.admin.interfaces.AppointmentType.IAppointmentTypeService;
 
 import java.util.List;
 

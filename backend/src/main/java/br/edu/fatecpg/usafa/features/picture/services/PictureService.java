@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.features.picture.services;
 
 import br.edu.fatecpg.usafa.features.picture.dtos.PictureDto; // Ajuste no import
+import br.edu.fatecpg.usafa.features.picture.interfaces.IPictureService;
 import br.edu.fatecpg.usafa.features.picture.repository.IPictureRepository;
 import br.edu.fatecpg.usafa.features.picture.utils.PictureHelper;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
@@ -11,6 +12,7 @@ import org.springframework.dao.DataAccessException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PictureService {
+public class PictureService implements IPictureService {
 
     private final IPictureRepository pictureRepository;
     private final PictureHelper pictureHelper;
@@ -116,6 +118,31 @@ public class PictureService {
             pictureRepository.deleteById(id);
         } catch (DataAccessException e) {
             throw new DatabaseOperationException("Failed to delete picture with id: " + id, e);
+        }
+    }
+
+    /**
+     * Realiza o upload de um arquivo, salva a entidade Picture no banco de dados
+     * e retorna a entidade persistida.
+     *
+     * @param file O arquivo a ser salvo.
+     * @param group O grupo ao qual o arquivo pertence.
+     * @return A entidade Picture que foi criada e salva.
+     */
+    @Override
+    @Transactional
+    public Picture uploadAndGetPicture(MultipartFile file, String group) {
+        try {
+            // 1. Salva o arquivo no sistema de arquivos e obtém a URL.
+            String fileUrl = pictureHelper.saveFile(file, group);
+
+            // 2. Cria a entidade Picture com os dados do arquivo.
+            Picture picture = Picture.builder().title(file.getOriginalFilename()).url(fileUrl).group(group).build();
+
+            // 3. Salva a entidade no banco de dados e a retorna.
+            return pictureRepository.save(picture);
+        } catch (IOException | DataAccessException e) {
+            throw new DatabaseOperationException("Failed to upload file and create picture record for group: " + group, e);
         }
     }
 }

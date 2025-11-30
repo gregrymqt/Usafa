@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { UserData, UserProfileUpdateDTO } from '../types/profile.type';
 import { updateUserData } from '../services/profile.service';
-import { ApiError } from '../../../shared';
 import { useAuth } from '../../Auth/hooks/useAuth';
 
 export const useUserProfileData = () => {
@@ -70,23 +69,34 @@ export const useUserProfileData = () => {
     }
   }, [user?.name, user?.cep, user?.email]); // Dependências Primitivas
 
-  const handleUpdateProfile = async (updateData: UserProfileUpdateDTO) => {
+ const handleUpdateProfile = async (updateData: UserProfileUpdateDTO) => {
     setUpdateError(null);
     setIsUpdating(true);
     try {
+      // Chama a função atualizada que usa FormData
       const updatedUserApi = await updateUserData(updateData);
       
       setUserData(updatedUserApi);
 
+      // Atualiza sessão global (se necessário)
       updateSessionUser({
         name: updatedUserApi.nome,
         cep: updatedUserApi.cep,
+        picture: updatedUserApi.picture // Se quiser atualizar a foto no header/sessão
       });
       
-      return true; 
-    } catch (err) {
-      const errorMsg = err instanceof ApiError ? err.message : 'Erro ao atualizar.';
-      setUpdateError(errorMsg);
+      return true;
+    } catch (err: unknown) {
+      let errorMessage = "Ocorreu um erro inesperado ao atualizar o perfil.";
+
+      // Verifica se o erro tem a estrutura de um erro de API (como do Axios)
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        const apiError = err as { response?: { data?: { message?: string } } };
+        errorMessage = apiError.response?.data?.message || errorMessage;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setUpdateError(errorMessage);
       return false;
     } finally {
       setIsUpdating(false);

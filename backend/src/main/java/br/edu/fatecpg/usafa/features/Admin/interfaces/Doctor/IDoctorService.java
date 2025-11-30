@@ -1,7 +1,9 @@
 package br.edu.fatecpg.usafa.features.admin.interfaces.Doctor;
 
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
@@ -12,14 +14,12 @@ import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
  */
 public interface IDoctorService {
 
-    List<DoctorResponseDto> getAllDoctors();
+    Page<DoctorResponseDto> getAllDoctors(Pageable pageable, String search);
 
-    DoctorResponseDto createDoctor(DoctorRequestDto doctorDto);
+    DoctorResponseDto createDoctor(DoctorRequestDto doctorDto, MultipartFile file);
 
-    DoctorResponseDto updateDoctor(String id, DoctorRequestDto doctorDto);
+    DoctorResponseDto updateDoctor(String id, DoctorRequestDto doctorDto, MultipartFile file);
 
     void deleteDoctor(String id);
 
-    // Você pode adicionar outros métodos de contrato aqui, ex:
-    // DoctorResponseDto getDoctorById(String id);
 }

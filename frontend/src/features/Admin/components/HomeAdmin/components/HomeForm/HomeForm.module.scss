@@ -1,0 +1,99 @@
+@import 'src/styles/variables'; // Caminho para seu _variables.scss
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  background-color: $white;
+  border-radius: $radius-lg;
+  
+  // Mobile First: sem largura fixa, ocupa 100%
+  width: 100%; 
+
+  .inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      color: $text-strong;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      padding: 0.75rem;
+      border: 1px solid $border-color;
+      border-radius: $radius-md;
+      background-color: $bg-input;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+
+      &:focus {
+        border-color: $border-focus;
+        outline: none;
+      }
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+  }
+
+  .fileUpload {
+    border: 2px dashed $border-color;
+    border-radius: $radius-md;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    background-color: $bg-light;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: $bg-hover;
+      border-color: $primary-color;
+    }
+
+    .preview {
+      margin-top: 1rem;
+      max-width: 100%;
+      height: auto;
+      border-radius: $radius-md;
+      max-height: 200px;
+      object-fit: cover;
+      box-shadow: $shadow-md;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    button {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: $radius-md;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &.save {
+        background-color: $primary-color;
+        color: $white;
+        &:hover { background-color: $primary-hover; }
+      }
+
+      &.cancel {
+        background-color: $bg-secondary-btn;
+        color: $text-secondary;
+        &:hover { background-color: $bg-secondary-btn-hover; }
+      }
+    }
+  }
+}

@@ -23,6 +23,7 @@ export interface UserSession{
   birthDate: string,
   roles: string[],
   createdByAdmin: boolean,
+  picture?: string,
 }
 
 export interface UpdateUserData {  

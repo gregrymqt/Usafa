@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.admin.controllers;
+package br.edu.fatecpg.usafa.features.admin.controllers.Patient;
 
 
 import jakarta.validation.Valid;

@@ -1,7 +1,7 @@
 import React from 'react';
 import ProfileCard from '../components/card/card'; // [cite: 23]
 import { UserIcon } from '../components/icons'; // [cite: 23]
-import { ProfileUpdateForm } from '../components/ProfileUpdateForm'; // [cite: 25]
+import { ProfileUpdateForm } from '../components/updateForm/ProfileUpdateForm'; // [cite: 25]
 import type { MeusDadosProps } from '../types/profile.type';
 
 export const _MeusDadosPartial: React.FC<MeusDadosProps> = ({

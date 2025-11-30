@@ -1,0 +1,37 @@
+@import 'src/styles/variables';
+
+.pageContainer {
+  padding: 2rem;
+  max-width: $container-max-width;
+  margin: 0 auto;
+  background-color: $bg-body;
+  min-height: 100vh;
+
+  .topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h1 {
+      color: $text-strong;
+      font-size: 1.8rem;
+    }
+
+    .addButton {
+      background-color: $primary-color;
+      color: $white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: $radius-md;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: $shadow-sm;
+      transition: background 0.2s;
+
+      &:hover {
+        background-color: $primary-hover;
+      }
+    }
+  }
+}

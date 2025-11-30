@@ -17,29 +17,46 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
   initialData = null,
   isLoading,
 }) => {
+  // Estados dos campos de texto
   const [name, setName] = useState(initialData?.name || '');
   const [email, setEmail] = useState(initialData?.email || '');
   const [crm, setCrm] = useState(initialData?.crm || '');
-  const [specialty, setSpecialty] = useState(
-    initialData?.specialty || 'Clínico Geral'
-  );
-  const [picture, setPicture] = useState(initialData?.picture || '');
+  const [specialty, setSpecialty] = useState(initialData?.specialty || 'Clínico Geral');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Adiciona o campo picture aos dados a serem enviados
-    const doctorData = { name, email, crm, specialty, picture };
+  // Estados do arquivo de imagem
+  const [imageFile, setImageFile] = useState<File | undefined>(undefined);
+  const [previewUrl, setPreviewUrl] = useState(initialData?.picture || '');
 
-    try {
-      await onSubmit(doctorData);
-    } catch (error) {
-      // O erro já foi tratado (toast) pelo hook,
-      // mas impedimos que o formulário seja limpo/fechado
-      console.error('Falha no submit, modal não será fechado.', error);
+  // Handler para seleção do arquivo
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  // Memoiza a definição dos campos para o AuthForm
+  // Handler de envio
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Monta o objeto final combinando texto e arquivo
+    const doctorData: NewDoctorData = { 
+      name, 
+      email, 
+      crm, 
+      specialty, 
+      imageFile // O arquivo vai aqui
+    };
+    
+    try {
+      await onSubmit(doctorData);
+    } catch (error) {
+      console.error("Erro no formulário:", error);
+    }
+  };
+
+  // Definição dos campos de texto para o AuthForm
   const fields: FormField[] = useMemo(
     () => [
       {
@@ -72,16 +89,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         onChange: (val) => setCrm(val as string),
         required: true,
       },
-      {
-        elementType: 'input',
-        type: 'text',
-        name: 'picture',
-        label: 'URL da Foto',
-        placeholder: 'https://exemplo.com/foto.jpg',
-        value: picture,
-        onChange: (val) => setPicture(val as string),
-        required: false, // A foto é opcional
-      },
+      // REMOVIDO: O campo de texto 'picture'. Agora usamos o input file abaixo.
       {
         elementType: 'select',
         name: 'specialty',
@@ -96,7 +104,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         ],
       },
     ],
-    [name, email, crm, specialty, picture]
+    [name, email, crm, specialty] // Removida a dependência 'picture' que quebrava o código
   );
 
   return (
@@ -107,12 +115,33 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         isLoading={isLoading}
         buttonText={initialData ? 'Atualizar' : 'Criar'}
       >
-        {/* Botão Cancelar adicional, fora do AuthForm */}
+        {/* Input de Arquivo Personalizado (Inserido como filho do AuthForm) */}
+        <div className={styles.fileInputContainer} style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Foto de Perfil</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleFileChange}
+              className={styles.fileInput} 
+            />
+            {previewUrl && (
+              <img 
+                src={previewUrl} 
+                alt="Preview" 
+                style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50%' }} 
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Botão Cancelar */}
         <button
           type="button"
           onClick={onCancel}
           disabled={isLoading}
           className={styles.cancelButton}
+          style={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }} // Estilo inline rápido, mova para scss
         >
           Cancelar
         </button>

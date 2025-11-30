@@ -1,0 +1,43 @@
+@import '../../styles/variables'; // Ajuste o caminho
+
+.aboutSection {
+  padding: 3rem 1rem;
+  // Usando a cor primária para manter a identidade. 
+  // Se quiser mais escuro, use $primary-hover
+  background-color: $primary-color; 
+  color: $white;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content {
+  width: 100%;
+  max-width: 800px; // Largura de leitura ideal
+  margin: 0 auto;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: $white; // Garante contraste
+  }
+
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: rgba($white, 0.9); // Branco com leve transparência para suavizar leitura
+  }
+}
+
+// Responsividade
+@media (min-width: $breakpoint-md) {
+  .aboutSection {
+    padding: 4rem 2rem;
+  }
+  
+  .content h2 {
+    font-size: 2.25rem;
+  }
+}

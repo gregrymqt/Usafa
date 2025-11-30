@@ -41,7 +41,7 @@ export interface MeusDadosProps {
 export interface UserProfileUpdateDTO {
   name: string;
   cep: string;
-  picture: string;
+  imageFile?: File; // Adicionamos o arquivo opcional
 }
 
 

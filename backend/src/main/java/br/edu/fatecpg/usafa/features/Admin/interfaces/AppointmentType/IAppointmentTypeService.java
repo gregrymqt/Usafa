@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.admin.interfaces.Appointment;
+package br.edu.fatecpg.usafa.features.admin.interfaces.AppointmentType;
 
 
 

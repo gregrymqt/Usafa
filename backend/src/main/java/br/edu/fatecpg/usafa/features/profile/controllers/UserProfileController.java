@@ -5,9 +5,11 @@ import br.edu.fatecpg.usafa.features.profile.services.UserProfileService;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/profile") // Endpoint base para o perfil
@@ -32,14 +34,15 @@ public class UserProfileController {
     /**
      * Endpoint para atualizar os dados do perfil do *usuário logado*.
      */
-    @PutMapping("/me")
+    @PutMapping(value = "/me", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<UserProfileResponseDTO> updateMyProfile(
             Authentication authentication,
-            @Valid @RequestBody UserProfileUpdateDTO updateDTO) {
+            @Valid @RequestPart("profile") UserProfileUpdateDTO updateDTO,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         
         String userEmail = authentication.getName();
         
-        UserProfileResponseDTO updatedProfile = userProfileService.updateUserProfile(userEmail, updateDTO);
+        UserProfileResponseDTO updatedProfile = userProfileService.updateUserProfile(userEmail, updateDTO, file);
         return ResponseEntity.ok(updatedProfile);
     }
 }
