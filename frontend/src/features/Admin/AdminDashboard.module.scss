@@ -1,33 +1,24 @@
-/* Importando variáveis (assumindo que estão em um local global) */
-/* @import '../../styles/variables.scss'; */
-
-/* Variáveis locais se não houver global */
-$primary-color: #3b82f6; // blue-500
-$primary-hover: #2563eb; // blue-700
-$text-color: #1f2937; // gray-800
-$text-light: #6b7280; // gray-500
-$bg-color: #f9fafb; // gray-50
-$border-color: #e5e7eb; // gray-200
+@import '../../styles/variables'; // Ajuste o caminho se necessário
 
 .adminPage {
   padding: 1rem;
-  background-color: $bg-color;
+  background-color: $bg-body; // Usando o fundo padrão do sistema
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  // font-family: 'Inter', sans-serif; // Se já estiver no global/reset, pode remover aqui
 
-  @media (min-width: 768px) {
+  @media (min-width: $breakpoint-md) {
     padding: 2rem;
   }
 }
 
-/* Cabeçalho (movido do DoctorAdmin.module.scss) */
+/* Cabeçalho */
 .adminHeader {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 1.5rem;
 
-  @media (min-width: 768px) {
+  @media (min-width: $breakpoint-md) {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
@@ -35,26 +26,26 @@ $border-color: #e5e7eb; // gray-200
 }
 
 .title {
-  font-size: 2.25rem; // 36px
+  font-size: 2.25rem;
   font-weight: 700;
-  color: $text-color;
+  color: $text-strong; // Cor de título padrão
   line-height: 1.2;
 }
 
 .addButton {
-  padding: 0.625rem 1.25rem; // 10px 20px
+  padding: 0.625rem 1.25rem;
   background-color: $primary-color;
-  color: white;
+  color: $white;
   font-weight: 600;
-  border-radius: 0.5rem; // 8px
+  border-radius: $radius-md;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: $shadow-sm;
 
   &:hover {
     background-color: $primary-hover;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: $shadow-md;
   }
 }
 
@@ -62,28 +53,30 @@ $border-color: #e5e7eb; // gray-200
 .tabNav {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 2px solid $border-color;
-  margin-bottom: 1.5rem; // Espaço antes do conteúdo
+  border-bottom: 2px solid $border-light; // Borda suave
+  margin-bottom: 1.5rem;
 }
 
 .tabButton {
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 500;
-  color: $text-light;
+  color: $text-secondary; // Texto cinza quando inativo
   background-color: transparent;
   border: none;
   border-bottom: 3px solid transparent;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  margin-bottom: -2px; // Alinha com a borda principal
+  transition: all 0.2s;
+  margin-bottom: -2px;
 
   &:hover {
-    color: $text-color;
+    color: $primary-color;
+    background-color: rgba($primary-color, 0.05); // Leve feedback no hover
   }
 
   &.active {
     color: $primary-color;
     border-bottom-color: $primary-color;
+    font-weight: 600;
   }
 }

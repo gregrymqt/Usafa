@@ -1,42 +1,37 @@
-/* --- Variáveis de Design --- */
-:root {
-  --sidebar-width-desktop: 260px;
-  --header-height-mobile: 60px;
-  --color-primary: #007bff;
-  --color-text: #333;
-  --color-text-light: #f5f5f5;
-  --color-bg: #f4f7fa;
-  --color-bg-sidebar: #1e293b;
-  --color-bg-sidebar-hover: #334155;
-  --color-bg-sidebar-active: #0056b3;
-}
+@import '../../styles/variables';
+
+// Configurações locais usando variáveis globais
+$sidebar-width: 260px;
+$header-height-mobile: 60px;
+$sidebar-bg: #1f2937; // Um cinza bem escuro para contraste, ou use $text-strong
+$sidebar-text: $white;
 
 .layoutContainer {
   display: flex;
-  flex-direction: column; // Padrão mobile: Header em cima, Conteúdo embaixo
+  flex-direction: column;
   min-height: 100vh;
-  background-color: var(--color-bg);
+  background-color: $bg-body; // Fundo cinza claro padrão
 }
 
-/* * =========================================
- * 1. ESTILOS MOBILE (Padrão)
+/* =========================================
+ * 1. ESTILOS MOBILE
  * =========================================
  */
 
-/* --- Header (Mobile) --- */
 .mobileHeader {
   display: flex;
   align-items: center;
   padding: 0 1rem;
-  height: var(--header-height-mobile);
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  height: $header-height-mobile;
+  background-color: $white;
+  border-bottom: 1px solid $border-color;
   
-  position: fixed; // Fica fixo no topo
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 900;
+  box-shadow: $shadow-sm;
 }
 
 .menuButton {
@@ -44,32 +39,32 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--color-text);
+  color: $text-color;
   padding: 0.5rem;
 }
 
 .mobileHeaderText {
   font-size: 1.1rem;
   font-weight: 600;
+  color: $text-strong;
   margin-left: 1rem;
 }
 
-/* --- Sidebar (Mobile) --- */
+/* --- Sidebar --- */
 .sidebar {
-  position: fixed; // Fica por cima de tudo
+  position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
   width: 85%;
   max-width: 300px;
-  background-color: var(--color-bg-sidebar);
-  color: var(--color-text-light);
+  background-color: $sidebar-bg;
+  color: $sidebar-text;
   z-index: 1000;
 
   display: flex;
   flex-direction: column;
 
-  // Escondido por padrão (Mobile)
   transform: translateX(-100%);
   transition: transform 0.3s ease-out;
 
@@ -84,14 +79,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  height: var(--header-height-mobile);
-  border-bottom: 1px solid var(--color-bg-sidebar-hover);
+  height: $header-height-mobile;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); // Borda sutil no escuro
 }
 
 .brand {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #fff;
+  color: $white;
 }
 
 .closeButton {
@@ -99,13 +94,17 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--color-text-light);
+  color: rgba(255, 255, 255, 0.7);
   padding: 0.5rem;
+
+  &:hover {
+    color: $white;
+  }
 }
 
 /* --- Navegação --- */
 .sidebarNav {
-  flex: 1; // Ocupa o espaço restante
+  flex: 1;
   overflow-y: auto;
   padding-top: 1rem;
   
@@ -119,19 +118,19 @@
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 1rem 1.5rem;
+    padding: 0.875rem 1.5rem;
     background: none;
     border: none;
     text-align: left;
-    color: var(--color-text-light);
+    color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.2s ease;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
 
     .icon {
       margin-right: 1rem;
-      font-size: 1.25rem;
-      line-height: 0; // Alinha o ícone perfeitamente
+      font-size: 1.2rem;
+      line-height: 0;
     }
 
     .name {
@@ -139,17 +138,19 @@
     }
 
     &:hover {
-      background-color: var(--color-bg-sidebar-hover);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: $white;
     }
 
     &.active {
-      background-color: var(--color-primary);
+      background-color: $primary-color; // Azul global
+      color: $white;
       font-weight: 600;
     }
   }
 }
 
-/* --- Overlay (Mobile) --- */
+/* --- Overlay --- */
 .overlay {
   position: fixed;
   top: 0;
@@ -158,49 +159,44 @@
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
+  backdrop-filter: blur(2px);
 }
 
-/* --- Conteúdo (Mobile) --- */
 .contentArea {
-  // O padding-top evita que o conteúdo fique *atrás* do header fixo
   padding: 1rem;
-  padding-top: calc(var(--header-height-mobile) + 1rem);
-  flex: 1; // Ocupa o espaço restante da tela
+  padding-top: calc(#{$header-height-mobile} + 1rem);
+  flex: 1;
 }
 
 
-/* * =========================================
+/* =========================================
  * 2. ESTILOS TABLET E DESKTOP
  * =========================================
  */
-@media (min-width: 768px) {
+@media (min-width: $breakpoint-md) {
   
   .layoutContainer {
-    // Muda para layout lado-a-lado
     flex-direction: row;
   }
 
-  // Esconde elementos mobile
   .mobileHeader,
   .overlay,
   .closeButton {
     display: none;
   }
 
-  // Sidebar (Desktop)
   .sidebar {
-    position: relative; // Deixa de ser 'fixed'
-    transform: none; // Reseta a posição
-    width: var(--sidebar-width-desktop);
-    height: 100vh; // Ocupa a altura toda
-    flex-shrink: 0; // Não encolhe
-    transition: none; // Remove a transição de slide
+    position: relative;
+    transform: none;
+    width: $sidebar-width;
+    height: 100vh;
+    flex-shrink: 0;
+    transition: none;
   }
 
-  // Conteúdo (Desktop)
   .contentArea {
-    padding: 2rem; // Reseta padding-top e dá mais espaço
-    flex: 1; // Ocupa o resto da largura
-    overflow-y: auto; // Permite scroll só do conteúdo
+    padding: 2rem;
+    flex: 1;
+    overflow-y: auto;
   }
 }

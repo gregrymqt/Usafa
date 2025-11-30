@@ -1,50 +1,49 @@
-// Importações de fontes ou resets podem vir aqui
-// @import url('https_...);
+@import '../../styles/variables';
 
 .consulta-page {
   display: flex;
   flex-direction: column;
-  gap: 2rem; // 32px
-  padding: 1.5rem; // 24px
-  max-width: 1200px;
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: $gallery-max-width;
   margin: 0 auto;
   min-height: 100vh;
-  background-color: #f7fafc; // Fundo levemente cinza
+  background-color: $bg-body; // Fundo levemente cinza
 }
 
 // Layout para desktop
-@media (min-width: 1024px) {
+@media (min-width: $breakpoint-xl) {
   .consulta-page {
-    flex-direction: row; // Lado a lado
+    flex-direction: row;
     padding: 2rem;
     
-    // O formulário (Parte 2)
+    // O formulário (Sticky)
     > :last-child {
-      flex: 0 0 400px; // Largura fixa para o formulário
-      align-self: flex-start; // Alinha no topo
-      position: sticky; // Fica preso ao rolar
+      flex: 0 0 400px;
+      align-self: flex-start;
+      position: sticky;
       top: 2rem;
     }
 
-    // A tabela (Parte 1)
+    // A tabela de listagem
     > :first-child {
-      flex: 1; // Ocupa o resto do espaço
+      flex: 1;
     }
   }
 }
 
-// Mensagem de sucesso (Pós-modal)
+// Mensagem de sucesso (Toast)
 .success-toast {
   position: fixed;
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #2f855a; // Verde escuro
-  color: white;
+  background-color: $success-text; // Verde escuro para fundo do toast
+  color: $white;
   padding: 1rem 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  z-index: 2000;
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  z-index: $z-index-toast;
   font-weight: 500;
   animation: slideIn 0.3s ease-out;
 }

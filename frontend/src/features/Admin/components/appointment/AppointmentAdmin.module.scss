@@ -1,15 +1,4 @@
-/* Variáveis */
-$danger-color: #ef4444; // red-500
-$text-color: #1f2937; // gray-800
-$text-light: #6b7280; // gray-500
-$border-color: #e5e7eb; // gray-200
-$card-bg: #ffffff;
-$status-agendada-bg: #eff6ff; // blue-50
-$status-agendada-text: #2563eb; // blue-700
-$status-concluida-bg: #f0fdf4; // green-50
-$status-concluida-text: #16a34a; // green-700
-$status-cancelada-bg: #fef2f2; // red-50
-$status-cancelada-text: #dc2626; // red-700
+@import '../../../../styles/variables'; // Ajuste o caminho
 
 /* Estados (Loading, Empty, Error) */
 .adminContent {
@@ -21,33 +10,46 @@ $status-cancelada-text: #dc2626; // red-700
 .empty {
   text-align: center;
   padding: 2rem;
-  color: $text-light;
+  color: $text-secondary;
   font-size: 1.125rem;
+  background-color: $bg-light;
+  border-radius: $radius-md;
+  margin-bottom: 1rem;
 }
+
 .error {
-  color: $danger-color;
+  color: $error-text;
+  background-color: $error-bg;
+  border: 1px solid $error-border;
 }
 
 /* Lista de Cards de Consulta */
 .appointmentList {
   display: grid;
   gap: 1rem;
-  @media (min-width: 768px) {
+  
+  @media (min-width: $breakpoint-md) {
     grid-template-columns: repeat(2, 1fr);
   }
-  @media (min-width: 1280px) {
+  @media (min-width: 1280px) { // 1280px pode ser aproximado para $breakpoint-xl
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 /* Card de Consulta (Mobile-first) */
 .appointmentCard {
-  background-color: $card-bg;
-  border: 1px solid $border-color;
-  border-radius: 0.75rem; // 12px
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background-color: $white;
+  border: 1px solid $border-light;
+  border-radius: $radius-md; // Padronizado (8px ou conforme config)
+  box-shadow: $shadow-card;
   display: flex;
-  flex-direction: column; // Garante que o footer fique embaixo
+  flex-direction: column; 
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
 }
 
 .cardHeader {
@@ -55,62 +57,85 @@ $status-cancelada-text: #dc2626; // red-700
   justify-content: space-between;
   align-items: flex-start;
   padding: 1rem 1.5rem;
+  background-color: $bg-input; // Leve distinção no cabeçalho
+  border-bottom: 1px solid $border-light;
 }
 
 .cardInfo {
   h3 {
-    font-size: 1.125rem; // 18px
+    font-size: 1.125rem;
     font-weight: 600;
-    color: $text-color;
+    color: $text-strong;
     margin: 0;
   }
   p {
-    font-size: 0.875rem; // 14px
-    color: $text-light;
+    font-size: 0.875rem;
+    color: $text-secondary;
     margin: 0.25rem 0 0 0;
   }
 }
 
 .cardBody {
-  padding: 0 1.5rem 1rem 1.5rem;
+  padding: 1rem 1.5rem;
   font-size: 0.875rem;
   color: $text-color;
-  flex-grow: 1; // Faz o corpo crescer
+  flex-grow: 1;
+  
   p {
-    margin: 0;
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    
+    strong {
+        color: $text-secondary;
+        font-weight: 500;
+    }
   }
 }
 
 .cardFooter {
   padding: 0.75rem 1.5rem;
-  border-top: 1px solid $border-color;
-  background-color: #f9fafb; // gray-50
+  border-top: 1px solid $border-light;
+  background-color: $bg-light;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* Badge de Status */
+/* Badge de Status - Usando variáveis globais semânticas */
 .statusBadge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  font-size: 0.75rem; // 12px
-  font-weight: 600;
-  border-radius: 9999px; // Pill
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: $radius-pill;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 
+  // Mapeamento Global:
+  // Agendada -> Info (Azul)
   &.statusAgendada {
-    background-color: $status-agendada-bg;
-    color: $status-agendada-text;
+    background-color: $info-bg;
+    color: $info-text;
+    border: 1px solid $info-border; // Opcional, para definição extra
   }
-  &.statusConcluída {
-    background-color: $status-concluida-bg;
-    color: $status-concluida-text;
+  
+  // Concluída -> Success (Verde)
+  &.statusConcluída, &.statusConcluida {
+    background-color: $success-bg;
+    color: $success-text;
+    border: 1px solid $success-border;
   }
+  
+  // Cancelada -> Error (Vermelho)
   &.statusCancelada {
-    background-color: $status-cancelada-bg;
-    color: $status-cancelada-text;
+    background-color: $error-bg;
+    color: $error-text;
+    border: 1px solid $error-border;
   }
 }
 
-/* Menu de Ações (Kebab) - Idêntico ao DoctorAdmin */
+/* Menu de Ações (Kebab) */
 .actionMenu {
   position: relative;
   flex-shrink: 0;
@@ -120,14 +145,14 @@ $status-cancelada-text: #dc2626; // red-700
   background: none;
   border: none;
   padding: 0.5rem;
-  border-radius: 9999px;
+  border-radius: 50%;
   cursor: pointer;
-  color: $text-light;
+  color: $text-secondary;
   transition: background-color 0.2s, color 0.2s;
 
   &:hover {
-    background-color: #f3f4f6;
-    color: $text-color;
+    background-color: $bg-hover;
+    color: $primary-color;
   }
 }
 
@@ -141,11 +166,11 @@ $status-cancelada-text: #dc2626; // red-700
   right: 0;
   top: 100%;
   margin-top: 0.25rem;
-  width: 10rem;
-  background-color: $card-bg;
-  border-radius: 0.5rem;
-  border: 1px solid $border-color;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 160px; // Largura mínima segura
+  background-color: $white;
+  border-radius: $radius-md;
+  border: 1px solid $border-light;
+  box-shadow: $shadow-dropdown;
   z-index: 10;
   overflow: hidden;
 }
@@ -160,15 +185,16 @@ $status-cancelada-text: #dc2626; // red-700
   background: none;
   border: none;
   cursor: pointer;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f9fafb;
+    background-color: $bg-hover;
   }
 
   &.deleteItem {
-    color: $danger-color;
+    color: $error-text;
     &:hover {
-      background-color: #fef2f2;
+      background-color: $error-bg;
     }
   }
 }

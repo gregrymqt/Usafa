@@ -1,26 +1,9 @@
-// --- Variáveis de Design (Tokens) ---
-$success-bg: #f0fdf4;
-$success-border: #bbf7d0;
-$success-text-strong: #166534;
-$success-text: #15803d;
-
-$error-bg: #fef2f2;
-$error-border: #fecaca;
-$error-text: #b91c1c;
-
-$text-main: #1f2937;
-$text-secondary: #6b7280;
-$text-light: #9ca3af;
-
-$radius-md: 0.5rem;
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-
-// --- Estilos do Componente ---
+@import '../../../../styles/variables'; // Ajuste o caminho conforme necessário
 
 .resultContainer {
   padding: 1rem;
   border-radius: $radius-md;
-  border: 1px solid transparent; // Borda base
+  border: 1px solid transparent; 
 }
 
 .loadingState {
@@ -55,7 +38,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.
   h3 {
     font-size: 1.25rem;
     font-weight: 700;
-    color: $success-text-strong;
+    color: $success-text;
   }
 
   p {
@@ -64,7 +47,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.
 
     &.usafaName {
       font-size: 1.125rem;
-      color: $text-main;
+      color: $text-color;
     }
   }
 }

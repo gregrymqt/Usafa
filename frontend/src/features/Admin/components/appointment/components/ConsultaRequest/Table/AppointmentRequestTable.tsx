@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
-import styles from "./ConsultaRequestTable.module.scss";
+import styles from "./AppointmentRequestTable.module.scss";
 // Remove 'ConsultaRequestTableProps' - não precisamos mais das props de dados
 import type { ConsultaDocument, TableRowData } from "./types/consultaRequestTable.type";
 import { ActionMenu } from "../../../../../../../components/ActionMenu/ActionMenu";
 import type { ColumnType } from "../../../../../../../components/Tables/types";
 import Table from "../../../../../../../components/Tables/Tables";
 import { useConsultaRequests } from "../../../hooks/useAppointmentRequest";
-import { ConsultaEditModal } from "../Modal/ConsultaEditModal";
+import { ConsultaEditModal } from "../Modal/AppointmentEditModal";
 
 // Colunas (igual ao seu arquivo) [cite: 3]
 const columns: ColumnType<TableRowData>[] = [

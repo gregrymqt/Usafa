@@ -1,4 +1,4 @@
-// src/features/AdminDashboard/PartialViews/_Profile.module.scss
+@import '../../../../styles/variables'; // Ajuste o caminho conforme sua estrutura
 
 .profileContainer {
   display: flex;
@@ -9,15 +9,17 @@
 
   h2 {
     font-size: 1.5rem;
-    color: #333;
-    border-bottom: 2px solid #eee;
+    color: $text-strong;
+    border-bottom: 1px solid $border-light; // Borda mais sutil
     padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .infoCard {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    overflow: hidden; // Garante que a tabela não vaze bordas
+    background-color: $white;
+    border-radius: $radius-md;
+    box-shadow: $shadow-card; // Sombra padronizada para cards
+    overflow: hidden;
+    border: 1px solid $border-light; // Opcional: borda fina para definição extra
   }
 }

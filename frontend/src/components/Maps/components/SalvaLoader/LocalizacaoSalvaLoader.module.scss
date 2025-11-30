@@ -1,0 +1,43 @@
+@import '../../../../styles/variables';
+
+.loaderContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  color: $text-secondary;
+  font-weight: 500;
+
+  svg {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.75rem;
+    color: $primary-color;
+    animation: spin 1s linear infinite;
+  }
+}
+
+.alertBox {
+  padding: 1rem;
+  border-radius: $radius-md;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  
+  &.error {
+    background-color: $error-bg;
+    color: $error-text;
+    border: 1px solid $error-border;
+  }
+
+  &.info {
+    background-color: $info-bg;
+    color: $info-text;
+    border: 1px solid $info-border;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

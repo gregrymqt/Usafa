@@ -1,28 +1,31 @@
+@import '../../styles/variables';
+
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.65);
+  background-color: rgba(0, 0, 0, 0.5); // Backdrop escuro padrão
+  backdrop-filter: blur(2px); // Opcional: efeito moderno
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  z-index: 1000;
+  z-index: 1050; // Z-index alto
   animation: fadeIn 0.2s ease-out;
 }
 
 .modalContent {
   width: 100%;
   max-width: 500px;
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 1.5rem; // 24px
+  background-color: $white;
+  border-radius: $radius-lg; // 12px ou 16px
+  padding: 1.5rem;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: $shadow-lg;
   animation: zoomIn 0.2s ease-out;
+  border: 1px solid $border-light;
 
-  // Ajuste de padding se tiver um título
   &.withTitle {
-    padding-top: 1rem;
+    padding-top: 1.5rem;
   }
 }
 
@@ -30,35 +33,37 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem; // 16px
-  padding-bottom: 0.75rem; // 12px
-  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid $border-light;
 }
 
 .modalTitle {
-  font-size: 1.5rem; // 24px
-  font-weight: 600;
-  color: #333;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $text-strong;
 }
 
 .closeButton {
-  font-size: 2.5rem;
-  font-weight: 300;
-  color: #aaa;
+  font-size: 1.5rem;
+  color: $text-light;
   background: none;
   border: none;
   cursor: pointer;
   line-height: 1;
-  padding: 0;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
   
   &:hover {
-    color: #333;
+    color: $text-strong;
+    background-color: $bg-hover;
   }
 }
 
-// Onde o {children} será renderizado
 .modalBody {
   padding-top: 0.5rem;
+  color: $text-color;
 }
 
 // Animações

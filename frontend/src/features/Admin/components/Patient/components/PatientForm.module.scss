@@ -1,20 +1,109 @@
-// Estilos idênticos aos outros formulários
+@import '../../../../../styles/variables'; // Ajuste o caminho
 
-.cancelButton {
+.formContainer {
+  background-color: $white;
+  padding: 1.5rem;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
   width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem; // 6px
+  max-width: $form-max-width;
+  margin: 0 auto;
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $text-strong;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+}
+
+.inputGroup {
+  margin-bottom: 1.25rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $text-strong;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background-color: $bg-input;
+    color: $text-strong;
+    transition: all 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $border-focus;
+      background-color: $white;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    }
+
+    &::placeholder {
+      color: $text-light;
+    }
+  }
+}
+
+// Botões de Ação
+.buttonGroup {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// Botão Primário (Salvar)
+.submitButton {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: $radius-md;
+  background-color: $primary-color;
+  color: $white;
+  font-size: 1rem;
   font-weight: 600;
-  text-align: center;
-  border: 1px solid #d1d5db; // gray-300
-  background-color: #f9fafb; // gray-50
-  color: #374151; // gray-700
   cursor: pointer;
   transition: background-color 0.2s;
-  margin-top: 0.5rem; // Espaçamento do botão de submit
 
-  &:hover {
-    background-color: #f3f4f6; // gray-100
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+
+// Botão Cancelar (Padronizado com variáveis globais)
+.cancelButton {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid $border-color; // Borda cinza suave
+  border-radius: $radius-md;
+  background-color: $bg-secondary-btn; // Variável global cinza claro
+  color: $text-strong;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background-color: $bg-secondary-btn-hover; // Cinza um pouco mais escuro
+    border-color: darken($border-color, 10%);
   }
 
   &:disabled {

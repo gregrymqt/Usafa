@@ -1,3 +1,5 @@
+@import '../../styles/variables';
+
 .homeContainer {
   width: 100%;
 }
@@ -5,11 +7,11 @@
 .mainCarouselSection {
   height: 60vh;
   min-height: 400px;
-  background-color: #e0e0e0;
-  overflow: hidden; // <--- Adicione isso para segurança
-  position: relative; // <--- Importante para posicionamento absoluto interno
+  background-color: $bg-carousel;
+  overflow: hidden;
+  position: relative;
 
-  @media (min-width: 768px) {
+  @media (min-width: $breakpoint-md) {
     height: 80vh;
   }
 }
@@ -17,12 +19,12 @@
 .mainCarouselImage {
   width: 100%;
   height: 100%;
-  object-fit: cover; // Garante que a imagem cubra o slide sem distorcer
+  object-fit: cover;
 }
 
 .infiniteScrollSection {
   padding: 2rem 1rem;
-  max-width: 1200px;
+  max-width: $gallery-width;
   margin: 0 auto;
 
   h2 {
@@ -38,12 +40,12 @@
   gap: 1rem;
 
   // Tablet: 3 colunas
-  @media (min-width: 768px) {
+  @media (min-width: $breakpoint-md) {
     grid-template-columns: repeat(3, 1fr);
   }
 
   // Desktop: 4 colunas
-  @media (min-width: 1024px) {
+  @media (min-width: $breakpoint-xl) {
     grid-template-columns: repeat(4, 1fr);
   }
 }
@@ -51,7 +53,7 @@
 .galleryItem img {
   width: 100%;
   height: auto;
-  aspect-ratio: 1 / 1; // Mantém as imagens quadradas
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 8px;
 }
@@ -60,5 +62,5 @@
   text-align: center;
   padding: 2rem;
   font-size: 1.2rem;
-  color: #666;
+  color: $text-muted;
 }

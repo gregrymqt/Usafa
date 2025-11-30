@@ -1,0 +1,54 @@
+@import '../../../../../../../styles/variables';
+
+// Estilo para os "badges" de status
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+
+  // Cores por status usando variáveis semânticas globais
+  
+  // Pendente -> Aviso (Amarelo)
+  &.statuspendente {
+    background-color: $warning-bg;
+    color: $warning-text;
+    border: 1px solid $warning-border;
+  }
+  
+  // Aceita -> Sucesso (Verde)
+  &.statusaceita {
+    background-color: $success-bg;
+    color: $success-text;
+    border: 1px solid $success-border;
+  }
+  
+  // Recusada -> Erro (Vermelho)
+  &.statusrecusada {
+    background-color: $error-bg;
+    color: $error-text;
+    border: 1px solid $error-border;
+  }
+}
+
+// Estilos mobile-first
+@media (max-width: $breakpoint-md) {
+  .tableWrapper {
+    td[data-label='Ações'] {
+      text-align: right;
+    }
+  }
+}
+
+.loading,
+.empty {
+  padding: 2rem;
+  text-align: center;
+  color: $text-secondary;
+  background-color: $bg-light;
+  border-radius: $radius-md;
+  margin: 1rem 0;
+}

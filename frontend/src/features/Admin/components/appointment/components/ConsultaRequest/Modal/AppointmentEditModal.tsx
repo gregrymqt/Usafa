@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import  { Modal } from '../../../../../../../components/Modal/Modal';
 import type { ConsultaEditModalProps, ConsultaUpdateData } from './types/ConsultaEditModal.type';
-import styles from './ConsultaEditModal.module.scss';
+import styles from './AppointmentEditModal.module.scss';
 
 export const ConsultaEditModal: React.FC<ConsultaEditModalProps> = ({
   isOpen,

@@ -1,19 +1,14 @@
-// Variáveis para fácil customização
-
 @use "sass:color";
+@import '../../styles/variables';
 
-$primary-color: #3498db;
-$header-bg-color: #f2f2f2;
-$border-color: #ddd;
-$row-hover-color: #f5f5f5;
-$text-color: #333;
-$table-border-radius: 8px;
+// Não redefinimos variáveis aqui, usamos as do _variables.scss
 
 .table-container {
-  overflow-x: auto; // Garante que a tabela seja rolável em telas pequenas
+  overflow-x: auto;
   border: 1px solid $border-color;
-  border-radius: $table-border-radius;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  background-color: $white;
 }
 
 .reusable-table {
@@ -22,56 +17,67 @@ $table-border-radius: 8px;
   color: $text-color;
 
   th, td {
-    padding: 12px 15px;
+    padding: 1rem 1.25rem;
     text-align: left;
-    border-bottom: 1px solid $border-color;
+    border-bottom: 1px solid $border-light;
   }
 
   thead {
     tr {
-      background-color: $header-bg-color;
+      background-color: $bg-light; // Cabeçalho cinza claro
       
       th {
-        font-weight: bold;
-        color: color.adjust($text-color, $lightness: -10%);
+        font-weight: 600;
+        color: $text-strong;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
     }
   }
 
   tbody {
     tr {
+      transition: background-color 0.2s;
+
       &:hover {
-        background-color: $row-hover-color;
+        background-color: $bg-hover;
       }
 
       &:last-of-type {
-        border-bottom: 2px solid $primary-color;
+        border-bottom: none; // Remove borda da última linha se desejar
+        // Ou mantenha estilo de destaque:
+        // border-bottom: 2px solid $primary-color; 
       }
     }
   }
 
-  // Estilos para responsividade em telas menores
+  // Estilos para responsividade (Cards em mobile)
   @media screen and (max-width: 600px) {
     thead {
-      display: none; // Esconde o cabeçalho tradicional
+      display: none;
     }
 
     tr {
       display: block;
-      margin-bottom: 0.625em;
-      border-bottom: 2px solid $border-color;
+      margin-bottom: 1rem;
+      border: 1px solid $border-color;
+      border-radius: $radius-md;
+      overflow: hidden;
     }
 
     td {
       display: block;
       text-align: right;
-      border-bottom: 1px dotted $border-color;
+      border-bottom: 1px solid $border-light;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
 
       &::before {
         content: attr(data-label);
         float: left;
-        font-weight: bold;
-        text-transform: uppercase;
+        font-weight: 700;
+        color: $text-strong;
       }
 
       &:last-child {

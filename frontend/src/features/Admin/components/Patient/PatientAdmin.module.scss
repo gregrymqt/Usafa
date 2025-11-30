@@ -1,11 +1,4 @@
-/* Variáveis (copiadas de DoctorAdmin para consistência) */
-$primary-color: #3b82f6;
-$secondary-color: #6b7280; // gray-500
-$danger-color: #ef4444;
-$text-color: #1f2937;
-$text-light: #6b7280;
-$border-color: #e5e7eb;
-$card-bg: #ffffff;
+@import '../../../../styles/variables'; // Ajuste o caminho conforme necessário
 
 /* --- Estilos do Formulário de Busca --- */
 .searchForm {
@@ -20,25 +13,32 @@ $card-bg: #ffffff;
   flex-grow: 1;
   padding: 0.5rem 0.75rem;
   border: 1px solid $border-color;
-  border-radius: 0.375rem;
+  border-radius: $radius-md;
   font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: $bg-input;
+  color: $text-strong;
+  transition: all 0.2s;
 
   &:focus {
     outline: none;
-    border-color: $primary-color;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border-color: $border-focus;
+    background-color: $white;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.15); // Glow padrão
+  }
+
+  &::placeholder {
+    color: $text-light;
   }
 }
 
 .searchButton, .clearSearchButton {
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 0.375rem;
-  color: white;
-  font-weight: 500;
+  border-radius: $radius-md;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
+  color: $white;
 
   &:disabled {
     opacity: 0.6;
@@ -48,26 +48,40 @@ $card-bg: #ffffff;
 
 .searchButton {
   background-color: $primary-color;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
 }
 
 .clearSearchButton {
-  background-color: $secondary-color;
+  background-color: $text-secondary; // Cinza escuro para limpar
+
+  &:hover:not(:disabled) {
+    background-color: darken($text-secondary, 10%);
+  }
 }
 
 /* Conteúdo (Loading, Erro, Lista) */
 .adminContent {
-  padding-top: 1.5rem; // Espaçamento do topo (antes era do placeholder)
+  padding-top: 1.5rem;
   
   .loading,
   .error,
   .empty {
     text-align: center;
     padding: 2rem;
-    color: $text-light;
+    color: $text-secondary;
     font-size: 1.125rem;
+    background-color: $bg-light;
+    border-radius: $radius-md;
+    margin-bottom: 1rem;
   }
+
   .error {
-    color: $danger-color;
+    color: $error-text;
+    background-color: $error-bg;
+    border: 1px solid $error-border;
   }
 }
 
@@ -75,7 +89,8 @@ $card-bg: #ffffff;
 .patientList {
   display: grid;
   gap: 1rem;
-  @media (min-width: 1024px) {
+  
+  @media (min-width: $breakpoint-xl) {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
@@ -83,11 +98,16 @@ $card-bg: #ffffff;
 
 /* Card (Mobile-first) */
 .patientCard {
-  background-color: $card-bg;
-  border: 1px solid $border-color;
-  border-radius: 0.75rem; // 12px
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background-color: $white;
+  border: 1px solid $border-light;
+  border-radius: $radius-md; // Padronizado com AdminDashboard
+  box-shadow: $shadow-card;
   overflow: hidden;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
 }
 
 .cardHeader {
@@ -95,41 +115,48 @@ $card-bg: #ffffff;
   justify-content: space-between;
   align-items: flex-start;
   padding: 1rem 1.5rem;
+  background-color: $bg-input; // Fundo leve para o cabeçalho do card
+  border-bottom: 1px solid $border-light;
 }
 
 .cardInfo {
   h3 {
-    font-size: 1.25rem; // 20px
+    font-size: 1.25rem;
     font-weight: 600;
-    color: $text-color; // Paciente não tem cor primária no nome (diferente do Doutor)
+    color: $text-strong;
     margin: 0;
   }
   p {
-    font-size: 0.875rem; // 14px
-    color: $text-light;
+    font-size: 0.875rem;
+    color: $text-secondary;
     margin: 0.25rem 0 0 0;
   }
 }
 
 .cardBody {
-  border-top: 1px solid $border-color;
   padding: 1rem 1.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: $text-color;
+
   p {
     margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between; // Alinha label e valor
+    
     strong {
-      color: $text-light;
+      color: $text-secondary;
+      font-weight: 500;
     }
   }
 }
 
 .searchError {
-  color: $danger-color;
+  color: $error-text;
   font-size: 0.875rem;
+  margin-top: 0.5rem;
 }
 
-/* Menu de Ações (Kebab) - Idêntico aos outros */
+/* Menu de Ações (Kebab) */
 .actionMenu {
   position: relative;
   flex-shrink: 0;
@@ -139,14 +166,14 @@ $card-bg: #ffffff;
   background: none;
   border: none;
   padding: 0.5rem;
-  border-radius: 9999px;
+  border-radius: 50%;
   cursor: pointer;
-  color: $text-light;
+  color: $text-secondary;
   transition: background-color 0.2s, color 0.2s;
 
   &:hover {
-    background-color: #f3f4f6;
-    color: $text-color;
+    background-color: $bg-hover;
+    color: $primary-color;
   }
 }
 
@@ -155,16 +182,17 @@ $card-bg: #ffffff;
   height: 1.5rem;
 }
 
+/* Dropdown Menu */
 .actionDropdown {
   position: absolute;
   right: 0;
   top: 100%;
   margin-top: 0.25rem;
-  width: 10rem;
-  background-color: $card-bg;
-  border-radius: 0.5rem;
-  border: 1px solid $border-color;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 160px;
+  background-color: $white;
+  border-radius: $radius-md;
+  border: 1px solid $border-light;
+  box-shadow: $shadow-dropdown;
   z-index: 10;
   overflow: hidden;
 }
@@ -174,20 +202,22 @@ $card-bg: #ffffff;
   width: 100%;
   text-align: left;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: $text-color;
   background: none;
   border: none;
   cursor: pointer;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f9fafb;
+    background-color: $bg-hover;
   }
 
   &.deleteItem {
-    color: $danger-color;
+    color: $error-text;
+    
     &:hover {
-      background-color: #fef2f2;
+      background-color: $error-bg; // Usa o fundo vermelho claro global
     }
   }
 }

@@ -1,0 +1,139 @@
+@import '../../../styles/variables';
+
+.finderContainer {
+  max-width: 36rem; // Aprox 576px
+  margin: 0 auto;
+  padding: 1.5rem;
+  background-color: $white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  border: 1px solid $border-light;
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2rem;
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $text-strong; // Cor escura forte
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    color: $text-secondary;
+    font-size: 0.9rem;
+  }
+}
+
+.searchForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.5rem;
+  
+  input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    font-size: 1rem;
+    background-color: $bg-input;
+    color: $text-strong;
+    transition: all 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $border-focus;
+      background-color: $white;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.15);
+    }
+  }
+}
+
+.btnPrimary {
+  padding: 0.75rem 1.5rem;
+  background-color: $primary-color;
+  color: $white;
+  font-weight: 700;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.dividerOr {
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0;
+
+  .line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: $border-color;
+  }
+
+  span {
+    padding: 0 1rem;
+    color: $text-light;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+}
+
+.btnGps {
+  width: 100%;
+  padding: 0.875rem;
+  // Botão verde para GPS para diferenciar do azul
+  background-color: $success-text; // Usando o verde escuro como base
+  color: $white;
+  font-weight: 700;
+  border-radius: $radius-md;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.2s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+
+.loadingText {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: $text-secondary;
+  font-style: italic;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

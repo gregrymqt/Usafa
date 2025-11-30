@@ -1,4 +1,4 @@
-// src/components/Profile/PartialViews/_MinhasConsultas.scss
+@import '../../../../styles/variables'; // Ajuste o caminho conforme necessário
 
 .minhas-consultas-container {
   display: flex;
@@ -14,58 +14,72 @@
     
     h2 {
       font-size: 1.5rem;
-      color: #333;
+      color: $text-color;
       margin: 0;
     }
-
-    // Botão de recarregar ou filtro poderia vir aqui
   }
 
-  // Container responsivo para a tabela (Mobile First)
+  // Container responsivo
   .table-wrapper {
     width: 100%;
-    overflow-x: auto; // Permite rolagem horizontal no mobile
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow-x: auto;
+    background: $white;
+    border-radius: $radius-md;
+    box-shadow: $shadow-sm;
   }
 
-  // Estilização dos Status (Badges)
+  // Estilização dos Status (Badges) usando Variáveis Globais
   .status-badge {
     padding: 0.25rem 0.75rem;
-    border-radius: 50px;
+    border-radius: $radius-pill;
     font-size: 0.85rem;
     font-weight: 600;
     display: inline-block;
     text-align: center;
     min-width: 80px;
 
-    &.pendente { background-color: #fff3cd; color: #856404; }
-    &.confirmada { background-color: #d4edda; color: #155724; }
-    &.realizada { background-color: #cce5ff; color: #004085; }
-    &.agendada { background-color: #e2e3e5; color: #383d41; }
-    &.cancelada { background-color: #f8d7da; color: #721c24; }
+    &.pendente { 
+      background-color: $warning-bg; 
+      color: $warning-text; 
+    }
+    &.confirmada { 
+      background-color: $success-bg; 
+      color: $success-text; 
+    }
+    &.realizada { 
+      background-color: $info-bg; 
+      color: $info-text; 
+    }
+    &.agendada { 
+      background-color: $neutral-bg; 
+      color: $neutral-text; 
+    }
+    &.cancelada { 
+      background-color: $error-bg; 
+      color: $error-text; 
+    }
   }
 
   // Controles de Paginação
   .pagination-controls {
     display: flex;
-    justify-content: center; // Centralizado no mobile
+    justify-content: center;
     align-items: center;
     gap: 1rem;
     margin-top: 1rem;
 
-    @media (min-width: 768px) {
-      justify-content: flex-end; // A direita no desktop
+    @media (min-width: $breakpoint-md) {
+      justify-content: flex-end;
     }
 
     button {
       padding: 0.5rem 1rem;
-      border: 1px solid #ddd;
-      background: #fff;
-      border-radius: 4px;
+      border: 1px solid $border-strong;
+      background: $white;
+      border-radius: $radius-sm;
       cursor: pointer;
       transition: all 0.2s;
+      color: $text-color;
 
       &:disabled {
         opacity: 0.5;
@@ -73,24 +87,28 @@
       }
 
       &:not(:disabled):hover {
-        background-color: #f0f0f0;
-        border-color: #ccc;
+        background-color: $bg-hover;
+        border-color: $border-color;
       }
     }
 
     span {
       font-size: 0.9rem;
-      color: #666;
+      color: $text-secondary;
     }
   }
   
-  // Feedback visual de erro ou vazio
+  // Feedback visual
   .empty-state, .error-state {
     text-align: center;
     padding: 2rem;
-    background: #f9f9f9;
-    border-radius: 8px;
-    color: #666;
+    background: $bg-input;
+    border-radius: $radius-md;
+    color: $text-secondary;
   }
-  .error-state { color: #d32f2f; background: #fdecea; }
+  
+  .error-state { 
+    color: $error-text; 
+    background: $error-bg; 
+  }
 }

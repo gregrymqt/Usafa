@@ -1,10 +1,10 @@
-// Mobile-first: O modal cobre a tela toda
+@import '../../../../styles/variables';
 
 .protocol {
   text-align: center;
   font-size: 1rem;
-  color: #555;
-  background-color: #f4f4f4;
+  color: $text-secondary;
+  background-color: $bg-hover;
   padding: 0.5rem;
   border-radius: 6px;
   margin-bottom: 1.5rem;
@@ -12,14 +12,14 @@
 
 .summaryDetails {
   font-size: 1.1rem;
-  color: #333;
+  color: $text-color;
   
   p {
     margin-bottom: 0.75rem;
     line-height: 1.5;
     
     strong {
-      color: #000;
+      color: $text-strong;
     }
   }
 }
@@ -27,8 +27,8 @@
 .actions {
   margin-top: 2rem;
   display: flex;
-  flex-direction: column; // Botões empilhados no mobile
-  gap: 0.75rem; // 12px
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .actionButton {
@@ -36,33 +36,31 @@
   font-size: 1rem;
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: $radius-md;
   cursor: pointer;
   transition: all 0.2s ease;
 
-  // Estilo primário
+  // Botão Primário (Confirmar)
   &:first-of-type {
-    background-color: #3182ce; // Azul
-    color: white;
+    background-color: $primary-color;
+    color: $white;
     &:hover {
-      background-color: #2b6cb0;
+      background-color: $primary-hover;
     }
   }
 
-  // Estilo secundário
+  // Botão Secundário (Cancelar/Voltar)
   &:last-of-type {
-    background-color: #e2e8f0; // Cinza claro
-    color: #2d3748;
+    background-color: $bg-secondary-btn;
+    color: $text-strong;
     &:hover {
-      background-color: #cbd5e0;
+      background-color: $bg-secondary-btn-hover;
     }
   }
 }
 
-
-// Media query para desktops
-@media (min-width: 768px) {
+@media (min-width: $breakpoint-md) {
   .actions {
-    flex-direction: row; // Botões lado a lado no desktop
+    flex-direction: row;
   }
 }

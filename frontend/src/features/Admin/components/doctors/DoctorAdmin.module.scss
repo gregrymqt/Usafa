@@ -1,13 +1,4 @@
-/* Variáveis de Cor (Exemplo) */
-$primary-color: #3b82f6; // blue-500
-$primary-hover: #2563eb; // blue-700
-$danger-color: #ef4444; // red-500
-$danger-hover: #dc2626; // red-700
-$text-color: #1f2937; // gray-800
-$text-light: #6b7280; // gray-500
-$bg-color: #f9fafb; // gray-50
-$border-color: #e5e7eb; // gray-200
-$card-bg: #ffffff;
+@import '../../../../styles/variables'; // Ajuste o caminho
 
 /* Conteúdo (Loading, Erro, Lista) */
 .adminContent {
@@ -16,11 +7,17 @@ $card-bg: #ffffff;
   .empty {
     text-align: center;
     padding: 2rem;
-    color: $text-light;
+    color: $text-secondary; // Padronizado
     font-size: 1.125rem;
+    background-color: $bg-light; // Fundo leve para mensagens
+    border-radius: $radius-md;
+    margin-bottom: 1rem;
   }
+  
   .error {
-    color: $danger-color;
+    color: $error-text;
+    background-color: $error-bg;
+    border: 1px solid $error-border;
   }
 }
 
@@ -28,8 +25,9 @@ $card-bg: #ffffff;
 .doctorList {
   display: grid;
   gap: 1rem;
-  // Para desktop, podemos usar colunas
-  @media (min-width: 1024px) {
+  
+  // Para desktop
+  @media (min-width: $breakpoint-xl) {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
@@ -37,11 +35,16 @@ $card-bg: #ffffff;
 
 /* Card (Mobile-first) */
 .doctorCard {
-  background-color: $card-bg;
-  border: 1px solid $border-color;
-  border-radius: 0.75rem; // 12px
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background-color: $white;
+  border: 1px solid $border-light;
+  border-radius: $radius-md; // Padronizado (8px)
+  box-shadow: $shadow-card;  // Sombra padronizada
   overflow: hidden;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
 }
 
 .cardHeader {
@@ -49,31 +52,36 @@ $card-bg: #ffffff;
   justify-content: space-between;
   align-items: flex-start;
   padding: 1rem 1.5rem;
+  background-color: $bg-input; // Cabeçalho levemente cinza
+  border-bottom: 1px solid $border-light;
 }
 
 .cardInfo {
   h3 {
-    font-size: 1.25rem; // 20px
+    font-size: 1.25rem;
     font-weight: 600;
-    color: $primary-color;
+    color: $text-strong; // Títulos escuros para leitura melhor
     margin: 0;
   }
+  
   p {
-    font-size: 0.875rem; // 14px
-    color: $text-light;
+    font-size: 0.875rem;
+    color: $text-secondary;
     margin: 0.25rem 0 0 0;
   }
 }
 
 .cardBody {
-  border-top: 1px solid $border-color;
   padding: 1rem 1.5rem;
   font-size: 0.875rem;
   color: $text-color;
+  
   p {
     margin: 0.5rem 0;
+    
     strong {
-      color: $text-light;
+      color: $text-secondary; // Label em cinza médio
+      font-weight: 500;
     }
   }
 }

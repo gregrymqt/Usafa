@@ -1,11 +1,13 @@
+@import '../../../../styles/variables';
+
 .consultaListSection {
   width: 100%;
   
   h2 {
-    font-size: 1.5rem; // 24px
+    font-size: 1.5rem;
     font-weight: 600;
-    color: #333;
-    margin-bottom: 1rem; // 16px
+    color: $text-color;
+    margin-bottom: 1rem;
   }
 }
 
@@ -13,7 +15,7 @@
   padding: 2rem;
   text-align: center;
   font-size: 1.1rem;
-  color: #555;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  color: $text-secondary;
+  background-color: $bg-input; // Fundo leve
+  border-radius: $radius-md;
 }

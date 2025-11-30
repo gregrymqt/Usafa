@@ -1,18 +1,18 @@
-@import '../../../styles/variables'; // Ajuste conforme seu projeto
+@import '../../../../styles/variables'; // Ajuste o caminho conforme sua estrutura
 
 .container {
   padding: 1rem;
   width: 100%;
-  max-width: 1200px;
+  max-width: $gallery-max-width; // Usando a variável global (1200px)
   margin: 0 auto;
   
   h2 {
-    color: #333;
+    color: $text-strong;
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
     text-align: center;
     
-    @media (min-width: 768px) {
+    @media (min-width: $breakpoint-md) {
       text-align: left;
     }
   }
@@ -22,7 +22,7 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid $border-light; // Variável global
   
   button {
     background: none;
@@ -30,13 +30,13 @@
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
     font-weight: 600;
-    color: #666;
+    color: $text-secondary;
     cursor: pointer;
     position: relative;
     transition: all 0.3s ease;
 
     &.active {
-      color: #007bff; // Cor primária
+      color: $primary-color; // Azul padrão do sistema
       
       &::after {
         content: '';
@@ -45,22 +45,22 @@
         left: 0;
         width: 100%;
         height: 2px;
-        background-color: #007bff;
+        background-color: $primary-color;
       }
     }
 
     &:hover:not(.active) {
-      color: #333;
-      background-color: #f5f5f5;
+      color: $text-strong;
+      background-color: $bg-hover; // Cinza claro padrão
       border-radius: 4px 4px 0 0;
     }
   }
 }
 
 .contentArea {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  background: $white;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card; // Sombra padronizada
   padding: 1.5rem;
   animation: fadeIn 0.3s ease-in-out;
 }

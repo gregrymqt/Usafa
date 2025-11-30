@@ -1,16 +1,5 @@
-// src/pages/AuthSuccessPage/AuthSuccessPage.module.scss
-
-
 @use "sass:color";
-
-// Variáveis de Cor (ajuste conforme seu design system)
-$primary-color: #007bff;
-$success-color: #28a745;
-$error-color: #dc3545;
-$light-gray-bg: #f4f7f6;
-$white-bg: #ffffff;
-$text-dark: #333;
-$text-light: #666;
+@import '../../../../styles/variables'; // Ajuste o caminho
 
 .authSuccessPage {
   display: flex;
@@ -18,9 +7,9 @@ $text-light: #666;
   justify-content: center;
   width: 100%;
   min-height: 100vh;
-  min-height: 100dvh; // Para cobrir viewports de mobile
-  background-color: $light-gray-bg;
-  padding: 16px;
+  min-height: 100dvh;
+  background-color: $bg-body;
+  padding: 1rem;
   box-sizing: border-box;
 }
 
@@ -29,48 +18,48 @@ $text-light: #666;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: $white-bg;
-  border-radius: 12px;
-  padding: 32px 24px; // Mais padding vertical no mobile
+  background-color: $white;
+  border-radius: $radius-lg;
+  padding: 2rem 1.5rem;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  max-width: $form-max-width;
+  box-shadow: $shadow-card;
   text-align: center;
   box-sizing: border-box;
 }
 
 // Responsividade
-@media (min-width: 768px) {
+@media (min-width: $breakpoint-md) {
   .container {
-    padding: 48px 40px;
+    padding: 3rem 2.5rem;
   }
 }
 
 .title {
   font-size: 1.75rem;
   font-weight: 600;
-  color: $text-dark;
-  margin: 20px 0 8px 0;
+  color: $text-color;
+  margin: 1.25rem 0 0.5rem 0;
 }
 
 .subtitle {
   font-size: 1rem;
-  color: $text-light;
+  color: $text-secondary;
   margin: 0;
-  margin-bottom: 32px;
+  margin-bottom: 2rem;
   line-height: 1.5;
 }
 
 // Estilos de Erro
 .apiError {
-  color: $error-color;
+  color: $error-text;
   font-weight: 500;
 }
 
 .formError {
-  color: $error-color;
+  color: $error-text;
   font-size: 0.9rem;
-  margin-top: 10px;
+  margin-top: 0.625rem;
   width: 100%;
   text-align: center;
 }
@@ -80,9 +69,9 @@ $text-light: #666;
   width: 100%;
   padding: 0.75rem;
   border: none;
-  border-radius: 8px;
+  border-radius: $radius-md;
   background-color: $primary-color;
-  color: white;
+  color: $white;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -115,7 +104,7 @@ $text-light: #666;
   border-radius: 50%;
   display: block;
   stroke-width: 2;
-  stroke: $success-color;
+  stroke: $success-text; // Usando a variável global de sucesso
   stroke-miterlimit: 10;
   animation: scale 0.3s ease-in-out;
 }
@@ -125,7 +114,7 @@ $text-light: #666;
   stroke-dashoffset: 166;
   stroke-width: 2;
   stroke-miterlimit: 10;
-  stroke: $success-color;
+  stroke: $success-text;
   fill: none;
   animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
   animation-delay: 0.3s;
@@ -135,6 +124,7 @@ $text-light: #666;
   transform-origin: 50% 50%;
   stroke-dasharray: 48;
   stroke-dashoffset: 48;
+  stroke: $success-text; // Garante que o check também seja da cor correta
   animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) forwards;
   animation-delay: 0.8s;
 }

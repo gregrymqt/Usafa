@@ -1,0 +1,65 @@
+@import '../../../styles/variables';
+
+.mapContainer {
+  margin-top: 1rem;
+  width: 100%;
+
+  h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $text-secondary;
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+}
+
+.routeLink {
+  display: block;
+  width: 100%;
+  background-color: $bg-input; // Fundo sutil
+  border: 2px dashed $primary-color; // Borda pontilhada chamativa
+  border-radius: $radius-lg;
+  padding: 1.5rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  
+  // Conteúdo centralizado
+  .linkContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  svg {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: $primary-color;
+    margin-bottom: 0.5rem;
+    transition: transform 0.2s;
+  }
+
+  .mainText {
+    color: $text-strong;
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: block;
+  }
+
+  .subText {
+    color: $primary-color;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: block;
+  }
+
+  // Hover Effects
+  &:hover {
+    background-color: rgba($primary-color, 0.05);
+    border-color: $primary-hover;
+
+    svg {
+      transform: scale(1.1);
+    }
+  }
+}

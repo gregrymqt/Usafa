@@ -1,0 +1,11 @@
+@import '../../styles/variables';
+
+.mapsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: $bg-body; // Fundo padrão do sistema
+  padding: 1rem;
+  font-family: inherit;
+}

@@ -1,0 +1,74 @@
+// --- Paleta de Cores Principais ---
+$primary-color: #007bff;       // Mantendo seu azul padrão
+$primary-hover: #0056b3;
+$text-color: #333333;          // Texto padrão
+$text-strong: #1f2937;         // Texto forte (títulos/labels) [NOVO]
+$text-secondary: #6b7280;      // Texto secundário
+$text-light: #9ca3af;          // Placeholders
+$white: #ffffff;
+
+// --- Cores Específicas de Autenticação ---
+$google-blue: #4285F4;         // Cor oficial do Google
+$google-bg-hover: #f8f8f8;     // Hover do botão Google
+
+// --- Cores de Feedback & Status ---
+$success-bg: #dcfce7;
+$success-border: #bbf7d0;
+$success-text: #166534;
+
+$error-bg: #fee2e2;
+$error-border: #fecaca;
+$error-text: #991b1b;
+
+$warning-bg: #fef3c7;
+$warning-border: #fde68a;
+$warning-text: #92400e;
+
+$info-bg: #dbeafe;
+$info-border: #bfdbfe;
+$info-text: #1e40af;
+
+$neutral-bg: #f3f4f6;
+$neutral-text: #374151;
+
+// --- Backgrounds Gerais ---
+$bg-light: #f8f9fa;
+$bg-body: #f7fafc;             // Fundo da página [NOVO]
+$bg-hover: #f4f4f4;
+$bg-input: #f9fafb;
+$bg-secondary-btn: #e2e8f0;    // Botão cinza/cancelar [NOVO]
+$bg-secondary-btn-hover: #cbd5e0; 
+
+// --- Bordas e Formas ---
+$border-color: #d1d5db;        // Ajustado para cinza suave
+$border-light: #e5e7eb;        // Borda mais leve para divisórias
+$border-focus: $primary-color; // Foco usa a cor primária [NOVO]
+$radius-sm: 0.25rem;
+$radius-md: 0.5rem;            // 8px
+$radius-lg: 1rem;              // 16px [NOVO]
+$radius-pill: 50px;
+
+// --- Layout & Dimensões ---
+$navbar-height: 80px;
+$container-max-width: 1100px;
+$gallery-max-width: 1200px;
+$form-max-width: 420px;        // Padronizado para Auth
+
+// --- Sombras ---
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); // Sombra do form [NOVO]
+$shadow-navbar: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-dropdown: 0px 8px 16px 0px rgba(0,0,0,0.2);
+
+// --- Breakpoints ---
+$breakpoint-md: 768px;
+$breakpoint-lg: 960px;
+$breakpoint-xl: 1024px;
+
+// --- Z-Index ---
+$z-index-navbar: 999;
+$z-index-dropdown: 1000;
+$z-index-toast: 2000;          // Para o alerta de sucesso [NOVO]
+$z-index-mobile-menu: 1;

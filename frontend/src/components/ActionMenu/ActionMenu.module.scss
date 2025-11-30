@@ -1,8 +1,10 @@
+@import '../../styles/variables';
+
 // Mobile-first
 .actionMenu {
   position: relative;
   display: inline-block;
-  z-index: 5; // Garante que o menu fique acima do conteúdo da tabela
+  z-index: 5; 
 }
 
 .menuButton {
@@ -14,46 +16,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: $text-secondary;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: $bg-hover;
+    color: $primary-color;
   }
 }
 
 .dropdown {
   position: absolute;
   right: 0;
-  top: 110%; // Desce um pouco abaixo do botão
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  top: 110%;
+  background-color: $white;
+  border: 1px solid $border-light; // Borda suave global
+  border-radius: $radius-md;
+  box-shadow: $shadow-dropdown;    // Sombra global de dropdown
   width: 160px;
   z-index: 10;
   overflow: hidden;
-  padding: 8px 0;
+  padding: 0.5rem 0;
 }
 
 .dropdownItem {
   display: block;
   width: 100%;
-  padding: 10px 16px;
+  padding: 0.75rem 1rem;
   text-align: left;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 14px;
-  color: #333; // Cor padrão do texto
+  font-size: 0.9rem;
+  color: $text-color;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: #f9f9f9;
+    background-color: $bg-hover;
   }
 
   &.delete {
-    color: #e74c3c; // Vermelho para ação destrutiva
+    color: $error-text; // Vermelho global
 
     &:hover {
-      background-color: #fbeeee;
+      background-color: $error-bg; // Fundo vermelho claro global
     }
   }
 }
