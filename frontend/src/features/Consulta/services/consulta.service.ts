@@ -1,4 +1,5 @@
 import {
+  FormSelectOption,
   type Consulta,
   type ConsultaFormOptions,
   type ConsultaRequest,
@@ -59,5 +60,20 @@ export const requestConsulta = async (request: ConsultaRequest): Promise<void> =
   } catch (error) {
     console.error('Erro ao enviar requisição de consulta:', error);
     throw new Error('Não foi possível enviar sua solicitação de consulta.');
+  }
+};
+
+/**
+ * NOVA FUNÇÃO: Busca horários disponíveis apenas para um tipo de consulta específico
+ */
+export const getHorariosPorTipo = async (tipoConsultaId: string): Promise<FormSelectOption[]> => {
+  try {
+    // Bate no endpoint novo que criamos no Java
+    const data = await api.get<FormSelectOption[]>(`/consultas/horarios-disponiveis/${tipoConsultaId}`);
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar horários:', error);
+    // Retorna lista vazia em caso de erro para não quebrar o front
+    return [];
   }
 };

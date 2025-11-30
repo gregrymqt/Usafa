@@ -1,12 +1,12 @@
-package br.edu.fatecpg.usafa.features.Admin.utils.appointment;
+package br.edu.fatecpg.usafa.features.admin.utils.appointment;
 
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.utils.doctor.DoctorMapper;
-import br.edu.fatecpg.usafa.features.Admin.utils.patient.PatientMapper;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.admin.utils.doctor.DoctorMapper;
+import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientMapper;
 import br.edu.fatecpg.usafa.models.Consulta;
 
 import java.time.LocalDateTime;

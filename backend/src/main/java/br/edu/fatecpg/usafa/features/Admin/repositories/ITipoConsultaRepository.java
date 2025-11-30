@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.repositories;
+package br.edu.fatecpg.usafa.features.admin.repositories;
 
 import java.util.Optional;
 
@@ -15,5 +15,9 @@ public interface ITipoConsultaRepository extends JpaRepository<TipoConsulta, Lon
      */
     Optional<TipoConsulta> findByPublicId(String publicId);
 
-    Optional<TipoConsulta> findByNome(String nome);
+   /**
+     * Busca um tipo de consulta pelo nome, ignorando maiúsculas e minúsculas.
+     * Isso é crucial para evitar duplicatas como "Cardiologia" e "cardiologia".
+     */
+    Optional<TipoConsulta> findByNomeIgnoreCase(String nome);
 }

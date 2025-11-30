@@ -11,10 +11,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 import br.edu.fatecpg.usafa.models.User;
 
@@ -64,15 +65,19 @@ public class ConsultaController {
         return ResponseEntity.ok(consultas);
     }
 
-    /**
-     * Endpoint para opções do formulário.
-     */
     @GetMapping("/options")
-    // CORREÇÃO: Exige estar autenticado (qualquer role serve, pois é só leitura de opções)
-    @PreAuthorize("isAuthenticated()") 
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ConsultaFormOptionsDTO> getFormularioOptions() {
         ConsultaFormOptionsDTO options = consultaService.getFormOptions();
         return ResponseEntity.ok(options);
+    }
+
+    // Endpoint 2: Carga Dinâmica (Horários por Tipo)
+    @GetMapping("/horarios-disponiveis/{tipoId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<FormSelectOptionDTO>> getHorariosPorTipo(@PathVariable String tipoId) {
+        List<FormSelectOptionDTO> horarios = consultaService.getHorariosDisponiveisPorTipo(tipoId);
+        return ResponseEntity.ok(horarios);
     }
 
     /**

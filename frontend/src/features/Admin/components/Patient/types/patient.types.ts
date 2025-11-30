@@ -40,6 +40,7 @@ export interface PatientAdminProps {
   onDeletePatient: (patient: Patient) => void;
   hasMore: boolean;
   loadMorePatients: () => void;
+  onSearch: (searchTerm: string) => void;
 }
 
 export interface GetPatientsParams {

@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.dtos.doctor;
+package br.edu.fatecpg.usafa.features.admin.dtos.doctor;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -22,4 +22,7 @@ public class DoctorRequestDto {
 
     @NotBlank(message = "A especialidade é obrigatória")
     private String specialty;
+
+    // URL da foto do médico. Pode ser opcional na criação/atualização.
+    private String picture;
 }

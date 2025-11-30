@@ -1,7 +1,7 @@
-package br.edu.fatecpg.usafa.features.Admin.dtos.appointment;
+package br.edu.fatecpg.usafa.features.admin.dtos.appointment;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientResponseDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

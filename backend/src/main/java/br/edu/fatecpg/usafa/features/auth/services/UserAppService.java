@@ -5,6 +5,7 @@ import br.edu.fatecpg.usafa.features.auth.interfaces.IUserAppService;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.models.User;
+import br.edu.fatecpg.usafa.models.Picture;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
 import lombok.RequiredArgsConstructor;
@@ -110,7 +111,24 @@ public class UserAppService implements IUserAppService {
             log.info("Usuário Google já existe no banco via email.");
             userToSave = existingUserOpt.get();
             userToSave.setName(googleUser.name());
-            userToSave.setPicture(googleUser.picture());
+
+            // Lógica de atualização da Picture
+            String newPictureUrl = googleUser.picture();
+            if (newPictureUrl != null && !newPictureUrl.isBlank()) {
+                Picture currentPicture = userToSave.getPicture();
+                if (currentPicture != null) {
+                    log.info("Atualizando URL da foto de perfil existente para o usuário: {}", googleUser.email());
+                    currentPicture.setUrl(newPictureUrl);
+                } else {
+                    log.info("Criando nova entidade Picture para usuário existente: {}", googleUser.email());
+                    Picture newPicture = Picture.builder()
+                            .url(newPictureUrl)
+                            .group("perfil")
+                            .title("Foto de Perfil de " + googleUser.name())
+                            .build();
+                    userToSave.setPicture(newPicture);
+                }
+            }
 
             if (userToSave.getGoogleId() == null) {
                 log.info("Vinculando Google ID ao usuário existente.");
@@ -130,9 +148,16 @@ public class UserAppService implements IUserAppService {
             userToSave = new User();
             userToSave.setName(googleUser.name());
             userToSave.setEmail(googleUser.email());
-            userToSave.setPicture(googleUser.picture());
             userToSave.setGoogleId(googleUser.googleId());
             userToSave.setCreatedByAdmin(false);
+
+            // Lógica de criação da Picture
+            String pictureUrl = googleUser.picture();
+            if (pictureUrl != null && !pictureUrl.isBlank()) {
+                Picture newPicture = Picture.builder().url(pictureUrl).group("perfil")
+                        .title("Foto de Perfil de " + googleUser.name()).build();
+                userToSave.setPicture(newPicture);
+            }
 
             userUtils.assignDefaultRole(userToSave);
         }
@@ -160,8 +185,8 @@ public class UserAppService implements IUserAppService {
                 needsCompletion,
                 savedUser.getName(), // Novo
                 savedUser.getEmail(), // Novo
-                savedUser.getPicture() // Novo
-        );
+                // CORREÇÃO: Extrai a URL da entidade Picture, se ela existir.
+                savedUser.getPicture() != null ? savedUser.getPicture().getUrl() : null);
     }
 
     // --- ATUALIZAÇÃO ---

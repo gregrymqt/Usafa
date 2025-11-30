@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.dtos.patient;
+package br.edu.fatecpg.usafa.features.admin.dtos.patient;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

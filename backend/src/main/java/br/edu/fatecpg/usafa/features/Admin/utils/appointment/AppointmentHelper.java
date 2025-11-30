@@ -1,7 +1,7 @@
-package br.edu.fatecpg.usafa.features.Admin.utils.appointment;
+package br.edu.fatecpg.usafa.features.admin.utils.appointment;
 
 
-import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
+import br.edu.fatecpg.usafa.features.admin.repositories.IMedicoRepository;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;

@@ -1,22 +1,28 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces.Patient;
-
+package br.edu.fatecpg.usafa.features.admin.interfaces.Patient;
 
 import java.util.List;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientResponseDto;
 
 // A interface define O QUE o serviço deve fazer
-    public interface IPatientService {
+public interface IPatientService {
 
-        List<PatientResponseDto> getAllPatients();
+    // Método antigo foi substituído por este
+    Page<PatientResponseDto> getAllPatients(String search, Pageable pageable);
 
-        PatientResponseDto createPatient(PatientRequestDto patientDto);
+    // Novo método para busca por CPF
+    List<PatientResponseDto> searchByCpf(String cpf);
 
-        PatientResponseDto updatePatient(String id, PatientRequestDto patientDto);
+    List<PatientResponseDto> getAllPatients();
 
-        void deletePatient(String id);
+    PatientResponseDto createPatient(PatientRequestDto patientDto);
 
-        // Você pode adicionar outros métodos de contrato aqui, ex:
-        // PatientResponseDto getPatientById(String id);
-    }
+    PatientResponseDto updatePatient(String id, PatientRequestDto patientDto);
+
+    void deletePatient(String id);
+
+}

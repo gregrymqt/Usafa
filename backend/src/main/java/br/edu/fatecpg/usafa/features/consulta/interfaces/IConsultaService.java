@@ -7,6 +7,7 @@ import java.util.List;
 
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
 import br.edu.fatecpg.usafa.models.User;
 
 /**
@@ -31,5 +32,8 @@ public interface IConsultaService {
      * @return Um DTO contendo listas de médicos, tipos, dias e horários.
      */
     ConsultaFormOptionsDTO getFormOptions();
+
+
+    List<FormSelectOptionDTO> getHorariosDisponiveisPorTipo(String tipoPublicId);
 
 }

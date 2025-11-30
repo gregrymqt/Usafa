@@ -1,91 +1,138 @@
 import React, { useState } from "react";
-// Importamos 'Omit' para dizer que o formulário não sabe o 'patientId' (o hook que sabe)
 import { type ConsultaRequest } from "../../types/consulta.types";
 import styles from "./ConsultaForm.module.scss";
 import AuthForm from "../../../../components/Form/AuthForm";
-import type { FormField } from "../../../../components/Form/types/form.type";
-import type { ConsultaFormProps } from "./types/ConsultaForm.type";
+import type {
+  FormField,
+  FormSelectOption,
+} from "../../../../components/Form/types/form.type";
 
-// Tipo local para o estado do formulário (tudo menos o patientId)
-type ConsultaFormState = Omit<ConsultaRequest, "patientId">;
+// CORREÇÃO 1: Removemos o Omit. Precisamos do patientId no estado caso seja Admin.
+type ConsultaFormState = Partial<ConsultaRequest>;
+
+export interface ConsultaFormProps {
+  options: { tipos: FormSelectOption[] };
+  opcoesHorarios: FormSelectOption[];
+  isLoadingHorarios: boolean;
+  onTipoChange: (tipoId: string) => void;
+  isSubmitting: boolean;
+  onSubmit: (request: Partial<ConsultaRequest>) => Promise<void>;
+  isAdmin?: boolean;
+  pacientes?: FormSelectOption[];
+}
 
 export const ConsultaForm: React.FC<ConsultaFormProps> = ({
   options,
+  opcoesHorarios,
+  isLoadingHorarios,
+  onTipoChange,
   isSubmitting,
   onSubmit,
+  isAdmin,
+  pacientes,
 }) => {
-  // Estado inicial atualizado [cite: 22]
-  const [formData, setFormData] = useState<Partial<ConsultaFormState>>({
-    tipoConsultaId: "", // Substitui tipoId
-    horarioSlotId: undefined, // Substitui dia/horario/medico
+  // CORREÇÃO 2: Inicializamos o patientId no estado
+  const [formData, setFormData] = useState<ConsultaFormState>({
+    tipoConsultaId: "",
+    horarioSlotId: undefined,
     sintomas: "",
+    patientId: undefined, 
   });
 
-  // Manipulador de mudanças genérico [cite: 23]
   const handleChange = (
     field: keyof ConsultaFormState,
-    value: string | number
+    value: string | number | undefined
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleTipoSelection = (val: string | number) => {
+    const novoTipoId = String(val);
+    handleChange("tipoConsultaId", novoTipoId);
+    handleChange("horarioSlotId", undefined);
+    onTipoChange(novoTipoId);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Validamos se os campos obrigatórios estão preenchidos
-    if (formData.tipoConsultaId && formData.horarioSlotId) {
-      // Convertemos para o tipo esperado (cast seguro pois validamos acima)
-      await onSubmit(formData as unknown as ConsultaRequest);
+    // Validação básica
+    const isValid = formData.tipoConsultaId && formData.horarioSlotId;
+    const isAdminValid = isAdmin ? !!formData.patientId : true;
 
-      // Limpa o form [cite: 25]
+    if (isValid && isAdminValid) {
+      await onSubmit(formData as ConsultaRequest);
+      
+      // Reset do form
       setFormData({
         tipoConsultaId: "",
         horarioSlotId: undefined,
         sintomas: "",
+        patientId: undefined,
       });
+      onTipoChange(""); 
     }
   };
 
+  // CORREÇÃO 3: Reordenamos os campos. Se for Admin, "Paciente" vem primeiro.
   const fields: FormField[] = [
+    // --- CAMPO DE ADMIN (Topo da lista) ---
+    ...(isAdmin && pacientes
+      ? ([
+          {
+            elementType: "select",
+            name: "patientId", // Agora o TypeScript aceita isso
+            label: "Selecione o Paciente",
+            value: formData.patientId || "",
+            options: pacientes,
+            onChange: (val) => handleChange("patientId", Number(val)), // Assumindo que ID é number/long
+            required: true,
+          },
+        ] as FormField[])
+      : []),
+
+    // --- CAMPOS PADRÃO ---
     {
       elementType: "select",
-      name: "tipoConsultaId", // [cite: 27]
+      name: "tipoConsultaId",
       label: "Especialidade / Tipo",
       value: formData.tipoConsultaId || "",
-      onChange: (val) => handleChange("tipoConsultaId", val),
+      onChange: handleTipoSelection,
       options: options.tipos,
       required: true,
     },
     {
       elementType: "select",
-      name: "horarioSlotId", // NOVO: Substitui Médico, Dia e Horário
-      label: "Horários Disponíveis",
+      name: "horarioSlotId",
+      label: isLoadingHorarios
+        ? "Buscando horários..."
+        : "Horários Disponíveis",
       value: formData.horarioSlotId || "",
-      onChange: (val) => handleChange("horarioSlotId", Number(val)), // Converte para number (Long no Java)
-      options: options.horarios, // Vem do mapper.slotsToOptions() do backend
+      onChange: (val) => handleChange("horarioSlotId", Number(val)),
+      options: opcoesHorarios,
       required: true,
-      // Pequena melhoria de UX no placeholder ou texto de ajuda
-      placeholder:
-        options.horarios.length > 0
-          ? "Selecione um horário disponível..."
-          : "Nenhum horário disponível para esta data",
-      disabled: options.horarios.length === 0, // Desabilita se não houver slots
+      placeholder: !formData.tipoConsultaId
+        ? "Selecione uma especialidade primeiro"
+        : opcoesHorarios.length > 0
+        ? "Selecione um horário..."
+        : "Nenhum horário livre",
+      disabled:
+        !formData.tipoConsultaId ||
+        isLoadingHorarios ||
+        opcoesHorarios.length === 0,
     },
     {
       elementType: "textarea",
-      name: "sintomas", // [cite: 29]
+      name: "sintomas",
       label: "Sintomas (Opcional)",
       placeholder: "Descreva brevemente seus sintomas...",
       value: formData.sintomas || "",
-      onChange: (val) => handleChange("sintomas", val),
+      onChange: (val) => handleChange("sintomas", String(val)),
     },
   ];
 
   return (
     <section className={styles.consultaFormSection}>
-      <h2>Marcar Nova Consulta</h2>
+      <h2>{isAdmin ? "Agendar para Paciente" : "Marcar Nova Consulta"}</h2>
       <AuthForm
         fields={fields}
         handleSubmit={handleSubmit}

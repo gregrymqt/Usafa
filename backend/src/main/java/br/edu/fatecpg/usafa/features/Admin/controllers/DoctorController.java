@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.controllers;
+package br.edu.fatecpg.usafa.features.admin.controllers;
 
 
 import jakarta.validation.Valid;
@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Doctor.IDoctorService;
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Doctor.IDoctorService;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminDoctorController {
+public class DoctorController {
 
     private final IDoctorService doctorService;
 

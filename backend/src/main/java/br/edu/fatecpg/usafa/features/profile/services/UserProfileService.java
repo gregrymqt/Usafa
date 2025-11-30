@@ -11,6 +11,7 @@ import br.edu.fatecpg.usafa.features.profile.dtos.UserProfileResponseDTO;
 import br.edu.fatecpg.usafa.features.profile.dtos.UserProfileUpdateDTO;
 import br.edu.fatecpg.usafa.features.profile.interfaces.IUserProfileService;
 import br.edu.fatecpg.usafa.models.User;
+import br.edu.fatecpg.usafa.models.Picture;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ public class UserProfileService implements IUserProfileService {
 
     private final IUserRepository userRepository;
     private final ICacheService cacheService; // Seu serviço de cache corrigido
-    
+
     // Prefixo para organizar as chaves no Redis (ex: user:profile:lucas@gmail.com)
     private static final String CACHE_PREFIX = "user:profile:";
 
@@ -57,7 +58,8 @@ public class UserProfileService implements IUserProfileService {
 
     /**
      * Atualiza o perfil.
-     * Estratégia: Write-Through / Cache Invalidation (Atualiza Banco -> Remove do Cache)
+     * Estratégia: Write-Through / Cache Invalidation (Atualiza Banco -> Remove do
+     * Cache)
      */
     @Override
     @Transactional
@@ -69,10 +71,27 @@ public class UserProfileService implements IUserProfileService {
         // 2. Atualiza os campos
         user.setName(updateDTO.name());
         user.setCep(updateDTO.cep());
-        
+
         // Só atualiza a foto se vier algo diferente de null/vazio
-        if (updateDTO.picture() != null && !updateDTO.picture().isBlank()) {
-            user.setPicture(updateDTO.picture());
+        String newPictureUrl = updateDTO.picture();
+        if (newPictureUrl != null && !newPictureUrl.isBlank()) {
+            Picture currentPicture = user.getPicture();
+
+            if (currentPicture != null) {
+                // Se já existe uma foto, atualiza a URL dela
+                log.info("Atualizando URL da foto de perfil existente para o usuário: {}", email);
+                currentPicture.setUrl(newPictureUrl);
+                // O JPA/Hibernate gerenciará a atualização por causa da relação
+            } else {
+                // Se não existe, cria uma nova entidade Picture
+                log.info("Criando nova foto de perfil para o usuário: {}", email);
+                Picture newPicture = Picture.builder()
+                        .url(newPictureUrl)
+                        .group("perfil") // Grupo definido para fotos de perfil
+                        .title("Foto de Perfil de " + user.getName())
+                        .build();
+                user.setPicture(newPicture);
+            }
         }
 
         // 3. Salva no banco
@@ -80,7 +99,8 @@ public class UserProfileService implements IUserProfileService {
         log.info("Perfil atualizado no banco para: {}", email);
 
         // 4. INVALIDA O CACHE (Crucial!)
-        // Como o dado mudou, o cache antigo é inválido. Deletamos para forçar uma nova busca no próximo get.
+        // Como o dado mudou, o cache antigo é inválido. Deletamos para forçar uma nova
+        // busca no próximo get.
         String cacheKey = CACHE_PREFIX + email;
         cacheService.delete(cacheKey);
         log.info("Cache invalidado para: {}", email);

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card } from '../../../components/Card/Card';
+import { Card } from '../../../../components/Card/Card';
+import styles from './card.module.scss';
 
 interface ProfileCardProps {
   title: string;
@@ -14,11 +15,11 @@ interface ProfileCardProps {
 export const ProfileCard: React.FC<ProfileCardProps> = ({ title, icon, children }) => (
   <Card title={title} description="">
     <>
-      <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-gray-50">
-        <div className="text-blue-600">{icon}</div>
-        <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+      <div className={styles.cardHeader}>
+        <div className={styles.iconWrapper}>{icon}</div>
+        <h2 className={styles.title}>{title}</h2>
       </div>
-      <div className="p-6 space-y-4">{children}</div>
+      <div className={styles.cardContent}>{children}</div>
     </>
   </Card>
 );

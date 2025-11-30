@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.utils.patient;
+package br.edu.fatecpg.usafa.features.admin.utils.patient;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

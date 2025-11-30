@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.dtos.doctor;
+package br.edu.fatecpg.usafa.features.admin.dtos.doctor;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,4 +21,7 @@ public class DoctorResponseDto {
 
     // Mapeia de Medico.tipoConsulta.getNome() [cite: 20, 46]
     private String specialty;
+
+    // Mapeia de Medico.picture.getUrl()
+    private String picture;
 }

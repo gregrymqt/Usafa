@@ -1,7 +1,7 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment;
+package br.edu.fatecpg.usafa.features.admin.interfaces.Appointment;
 
 import br.edu.fatecpg.usafa.document.RequestAppointment; // Importa o Documento do MongoDB [cite: 13]
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.UpdateAppointmentDTO;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.UpdateAppointmentDTO;
 
 import java.util.List;
 

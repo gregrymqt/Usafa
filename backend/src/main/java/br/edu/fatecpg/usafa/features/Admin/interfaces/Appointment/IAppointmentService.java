@@ -1,9 +1,9 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment;
+package br.edu.fatecpg.usafa.features.admin.interfaces.Appointment;
 
 import java.util.List;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
+
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
 import br.edu.fatecpg.usafa.models.User;
 
 /**
@@ -14,7 +14,7 @@ public interface IAppointmentService {
 
     List<AppointmentResponseDto> getAllAppointments();
 
-    ConsultaSummaryDTO createAppointment(AppointmentRequestDto requestDTO, User user);
+    AppointmentResponseDto createAppointment(AppointmentRequestDto requestDTO, User user);
 
     AppointmentResponseDto updateAppointment(String id, AppointmentRequestDto appointmentDto);
 

@@ -10,5 +10,6 @@ public record ResponseDTO(
     String cep,
     String phone,
     String birthDate,
+    String picture,
     List<String> roles // <-- ADICIONE
 ) {}

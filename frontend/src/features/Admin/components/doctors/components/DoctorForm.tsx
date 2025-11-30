@@ -23,10 +23,12 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
   const [specialty, setSpecialty] = useState(
     initialData?.specialty || 'Clínico Geral'
   );
+  const [picture, setPicture] = useState(initialData?.picture || '');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const doctorData = { name, email, crm, specialty };
+    // Adiciona o campo picture aos dados a serem enviados
+    const doctorData = { name, email, crm, specialty, picture };
 
     try {
       await onSubmit(doctorData);
@@ -71,6 +73,16 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         required: true,
       },
       {
+        elementType: 'input',
+        type: 'text',
+        name: 'picture',
+        label: 'URL da Foto',
+        placeholder: 'https://exemplo.com/foto.jpg',
+        value: picture,
+        onChange: (val) => setPicture(val as string),
+        required: false, // A foto é opcional
+      },
+      {
         elementType: 'select',
         name: 'specialty',
         label: 'Especialidade',
@@ -84,7 +96,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         ],
       },
     ],
-    [name, email, crm, specialty]
+    [name, email, crm, specialty, picture]
   );
 
   return (

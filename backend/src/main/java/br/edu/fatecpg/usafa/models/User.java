@@ -1,17 +1,10 @@
 package br.edu.fatecpg.usafa.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Index;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,6 +22,10 @@ import java.util.Set;
  * A MÁGICA é que ela também implementa a interface UserDetails.
  * Isso permite que o Spring Security entenda seu modelo de dados.
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_publicid", columnList = "publicId", unique = true),
@@ -42,7 +39,8 @@ public class User implements UserDetails {
 
     @Column(unique = true, nullable = false)
     // Atributo para identificação pública, usando UUID para garantir unicidade
-    private UUID publicId;
+    @Builder.Default
+    private UUID publicId = UUID.randomUUID();
 
     private String name;
 
@@ -53,7 +51,9 @@ public class User implements UserDetails {
 
     private String googleId;
 
-    private String picture;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "picture_id", referencedColumnName = "id")
+    private Picture picture;
 
     @Column(nullable = true, unique = true) // Deixe explícito que pode ser nulo
     private String cpf;
@@ -63,13 +63,12 @@ public class User implements UserDetails {
 
     @Column(nullable = true, unique = true)
     private String phone;
-    
+
     @Column(nullable = true)
     private LocalDate birthDate;
 
     @Column(nullable = false)
     private boolean createdByAdmin = false;
-
 
     // Em: br/edu/fatecpg/usafa/features/auth/models/User.java
     @ManyToMany(fetch = FetchType.EAGER)
@@ -77,128 +76,11 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"), // Coluna que referencia o User
             inverseJoinColumns = @JoinColumn(name = "role_id") // Coluna que referencia a Role
     )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
-    private Set<Consulta> consultas ;
-
-    // Não se esqueça de adicionar getters e setters para 'roles'
-
-    public User(String name, String email, String password, String googleId, String picture, String cpf, String cep, String phone, LocalDate birthDate, boolean createdByAdmin) {
-        this.publicId = UUID.randomUUID(); // Inicializa o publicId ao criar um novo usuário
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.googleId = googleId;
-        this.picture = picture;
-        this.cpf = cpf;
-        this.cep = cep;
-        this.phone = phone;
-        this.birthDate = birthDate;
-        this.createdByAdmin = createdByAdmin;
-    }
-
-    public User() {
-        this.publicId = UUID.randomUUID(); // Inicializa o publicId também no construtor padrão
-    }
-
-    // --- GETTERS
-    public Long getId() {
-        return id;
-    }
-
-    public UUID getPublicId() {
-        return publicId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getGoogleId() {
-        return googleId;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public String getCpf() {
-        return cpf;
-    }
-
-    public String getCep() {
-        return cep;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public boolean isCreatedByAdmin() {
-        return createdByAdmin;
-    }
-
-    // Setters
-    public void setPublicId(UUID publicId) {
-        this.publicId = publicId;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setGoogleId(String googleId) {
-        this.googleId = googleId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
-    }
-
-    public void setCep(String cep) {
-        this.cep = cep;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public void setCreatedByAdmin(boolean createdByAdmin) {
-        this.createdByAdmin = createdByAdmin;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
+    private Set<Consulta> consultas;
 
     // --- MÉTODOS OBRIGATÓRIOS DO UserDetails ---
 

@@ -1,9 +1,9 @@
-package br.edu.fatecpg.usafa.features.Admin.utils.doctor;
+package br.edu.fatecpg.usafa.features.admin.utils.doctor;
 
 import org.springframework.stereotype.Component;
 
-import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
-import br.edu.fatecpg.usafa.features.Admin.repositories.ITipoConsultaRepository;
+import br.edu.fatecpg.usafa.features.admin.repositories.IMedicoRepository;
+import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
@@ -28,7 +28,7 @@ public class DoctorHelper {
      * Busca uma Especialidade (TipoConsulta) pelo seu nome ou lança exceção.
      */
     public TipoConsulta findSpecialtyByName(String specialtyName) {
-        return tipoConsultaRepository.findByNome(specialtyName)
+        return tipoConsultaRepository.findByNomeIgnoreCase(specialtyName)
                 .orElseThrow(() -> new BusinessRuleException("Especialidade '" + specialtyName + "' não encontrada")); 
     }
 

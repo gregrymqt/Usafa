@@ -1,8 +1,9 @@
 import React from 'react';
 // 1. Importa o NOVO hook (que apenas calcula)
-import { useUsafaCalculator } from '../hooks/useUsafaCalculator'; 
+import { useUsafaCalculator } from '../../hooks/useUsafaCalculator'; 
+import styles from './BuscaUsafa.module.scss'; // Importa o novo arquivo SCSS
 // 2. Importa o seu componente de mapa
-import { UsafaMap } from '../../../components/Maps/components/UsafaMap'; // (Ajuste o caminho)
+import { UsafaMap } from '../../../../components/Maps/components/UsafaMap'; // (Ajuste o caminho)
 
 interface BuscaUsafaProps {
   cep: string;
@@ -26,7 +27,7 @@ export const BuscaUsafa: React.FC<BuscaUsafaProps> = ({ cep }) => {
 
   if (isLoading) {
     return (
-      <div className="p-4 text-center text-gray-700">
+      <div className={styles.loadingState}>
         Buscando USAFA mais próxima...
       </div>
     );
@@ -34,7 +35,7 @@ export const BuscaUsafa: React.FC<BuscaUsafaProps> = ({ cep }) => {
 
   if (error) {
     return (
-      <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-md" role="alert">
+      <div className={styles.errorState} role="alert">
         <strong>Erro:</strong> {error}
       </div>
     );
@@ -42,13 +43,13 @@ export const BuscaUsafa: React.FC<BuscaUsafaProps> = ({ cep }) => {
 
   if (maisProxima && userLocation) {
     return (
-      <div className="p-4 bg-green-50 border border-green-300 rounded-md shadow-lg">
-        <h3 className="text-xl font-bold text-green-800">USAFA de Referência</h3>
-        <p className="text-lg text-gray-700 mt-2">
+      <div className={styles.successState}>
+        <h3>USAFA de Referência</h3>
+        <p className={styles.usafaName}>
           <strong>{maisProxima.nome}</strong>
         </p>
-        <p className="text-md text-gray-600">{maisProxima.endereco}</p>
-        <p className="text-md text-gray-600">
+        <p>{maisProxima.endereco}</p>
+        <p>
           Aproximadamente <strong>{distancia.toFixed(2)} km</strong> de distância. 
         </p>
         
@@ -61,7 +62,7 @@ export const BuscaUsafa: React.FC<BuscaUsafaProps> = ({ cep }) => {
   }
 
   return (
-    <div className="p-4 text-center text-gray-500">
+    <div className={styles.defaultState}>
       CEP não encontrado ou inválido.
     </div>
   );

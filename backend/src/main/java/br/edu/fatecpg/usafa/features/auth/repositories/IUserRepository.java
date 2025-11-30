@@ -2,6 +2,9 @@
 
 package br.edu.fatecpg.usafa.features.auth.repositories;
 
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -26,8 +29,19 @@ public interface IUserRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findByPublicId(UUID publicId);
 
-
     boolean existsByPublicId(UUID publicId);
+
     void deleteByPublicId(UUID publicId);
+
+    /**
+     * Busca usuários por nome ou email, ignorando maiúsculas/minúsculas, de forma
+     * paginada.
+     */
+    Page<User> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email, Pageable pageable);
+
+    /**
+     * Busca um usuário específico pelo CPF.
+     */
+    Optional<User> findByCpf(String cpf);
 
 }

@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.utils.appointment;
+package br.edu.fatecpg.usafa.features.admin.utils.appointment;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,10 +8,10 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import br.edu.fatecpg.usafa.document.RequestAppointment;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment.IAppointmentService;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentService;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
@@ -55,7 +55,7 @@ public class AppointmentConsumerHelper {
         return sqlRequest;
     }
 
-    public void enviarNotificacaoSucesso(String userPublicId, ConsultaSummaryDTO summary) {
+    public void enviarNotificacaoSucesso(String userPublicId, AppointmentResponseDto summary) {
         notificationService.send(
                 userPublicId,
                 "CONSULTA_CONFIRMADA",
@@ -86,8 +86,8 @@ public class AppointmentConsumerHelper {
             AppointmentRequestDto sqlRequest = montarRequestSql(doc, slot);
 
             // 3. Executa Gravação no SQL (Core Business)
-            ConsultaSummaryDTO summary = appointmentService.createAppointment(sqlRequest, user);
-            log.info("Consulta persistida no SQL. Protocolo: {}", summary.getProtocolo());
+            AppointmentResponseDto summary = appointmentService.createAppointment(sqlRequest, user);
+            log.info("Consulta persistida no SQL. Protocolo: {}", summary.getId());
 
             // 4. Limpeza e Notificação
             mongoRepository.delete(doc);

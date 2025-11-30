@@ -22,11 +22,24 @@ export const getPatients = async (
     size: params.size.toString(),
   });
 
-  if (params.search) {
+  // Garante que o parâmetro de busca seja enviado apenas se não for uma string vazia.
+  if (params.search && params.search.trim() !== '') {
     queryParams.append('search', params.search);
   }
 
   return await api.get<Page<Patient>>(`${PATIENTS_ENDPOINT}?${queryParams.toString()}`);
+};
+
+/**
+ * Busca um paciente específico pelo CPF.
+ * Utiliza o método POST para enviar o CPF de forma segura no corpo da requisição.
+ * Retorna um array de pacientes (geralmente com um ou zero resultados).
+ */
+export const searchPatientByCpf = async (cpf: string): Promise<Patient[]> => {
+  // Usar POST para não expor o CPF na URL.
+  // O backend deve ter um endpoint que aceite um corpo de requisição para busca.
+  // Ex: @PostMapping("/search-by-cpf")
+  return await api.post<Patient[]>(`${PATIENTS_ENDPOINT}/search-by-cpf`, { cpf });
 };
 
 /**

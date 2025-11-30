@@ -4,24 +4,34 @@ import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
 import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';
 import { DoctorIcon, PatientIcon, AppointmentIcon } from './utils/AdminIcons';
 
-// Importe a nova PartialView e um ícone (ex: FaUserCircle)
-import { FaUserCircle } from 'react-icons/fa'; // Exemplo de ícone
+// Ícones
+import { FaUserCircle, FaClipboardList } from 'react-icons/fa'; 
+
+// Views Existentes
 import { AppointmentPartial } from './PartialViews/_Appointment';
 import { DoctorPartial } from './PartialViews/_Doctor';
 import { PatientPartial } from './PartialViews/_Patient';
 import { ProfilePartial } from './components/profile/_Profile';
+import TipoConsultaManager from './components/appointmentType/AppointmentTypeAdmin';
+
+// Nova View (Ajuste o caminho '../Admin/TipoConsulta' se a pasta estiver em outro local)
 
 const AdminLogo = () => (
   <span style={{ fontWeight: 700 }}>Painel Admin</span>
 );
 
 const AdminDashboard: React.FC = () => {
-  // Adicione a aba 'Meu Perfil' à lista
+  // Lista de abas da Sidebar
   const adminViews: ISidebarView[] = [
     {
       name: 'Meu Perfil',
       icon: <FaUserCircle />, 
-      component: <ProfilePartial />, // Nova view conectada
+      component: <ProfilePartial />,
+    },
+    {
+      name: 'Tipos de Consulta', // Nova aba adicionada
+      icon: <FaClipboardList />,
+      component: <TipoConsultaManager />,
     },
     {
       name: 'Médicos',

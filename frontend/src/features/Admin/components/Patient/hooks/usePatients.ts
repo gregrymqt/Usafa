@@ -9,6 +9,7 @@ import * as patientService from '../services/patient.service';
 import { showErrorToast, showSuccessToast } from '../../../utils/adminUtils';
 import { useDebounce } from '../../../../../shared/utils/forPages.utils';
 import { ApiError } from '../../../../../shared';
+import { validateCpf } from '../../../../../shared/utils/validators.utils';
 
 /**
  * Converte a data do formulário (YYYY-MM-DD) para ISO string UTC.
@@ -39,14 +40,23 @@ export const usePatients = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await patientService.getPatients({
-        page: pageNumber,
-        size: 8,
-        search,
-      });
-      setPatients(prev => (isNewSearch ? response.content : [...prev, ...response.content]));
-      setHasMore(!response.last);
-      setPage(pageNumber);
+      // Se o termo de busca parece um CPF, usa o endpoint de busca segura.
+      if (validateCpf(search)) {
+        const result = await patientService.searchPatientByCpf(search);
+        setPatients(result); // Substitui a lista com o resultado (0 ou 1 paciente)
+        setHasMore(false); // Busca por CPF não tem paginação
+        setPage(0);
+      } else {
+        // Caso contrário, usa a busca geral paginada.
+        const response = await patientService.getPatients({
+          page: pageNumber,
+          size: 8,
+          search,
+        });
+        setPatients(prev => (isNewSearch ? response.content : [...prev, ...response.content]));
+        setHasMore(!response.last);
+        setPage(pageNumber);
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

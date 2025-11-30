@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.controllers;
+package br.edu.fatecpg.usafa.features.admin.controllers;
 
 import java.util.List;
 
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fatecpg.usafa.document.RequestAppointment;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.UpdateAppointmentDTO;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment.IAppointmentConsumerService;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.UpdateAppointmentDTO;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentConsumerService;
 import lombok.RequiredArgsConstructor;
 
 @RestController

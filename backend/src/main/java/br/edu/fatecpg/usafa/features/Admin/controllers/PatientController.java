@@ -1,16 +1,19 @@
-package br.edu.fatecpg.usafa.features.Admin.controllers;
+package br.edu.fatecpg.usafa.features.admin.controllers;
 
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Patient.IPatientService;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientResponseDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientSearchCpfRequestDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPatientService;
 
 import java.util.List;
 
@@ -19,23 +22,36 @@ import java.util.List;
 @RequiredArgsConstructor // Para injeção de dependência do service
 @CrossOrigin(origins = "*") // Permite requisições do seu front-end
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminPatientController {
+public class PatientController {
 
     private final IPatientService patientService;
 
     /**
-     * Busca todos os pacientes.
-     * Mapeia: getPatients() [cite: 3]
+     * Busca pacientes de forma paginada e com filtro de busca.
+     * GET /admin/patients?page=0&size=10&search=termo
+     * Mapeia: getPatients()
      */
     @GetMapping
-    public ResponseEntity<List<PatientResponseDto>> getAllPatients() {
-        List<PatientResponseDto> patients = patientService.getAllPatients();
+    public ResponseEntity<Page<PatientResponseDto>> getAllPatients(
+            @RequestParam(required = false, defaultValue = "") String search,
+            Pageable pageable) {
+        Page<PatientResponseDto> patients = patientService.getAllPatients(search, pageable);
         return ResponseEntity.ok(patients);
     }
 
     /**
+     * Busca um paciente específico pelo CPF de forma segura.
+     * POST /admin/patients/search-by-cpf
+     * Mapeia: searchPatientByCpf()
+     */
+    @PostMapping("/search-by-cpf")
+    public ResponseEntity<List<PatientResponseDto>> searchPatientByCpf(@Valid @RequestBody PatientSearchCpfRequestDto dto) {
+        List<PatientResponseDto> result = patientService.searchByCpf(dto.getCpf());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * Cria um novo paciente.
-     * Mapeia: createPatient() [cite: 4]
      */
     @PostMapping
     public ResponseEntity<PatientResponseDto> createPatient(@Valid @RequestBody PatientRequestDto patientDto) {
@@ -57,7 +73,6 @@ public class AdminPatientController {
 
     /**
      * Deleta um paciente.
-     * Mapeia: deletePatient() [cite: 6]
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePatient(@PathVariable String id) {

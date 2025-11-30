@@ -1,11 +1,11 @@
-package br.edu.fatecpg.usafa.features.Admin.utils.patient;
+package br.edu.fatecpg.usafa.features.admin.utils.patient;
 
 import java.time.LocalDate;
 
 import org.springframework.stereotype.Component;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientResponseDto;
 import br.edu.fatecpg.usafa.models.User;
 
 @Component

@@ -7,6 +7,7 @@ export interface Doctor {
   email: string;
   crm: string;
   specialty: string;
+  picture: string; // URL da foto de perfil
 }
 
 /**

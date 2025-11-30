@@ -1,9 +1,16 @@
-package br.edu.fatecpg.usafa.features.Admin.dtos.appointment;
+package br.edu.fatecpg.usafa.features.admin.dtos.appointment;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class AppointmentRequestDto {
 
     // O "quem" (Paciente).
@@ -25,14 +32,8 @@ public class AppointmentRequestDto {
     // Opcional: Motivo da consulta (importante para UX médica)
     @Size(max = 500, message = "A descrição dos sintomas deve ter no máximo 500 caracteres")
     private String sintomas; // 
+
+    @NotBlank(message = "O status da consulta é obrigatório")
+    private String status;
     
-    // Getters e Setters (ou @Data do Lombok)
-    public String getPatientId() { return patientId; }
-    public void setPatientId(String patientId) { this.patientId = patientId; }
-    public Long getHorarioSlotId() { return horarioSlotId; }
-    public void setHorarioSlotId(Long horarioSlotId) { this.horarioSlotId = horarioSlotId; }
-    public String getTipoConsultaId() { return tipoConsultaId; }
-    public void setTipoConsultaId(String tipoConsultaId) { this.tipoConsultaId = tipoConsultaId; }
-    public String getSintomas() { return sintomas; }
-    public void setSintomas(String sintomas) { this.sintomas = sintomas; }
 }

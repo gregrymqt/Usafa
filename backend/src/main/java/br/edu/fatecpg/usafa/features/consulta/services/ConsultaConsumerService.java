@@ -1,7 +1,7 @@
 package br.edu.fatecpg.usafa.features.consulta.services;
 
 import br.edu.fatecpg.usafa.document.RequestAppointment;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaConsumerHelper;
 import br.edu.fatecpg.usafa.models.HorarioSlot;

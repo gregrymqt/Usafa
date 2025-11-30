@@ -23,6 +23,10 @@ public class Medico {
 
     private String nome;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "picture_id", referencedColumnName = "id")
+    private Picture picture;
+
     @Column(unique = true, nullable = false)
     private String email; // 
 

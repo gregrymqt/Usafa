@@ -1,18 +1,31 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import styles from './AppointmentForm.module.scss';
 import AuthForm from '../../../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../../../components/Form/types/form.type';
-import type { AppointmentStatus } from '../../types/appointment.type';
-import type { AppointmentFormProps } from './types/AppointmentForm.types';
+import type { AppointmentFormData, AppointmentStatus, FormSelectOption } from '../../types/appointment.type';
+
+// Ajuste os tipos conforme seu projeto se necessário
+interface AppointmentFormProps {
+  onSubmit: (data: AppointmentFormData) => Promise<void>;
+  onCancel: () => void;
+  initialData?: AppointmentFormData | null;
+  isLoading: boolean;
+  
+  // REMOVI patientOptions (não precisamos mais carregar lista de pacientes)
+  
+  typeOptions: FormSelectOption[]; // Lista de especialidades
+  slotOptions: FormSelectOption[]; // Lista de horários filtrados
+  onTypeChange: (tipoId: string) => void; // Função para buscar os slots (vinda do hook)
+}
 
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
   onCancel,
   initialData = null,
   isLoading,
-  patientOptions,
   typeOptions, 
-  slotOptions, 
+  slotOptions,
+  onTypeChange // Recebendo a função de atualizar horários
 }) => {
   
   const [patientId, setPatientId] = useState(initialData?.patientId || '');
@@ -21,52 +34,59 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const [status, setStatus] = useState<AppointmentStatus>(initialData?.status || 'Agendada');
   const [sintomas, setSintomas] = useState(initialData?.sintomas || '');
 
+  // Efeito para carregar os slots caso seja uma edição
+  useEffect(() => {
+    if (initialData?.tipoConsultaId) {
+      onTypeChange(initialData.tipoConsultaId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (horarioSlotId && patientId && tipoConsultaId) {
-      // Encontra o slot selecionado para obter a data e a hora
+      
+      // Encontra dados extras do slot para enviar data/hora corretas
       const selectedSlot = slotOptions.find(slot => slot.value === horarioSlotId);
-
-      if (!selectedSlot) {
-        console.error('Slot selecionado não encontrado!');
-        // Idealmente, mostrar um erro para o usuário aqui
-        return;
-      }
-
-      try {
-        // Agora o objeto enviado para onSubmit está correto
-        await onSubmit({
-          patientId,
-          tipoConsultaId,
-          horarioSlotId,
-          status,
-          sintomas,
-          date: selectedSlot.date, // Adicionado
-          time: selectedSlot.time, // Adicionado
-        });
-      } catch (error) {
-        console.error('Falha no submit admin:', error);
-      }
+      
+      await onSubmit({
+        patientId, // Aqui vai a string que você digitou/colou
+        tipoConsultaId,
+        horarioSlotId,
+        status,
+        sintomas,
+        date: selectedSlot?.label || '', // Ajuste conforme seu DTO espera
+        time: '', 
+      });
     }
   };
 
   const fields: FormField[] = useMemo(
     () => [
+      // --- ALTERAÇÃO AQUI: De Select para Input ---
       {
-        elementType: 'select',
+        elementType: 'input', // Mudado para input de texto
+        type: 'text',
         name: 'patientId',
-        label: 'Paciente',
+        label: 'ID do Paciente',
+        placeholder: 'Cole o ID ou CPF do paciente aqui...',
         value: patientId,
         onChange: (val) => setPatientId(val as string),
-        options: [{ value: '', label: 'Selecione o paciente' }, ...patientOptions],
         required: true,
       },
+      // ---------------------------------------------
       {
         elementType: 'select',
         name: 'tipoConsultaId',
         label: 'Especialidade',
         value: tipoConsultaId,
-        onChange: (val) => setTipoConsultaId(val as string),
+        // Lógica de Cascata do Componente 1 aplicada aqui
+        onChange: (val) => {
+            const novoTipo = val as string;
+            setTipoConsultaId(novoTipo);
+            setHorarioSlotId(undefined); // Limpa horário anterior
+            onTypeChange(novoTipo); // Busca novos horários
+        },
         options: [{ value: '', label: 'Selecione a especialidade' }, ...typeOptions],
         required: true,
       },
@@ -78,7 +98,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         onChange: (val) => setHorarioSlotId(Number(val)),
         options: slotOptions, 
         required: true,
-        placeholder: 'Selecione um horário disponível'
+        disabled: !tipoConsultaId || slotOptions.length === 0, // Desabilita se não tiver tipo
+        placeholder: !tipoConsultaId 
+            ? 'Selecione a especialidade primeiro' 
+            : (slotOptions.length === 0 ? 'Nenhum horário livre' : 'Selecione um horário')
       },
       {
         elementType: 'select',
@@ -103,8 +126,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         placeholder: 'Detalhes adicionais...',
       },
     ],
-    // CORREÇÃO: Removido 'onCancel' desta lista abaixo
-    [patientId, tipoConsultaId, horarioSlotId, status, sintomas, patientOptions, typeOptions, slotOptions] 
+    [patientId, tipoConsultaId, horarioSlotId, status, sintomas, typeOptions, slotOptions, onTypeChange] 
   );
 
   return (

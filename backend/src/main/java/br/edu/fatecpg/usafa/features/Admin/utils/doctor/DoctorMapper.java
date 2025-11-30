@@ -1,8 +1,9 @@
-package br.edu.fatecpg.usafa.features.Admin.utils.doctor;
+package br.edu.fatecpg.usafa.features.admin.utils.doctor;
 
 
 import org.springframework.stereotype.Component;
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorResponseDto;
+
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
 import br.edu.fatecpg.usafa.models.Medico;
 
 /**
@@ -29,6 +30,13 @@ public class DoctorMapper {
             dto.setSpecialty(medico.getTipoConsulta().getNome());
         } else {
             dto.setSpecialty(null); // Ou um valor padrão
+        }
+
+        // Mapeia a URL da foto de perfil a partir da entidade Picture relacionada
+        if (medico.getPicture() != null) {
+            dto.setPicture(medico.getPicture().getUrl());
+        } else {
+            dto.setPicture(null);
         }
 
         return dto;

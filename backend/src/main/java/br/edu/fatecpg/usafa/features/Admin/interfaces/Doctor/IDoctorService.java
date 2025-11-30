@@ -1,10 +1,10 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces.Doctor;
+package br.edu.fatecpg.usafa.features.admin.interfaces.Doctor;
 
 
 import java.util.List;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorResponseDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
 
 /**
  * Interface (Contrato) para o serviço de Médicos.

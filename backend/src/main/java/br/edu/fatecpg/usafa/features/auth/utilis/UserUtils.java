@@ -151,6 +151,8 @@ public class UserUtils {
                 user.getCep(),
                 user.getPhone(),
                 birthDateFormatted,
+                // CORREÇÃO: Adiciona a URL da imagem, tratando o caso de ser nula.
+                user.getPicture() != null ? user.getPicture().getUrl() : null,
                 roles);
     }
 }

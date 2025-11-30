@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.repositories;
+package br.edu.fatecpg.usafa.features.admin.repositories;
 
 import br.edu.fatecpg.usafa.document.PasswordCreationToken;
 import org.springframework.data.mongodb.repository.MongoRepository;

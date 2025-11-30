@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.dtos.appointment;
+package br.edu.fatecpg.usafa.features.admin.dtos.appointment;
 
 public record UpdateAppointmentDTO(String status,
                               String dia,

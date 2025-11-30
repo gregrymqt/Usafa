@@ -1,106 +1,113 @@
 import React from 'react';
-// 1. Importar o Layout Genérico
+import './styles.scss'; 
 
+// Componentes
+import { Modal } from '../../components/Modal/Modal';
+import { ConsultaSummarys } from './components/modal/ConsultaSummary';
+import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
+import { AgendarConsultaPartial } from './PartialViews/_AgendarConsulta';
+import { ListaConsultasPartial } from './PartialViews/_ListaConsultas';
 
-import './styles.scss'; // [cite: 14]
-import { Modal } from '../../components/Modal/Modal.tsx'; // [cite: 14]
-import { ConsultaSummarys } from './components/modal/ConsultaSummary.tsx'; // 
-import { useConsulta } from './hooks/useConsulta'; // 
+// Hooks e Tipos
+import { useConsulta } from './hooks/useConsulta';
+import { useAuth } from '../Auth/hooks/useAuth';
+import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';
 
+// Ícones
+import { FaList, FaCalendarPlus } from 'react-icons/fa'; // Exemplo de ícones melhores
 
-import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout.tsx';
-import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type.ts';
-import { AgendarConsultaPartial } from './PartialViews/_AgendarConsulta.tsx';
-import { ListaConsultasPartial } from './PartialViews/_ListaConsultas.tsx';
-import { useAuth } from '../Auth/hooks/useAuth.ts';
-
-// 3. Ícones (Substitua pelos seus)
-const ListIcon = () => <span>L</span>;
-const CalendarIcon = () => <span>C</span>;
-
-// Logo para esta sidebar específica
 const ConsultaLogo = () => (
-  <span style={{ fontWeight: 700 }}>Consultas</span>
+  <span style={{ fontWeight: 700 }}>Minhas Consultas</span>
 );
 
 const ConsultaPage: React.FC = () => {
-  // 4. O hook é chamado aqui, no componente "pai"
-
-  const {user } = useAuth();
+  const { user } = useAuth();
+  
+  // 1. Chamamos o Hook com as novas funcionalidades
   const {
     consultas,
     isLoadingConsultas,
-    formOptions,
+    formOptions, // Traz apenas Tipos e Médicos agora
     isSubmitting,
     handleSubmitConsulta,
     showSuccessMessage,
     confirmedConsulta,
     closeConfirmationModal,
-    error, 
-  } = useConsulta(user?.publicId?.toString() || ''); // [cite: 16-17]
+    error,
+    loadMoreConsultas,
+    
+    // --- NOVIDADES AQUI ---
+    opcoesHorarios,      // A lista dinâmica que vem do Back
+    isLoadingHorarios,   // O loading do select
+    buscarHorarios       // A função que será chamada ao trocar o Tipo
+  } = useConsulta(user?.publicId?.toString() || '');
 
-  // 5. Definir as "views" desta sidebar
+  // 2. Definimos as Views
   const consultaViews: ISidebarView[] = [
     {
       name: 'Minhas Consultas',
-      icon: <ListIcon />,
+      icon: <FaList />, 
       component: (
         <ListaConsultasPartial
           consultas={consultas}
           isLoading={isLoadingConsultas}
           hasMore={false}         
-          loadMore={() => {}}      
+          loadMore={loadMoreConsultas}      
         />
       ),
     },
     {
       name: 'Agendar Nova',
-      icon: <CalendarIcon />,
+      icon: <FaCalendarPlus />,
       component: (
         <AgendarConsultaPartial
           formOptions={formOptions}
           isSubmitting={isSubmitting}
           handleSubmit={handleSubmitConsulta}
+          
+          // 3. Passamos as novas props para a Partial View
+          opcoesHorarios={opcoesHorarios}
+          isLoadingHorarios={isLoadingHorarios}
+          onTipoChange={buscarHorarios} // Conecta o evento do select à função do hook
         />
       ),
     },
   ];
 
   return (
-    // 6. Wrapper para o layout e os elementos globais (modais, toasts)
-    <div className="consulta-page-wrapper" style={{ height: '100vh' }}>
+    <div className="consulta-page-wrapper" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <SidebarLayout 
         views={consultaViews}
         brandLogo={<ConsultaLogo />}
       />
 
-      {/* 7. Modais e Toasts ficam AQUI, "fora" do layout,
-           para flutuar por cima de tudo. */}
+      {/* Modais e Feedbacks Visuais */}
       
       <Modal
-        isOpen={!!confirmedConsulta} // [cite: 19]
+        isOpen={!!confirmedConsulta}
         onClose={closeConfirmationModal}
-        title="Consulta Confirmada!"
+        title="Solicitação Enviada!"
       >
         {confirmedConsulta && (
           <ConsultaSummarys
             summary={confirmedConsulta} 
-          /> // [cite: 19-20]
+          />
         )}
       </Modal>
       
       {showSuccessMessage && (
         <div className="success-toast" role="alert">
-          Solicitação recebida! Estamos processando... 
-        </div> // [cite: 20-21]
+          Solicitação enviada com sucesso! Aguarde a confirmação.
+        </div>
       )}
 
       {error && (
         <div className="error-toast" role="alert">
           {error}
-        </div> // [cite: 21]
+        </div>
       )}
     </div>
   );
 };
+
 export default ConsultaPage;

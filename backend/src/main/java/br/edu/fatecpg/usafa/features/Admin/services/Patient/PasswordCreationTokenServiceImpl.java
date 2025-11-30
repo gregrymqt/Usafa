@@ -1,8 +1,8 @@
-package br.edu.fatecpg.usafa.features.Admin.services.Patient;
+package br.edu.fatecpg.usafa.features.admin.services.Patient;
 
 import br.edu.fatecpg.usafa.document.PasswordCreationToken;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Patient.IPasswordCreationTokenService;
-import br.edu.fatecpg.usafa.features.Admin.repositories.IPasswordCreationTokenRepository;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPasswordCreationTokenService;
+import br.edu.fatecpg.usafa.features.admin.repositories.IPasswordCreationTokenRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.models.User;
 import lombok.RequiredArgsConstructor;

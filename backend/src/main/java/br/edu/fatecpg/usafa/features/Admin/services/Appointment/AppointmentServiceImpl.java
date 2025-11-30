@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.services.Appointment;
+package br.edu.fatecpg.usafa.features.admin.services.Appointment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,14 +6,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment.IAppointmentService;
-import br.edu.fatecpg.usafa.features.Admin.repositories.ITipoConsultaRepository;
-import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentHelper;
-import br.edu.fatecpg.usafa.features.Admin.utils.appointment.AppointmentMapper;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentService;
+import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
+import br.edu.fatecpg.usafa.features.admin.utils.appointment.AppointmentHelper;
+import br.edu.fatecpg.usafa.features.admin.utils.appointment.AppointmentMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
 import br.edu.fatecpg.usafa.models.Consulta;
@@ -26,7 +25,6 @@ import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaHelper;
-import br.edu.fatecpg.usafa.features.consulta.utils.IConsultaMapper;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +43,6 @@ public class AppointmentServiceImpl implements IAppointmentService {
     private final AppointmentHelper helper;
     private final AppointmentMapper mapper;
     private final ConsultaHelper consultaHelper;
-    private final IConsultaMapper consultaMapper;
 
     private final ITipoConsultaRepository tipoConsultaRepository;
     private final IHorarioSlotRepository horarioSlotRepository;
@@ -73,10 +70,10 @@ public class AppointmentServiceImpl implements IAppointmentService {
             // 2. Buscar do banco (se o cache falhar)
             log.info("Cache miss. Buscando do banco de dados...");
             List<Consulta> consultas = consultaRepository.findAll();
-            
+
             // 3. Mapear para DTO (usando o Mapper)
             List<AppointmentResponseDto> dtos = consultas.stream()
-                    .map(mapper::toDto) 
+                    .map(mapper::toDto)
                     .collect(Collectors.toList());
 
             // 4. Salvar no cache
@@ -91,7 +88,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
     @Override
     @Transactional
-    public ConsultaSummaryDTO createAppointment(AppointmentRequestDto requestDTO, User user) {
+    public AppointmentResponseDto createAppointment(AppointmentRequestDto requestDTO, User user) {
         try {
             // 1. Busca e Valida o Slot de Horário (A "Verdade Absoluta")
             // O DTO agora envia o ID do slot, não data/hora soltas.
@@ -101,11 +98,13 @@ public class AppointmentServiceImpl implements IAppointmentService {
             // 2. Validação CRÍTICA: O slot ainda está livre?
             // Se outro usuário pegou milissegundos antes, o status já será RESERVADO.
             if (slot.getStatus() != StatusHorario.DISPONIVEL) {
-                throw new BusinessRuleException("Sinto muito, este horário acabou de ser reservado por outro paciente.");
+                throw new BusinessRuleException(
+                        "Sinto muito, este horário acabou de ser reservado por outro paciente.");
             }
 
             // 3. Obtém o Médico através do Slot
-            // Não precisamos buscar o médico pelo ID do DTO. O slot já pertence a um médico.
+            // Não precisamos buscar o médico pelo ID do DTO. O slot já pertence a um
+            // médico.
             Medico medico = slot.getMedico();
 
             // 4. Busca e Valida o Tipo de Consulta
@@ -120,9 +119,10 @@ public class AppointmentServiceImpl implements IAppointmentService {
             // 5. Trava o Slot (Atualiza Status)
             // Isso impede que o slot apareça na busca de outros usuários imediatamente
             slot.setStatus(StatusHorario.RESERVADO);
-            // Opcional: Se a relação for bidirecional, associe a consulta aqui depois de instanciá-la, 
+            // Opcional: Se a relação for bidirecional, associe a consulta aqui depois de
+            // instanciá-la,
             // mas salvar o slot agora garante a reserva.
-            horarioSlotRepository.save(slot); 
+            horarioSlotRepository.save(slot);
 
             // 6. Criação da Entidade Consulta
             Consulta consulta = new Consulta();
@@ -131,25 +131,35 @@ public class AppointmentServiceImpl implements IAppointmentService {
             consulta.setTipoConsulta(tipo);
             consulta.setHorarioSlot(slot); // [cite: 33] Associa o slot travado
             consulta.setSintomas(requestDTO.getSintomas()); // [cite: 34]
-            consulta.setStatus(ConsultaStatus.PENDENTE); // [cite: 34] Define status inicial
+            if (requestDTO.getStatus() != null) {
+                try {
+                    consulta.setStatus(ConsultaStatus.valueOf(requestDTO.getStatus().toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    consulta.setStatus(ConsultaStatus.PENDENTE); // Fallback se enviar texto errado
+                }
+            } else {
+                consulta.setStatus(ConsultaStatus.PENDENTE);
+            }
 
             // 7. Salva a Consulta
             Consulta savedConsulta = consultaRepository.save(consulta);
-            
-            // Atualiza o slot com a referência da consulta (caso precise navegar Slot -> Consulta)
+
+            // Atualiza o slot com a referência da consulta (caso precise navegar Slot ->
+            // Consulta)
             slot.setConsulta(savedConsulta);
             horarioSlotRepository.save(slot);
 
             // 8. Invalida caches pertinentes
             // Limpa o histórico do usuário
             cacheService.delete(consultaHelper.getConsultasCacheKey(user.getPublicId().toString()));
-            // IMPORTANTE: Invalida o cache de horários disponíveis (se você estiver usando cache lá)
-            // cacheService.delete("FORM_OPTIONS_SLOTS"); 
+            // IMPORTANTE: Invalida o cache de horários disponíveis (se você estiver usando
+            // cache lá)
+            // cacheService.delete("FORM_OPTIONS_SLOTS");
 
             log.info("Consulta criada com sucesso. Protocolo: {}", savedConsulta.getPublicId());
 
             // 9. Retorna o DTO de resumo
-            return consultaMapper.toSummaryDTO(savedConsulta);
+            return mapper.toDto(savedConsulta);
 
         } catch (BusinessRuleException e) {
             log.warn("Regra de negócio violada ao criar consulta: {}", e.getMessage());
@@ -160,7 +170,7 @@ public class AppointmentServiceImpl implements IAppointmentService {
         }
     }
 
-   /**
+    /**
      * Atualiza uma consulta existente (CRUD do Admin no SQL).
      * Esta é a versão corrigida que lida com HorarioSlot.
      */
@@ -172,17 +182,17 @@ public class AppointmentServiceImpl implements IAppointmentService {
         // 1. Buscar a consulta existente
         // (Assumindo que seu helper busca por publicId e retorna a entidade Consulta)
         Consulta consulta = helper.findConsultaByPublicId(id);
-        
+
         // 2. Validar e buscar dados básicos
         // Se o paciente mudou (ex: erro de cadastro), atualizamos.
         User patient = helper.findPatientByPublicId(requestDTO.getPatientId());
-        
+
         // Busca o Tipo de Consulta (pode ter mudado a especialidade necessária)
         TipoConsulta tipo = tipoConsultaRepository.findByPublicId(requestDTO.getTipoConsultaId())
                 .orElseThrow(() -> new BusinessRuleException("Tipo de consulta não encontrado."));
 
         // --- 3. LÓGICA DE TROCA DE HORÁRIO (O CORAÇÃO DO UPDATE) ---
-        
+
         HorarioSlot currentSlot = consulta.getHorarioSlot();
         Long newSlotId = requestDTO.getHorarioSlotId();
 
@@ -212,16 +222,19 @@ public class AppointmentServiceImpl implements IAppointmentService {
 
             // 3.5. RESERVA o slot NOVO
             newSlot.setStatus(StatusHorario.RESERVADO);
-            // newSlot.setConsulta(consulta); // Será feito ao salvar a consulta, pelo Cascade ou manualmente abaixo
+            // newSlot.setConsulta(consulta); // Será feito ao salvar a consulta, pelo
+            // Cascade ou manualmente abaixo
             horarioSlotRepository.save(newSlot);
 
             // 3.6. Atualiza a consulta com os dados do NOVO slot
             consulta.setHorarioSlot(newSlot);
             consulta.setMedico(newSlot.getMedico()); // O médico muda automaticamente com o slot!
         } else {
-            // Se o slot é o mesmo, apenas validamos se a especialidade bate com o médico atual
+            // Se o slot é o mesmo, apenas validamos se a especialidade bate com o médico
+            // atual
             if (!consulta.getMedico().getTipoConsulta().getId().equals(tipo.getId())) {
-                 throw new BusinessRuleException("Conflito: O médico atual não atende o novo tipo de consulta informado.");
+                throw new BusinessRuleException(
+                        "Conflito: O médico atual não atende o novo tipo de consulta informado.");
             }
         }
         // --- FIM DA LÓGICA DE SLOT ---
@@ -234,18 +247,19 @@ public class AppointmentServiceImpl implements IAppointmentService {
         try {
             // 5. Salva a consulta atualizada
             Consulta updatedConsulta = consultaRepository.save(consulta);
-            
-            // Garante a consistência da bidirecionalidade (opcional, depende do JPA mapping)
+
+            // Garante a consistência da bidirecionalidade (opcional, depende do JPA
+            // mapping)
             updatedConsulta.getHorarioSlot().setConsulta(updatedConsulta);
             horarioSlotRepository.save(updatedConsulta.getHorarioSlot());
 
             // 6. Invalida cache (Do usuário antigo e do novo, se mudou)
-            cacheService.delete(consultaHelper.getConsultasCacheKey(consulta.getUser().getPublicId().toString())); 
+            cacheService.delete(consultaHelper.getConsultasCacheKey(consulta.getUser().getPublicId().toString()));
             if (!patient.equals(consulta.getUser())) {
-                 cacheService.delete(consultaHelper.getConsultasCacheKey(patient.getPublicId().toString()));
+                cacheService.delete(consultaHelper.getConsultasCacheKey(patient.getPublicId().toString()));
             }
             // Limpa cache de opções (pois um slot foi liberado e outro ocupado)
-             cacheService.delete("FORM_OPTIONS_STATIC"); // Se houver cache de slots
+            cacheService.delete("FORM_OPTIONS_STATIC"); // Se houver cache de slots
 
             log.info("Consulta atualizada com sucesso. ID: {}", id);
 
@@ -262,25 +276,25 @@ public class AppointmentServiceImpl implements IAppointmentService {
     @Transactional
     public void deleteAppointment(String id) {
         log.info("Deletando consulta ID: {}", id);
-        
+
         // 1. Buscar a consulta
         Consulta consulta = helper.findConsultaByPublicId(id);
         HorarioSlot slot = consulta.getHorarioSlot();
-        
+
         try {
             // 2. Deletar a consulta
-            // (O @OneToOne(mappedBy = "consulta") no Slot pode ser configurado 
+            // (O @OneToOne(mappedBy = "consulta") no Slot pode ser configurado
             // para quebrar o link, mas é mais seguro fazer manualmente)
-            
+
             // Primeiro, quebra o link no slot e o libera
             if (slot != null) {
                 slot.setStatus(StatusHorario.DISPONIVEL);
                 slot.setConsulta(null);
                 horarioSlotRepository.save(slot);
             }
-            
+
             // Agora deleta a consulta
-            consultaRepository.deleteByPublicId(id); 
+            consultaRepository.deleteByPublicId(id);
 
             // 3. Invalidar cache
             cacheService.delete(CACHE_KEY_ALL_APPOINTMENTS);

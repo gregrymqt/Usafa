@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.interfaces.Patient;
+package br.edu.fatecpg.usafa.features.admin.interfaces.Patient;
 
 import java.util.Optional;
 

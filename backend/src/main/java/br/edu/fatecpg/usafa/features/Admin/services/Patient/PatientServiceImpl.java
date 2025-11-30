@@ -1,19 +1,22 @@
-package br.edu.fatecpg.usafa.features.Admin.services.Patient;
+package br.edu.fatecpg.usafa.features.admin.services.Patient;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.patient.PatientResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Patient.IPatientService;
-import br.edu.fatecpg.usafa.features.Admin.utils.patient.PatientHelper;
-import br.edu.fatecpg.usafa.features.Admin.utils.patient.PatientMapper;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientResponseDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPatientService;
+import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientHelper;
+import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientMapper;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.models.User;
@@ -21,100 +24,110 @@ import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PatientServiceImpl implements IPatientService {
 
-    // Repositórios e Serviços principais
     private final IUserRepository userRepository;
     private final ICacheService cacheService;
-    // (Você pode precisar do PasswordEncoder aqui se 'createPatient' definir uma senha)
-    // private final PasswordEncoder passwordEncoder; 
-
-    // Classes auxiliares
     private final PatientMapper mapper;
     private final PatientHelper helper;
 
     private static final String CACHE_KEY_ALL_PATIENTS = "patients:all";
 
+    /**
+     * Busca paginada com filtro opcional por texto.
+     * Não utiliza cache devido à dinamicidade dos parâmetros (página, tamanho, busca).
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PatientResponseDto> getAllPatients(String search, Pageable pageable) {
+        log.info("Buscando pacientes paginados. Page: {}, Size: {}, Search: '{}'", 
+                pageable.getPageNumber(), pageable.getPageSize(), search);
+
+        Page<User> userPage;
+
+        // Verifica se há termo de busca (ignora espaços em branco)
+        if (search != null && !search.trim().isEmpty()) {
+            // Busca por Nome OU Email contendo o termo
+            userPage = userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                    search, search, pageable);
+        } else {
+            // Busca todos sem filtro
+            userPage = userRepository.findAll(pageable);
+        }
+
+        // Mapeia a Page<User> para Page<PatientResponseDto>
+        return userPage.map(mapper::toDto);
+    }
+
+    /**
+     * Busca específica por CPF.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<PatientResponseDto> searchByCpf(String cpf) {
+        log.info("Buscando paciente pelo CPF: {}", cpf);
+
+        return userRepository.findByCpf(cpf)
+                .map(user -> List.of(mapper.toDto(user))) // Se achou, cria lista com 1
+                .orElse(Collections.emptyList());         // Se não, retorna lista vazia
+    }
+
+    /**
+     * Busca todos (Lista completa).
+     * Mantido com Cache para uso em dropdowns ou relatórios simples.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<PatientResponseDto> getAllPatients() {
-        log.info("Buscando todos os pacientes");
+        log.info("Buscando todos os pacientes (sem paginação)");
 
-        // 1. Tentar buscar do cache
         try {
             @SuppressWarnings("unchecked")
             List<PatientResponseDto> cachedPatients = cacheService.get(CACHE_KEY_ALL_PATIENTS, List.class);
             if (cachedPatients != null) {
-                log.info("Retornando {} pacientes do cache", cachedPatients.size());
                 return cachedPatients;
             }
         } catch (Exception e) {
             log.warn("Erro ao buscar do cache: {}", e.getMessage());
         }
 
-        try {
-            // 2. Cache miss: Buscar do banco
-            log.info("Cache miss. Buscando do banco de dados...");
-            // ATENÇÃO: Isso busca TODOS os usuários. Se "Paciente" for um
-            // subconjunto (ex: por Role), você deve alterar esta query.
-            List<User> patients = userRepository.findAll();
+        List<User> patients = userRepository.findAll();
+        List<PatientResponseDto> dtos = patients.stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
 
-            // 3. Mapear para DTO
-            List<PatientResponseDto> dtos = patients.stream()
-                    .map(mapper::toDto)
-                    .collect(Collectors.toList());
-
-            // 4. Salvar no cache por 10 minutos
-            cacheService.saveWithTtl(CACHE_KEY_ALL_PATIENTS, dtos, 10, TimeUnit.MINUTES); 
-            return dtos;
-
-        } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao buscar pacientes: {}", e.getMessage());
-            throw new DatabaseOperationException("Erro ao buscar pacientes", e); 
-        }
+        cacheService.saveWithTtl(CACHE_KEY_ALL_PATIENTS, dtos, 10, TimeUnit.MINUTES);
+        return dtos;
     }
+
+    // --- MÉTODOS DE ESCRITA (MANTIDOS IGUAIS) ---
 
     @Override
     @Transactional
     public PatientResponseDto createPatient(PatientRequestDto patientDto) {
-        log.info("Criando novo paciente com email: {}", patientDto.getEmail());
-
-        // 1. Validar e converter dados (delegado ao Helper)
+        log.info("Criando novo paciente: {}", patientDto.getEmail());
         LocalDate birthDate = helper.parseBirthDate(patientDto.getBirthDate());
 
-        // 2. Mapear DTO para Entidade
         User user = new User();
+        // Nota: Idealmente use um Mapper ou Builder aqui para limpar o código
         user.setName(patientDto.getName());
         user.setEmail(patientDto.getEmail());
         user.setCpf(patientDto.getCpf());
-        user.setCep(patientDto.getCep()); 
+        user.setCep(patientDto.getCep());
         user.setPhone(patientDto.getPhone());
         user.setBirthDate(birthDate);
         user.setCreatedByAdmin(true);
-        
-        // Nota: A senha não está no DTO. Se for obrigatória,
-        // o DTO precisa ser ajustado ou uma senha padrão gerada.
-        // Ex: user.setPassword(passwordEncoder.encode("senhaPadrao"));
-        
+
         try {
-            // 3. Salvar
             User savedUser = userRepository.save(user);
-            log.info("Paciente criado com ID: {}", savedUser.getPublicId());
-
-            // 4. Invalidar cache
-            cacheService.delete(CACHE_KEY_ALL_PATIENTS);
-
-            // 5. Retornar DTO (delegado ao Mapper)
+            cacheService.delete(CACHE_KEY_ALL_PATIENTS); // Invalida cache da lista completa
             return mapper.toDto(savedUser);
-
         } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao salvar paciente: {}", e.getMessage());
-            if (e.getMessage().contains("ConstraintViolationException")) {
-                 throw new BusinessRuleException("Email ou CPF já cadastrado.", e); 
+            if (e.getMessage() != null && e.getMessage().contains("ConstraintViolationException")) {
+                throw new BusinessRuleException("Email ou CPF já cadastrado.", e);
             }
             throw new DatabaseOperationException("Erro ao salvar paciente", e);
         }
@@ -124,57 +137,32 @@ public class PatientServiceImpl implements IPatientService {
     @Transactional
     public PatientResponseDto updatePatient(String id, PatientRequestDto patientDto) {
         log.info("Atualizando paciente ID: {}", id);
-
-        // 1. Buscar entidade (delegado ao Helper)
         User user = helper.findPatientByPublicId(id);
-
-        // 2. Validar e converter dados (delegado ao Helper)
         LocalDate birthDate = helper.parseBirthDate(patientDto.getBirthDate());
 
-        // 3. Atualizar entidade (delegado ao Mapper)
         mapper.updateEntity(patientDto, user, birthDate);
 
         try {
-            // 4. Salvar
             User updatedUser = userRepository.save(user);
-
-            // 5. Invalidar cache
             cacheService.delete(CACHE_KEY_ALL_PATIENTS);
-
-            // 6. Retornar DTO (delegado ao Mapper)
             return mapper.toDto(updatedUser);
-
         } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao atualizar paciente: {}", e.getMessage());
-             if (e.getMessage().contains("ConstraintViolationException")) {
-                 throw new BusinessRuleException("Email ou CPF já cadastrado.", e); 
-            }
-            throw new DatabaseOperationException("Erro ao atualizar paciente", e); 
+            throw new DatabaseOperationException("Erro ao atualizar paciente", e);
         }
     }
 
     @Override
     @Transactional
-    public void deletePatient(String id) { 
+    public void deletePatient(String id) {
         log.info("Deletando paciente ID: {}", id);
-
-        // 1. Buscar entidade (delegado ao Helper)
         User user = helper.findPatientByPublicId(id);
-
-        // 2. REGRA DE NEGÓCIO (delegado ao Helper)
         helper.validatePatientHasNoAppointments(user);
-        
+
         try {
-            // 3. Deletar
             userRepository.deleteByPublicId(user.getPublicId());
-
-            // 4. Invalidar cache
             cacheService.delete(CACHE_KEY_ALL_PATIENTS);
-            log.info("Paciente ID {} deletado e cache invalidado", id);
-
         } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao deletar paciente: {}", e.getMessage());
-            throw new DatabaseOperationException("Erro ao deletar paciente", e); 
+            throw new DatabaseOperationException("Erro ao deletar paciente", e);
         }
     }
 }

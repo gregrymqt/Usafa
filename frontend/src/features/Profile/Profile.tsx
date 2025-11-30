@@ -1,7 +1,7 @@
 // ... imports anteriores
 import { useUserProfileData } from './hooks/userHook'; 
 import { _MeusDadosPartial } from './PartialViews/_MeusDados';
-import { _VisualizarDadosPartial } from './PartialViews/_VisualizarDados';
+import { _VisualizarDadosPartial } from './PartialViews/visualizarDados/_VisualizarDados';
 import { _UsafaPartial } from './PartialViews/_Usafa';
 import { UserIcon, MapPinIcon } from './components/icons'; 
 import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';

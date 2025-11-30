@@ -3,10 +3,11 @@ import {
   NotificationEnvelope,
   type Consulta,
   type ConsultaFormOptions,
+  type FormSelectOption,
   type ConsultaRequest,
   type ConsultaSummary,
 } from '../types/consulta.types';
-import { getConsultas, getFormOptions, requestConsulta } from '../services/consulta.service';
+import { getConsultas, getFormOptions, requestConsulta, getHorariosPorTipo } from '../services/consulta.service';
 import {
   connectWebSocket,
   subscribe,
@@ -22,7 +23,9 @@ export const useConsulta = (userId: string) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false); 
   const [error, setError] = useState<string | null>(null);
-  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
+  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null); // Lista dinâmica de horários
+  const [opcoesHorarios, setOpcoesHorarios] = useState<FormSelectOption[]>([]); // Loadingzinho do select
+  const [isLoadingHorarios, setIsLoadingHorarios] = useState(false); // Loadingzinho do select
   
   // --- Paginação e Busca ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,6 +69,24 @@ export const useConsulta = (userId: string) => {
       setIsLoadingConsultas(false);
     }
   }, [userId]);
+
+  const buscarHorarios = useCallback(async (tipoId: string) => {
+    // Se não tiver ID (ex: usuário limpou o select), limpa a lista
+    if (!tipoId) {
+      setOpcoesHorarios([]);
+      return;
+    }
+
+    setIsLoadingHorarios(true);
+    try {
+      const horarios = await getHorariosPorTipo(tipoId);
+      setOpcoesHorarios(horarios);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingHorarios(false);
+    }
+  }, []);
 
   // --- 2. Carga Inicial ---
   useEffect(() => {
@@ -178,5 +199,8 @@ export const useConsulta = (userId: string) => {
     handleSubmitConsulta,
     closeConfirmationModal,
     refetchConsultas: () => fetchConsultas(debouncedSearchTerm, 0, true),
+    opcoesHorarios,      // A lista que vai para o select
+    isLoadingHorarios,   // O status de loading
+    buscarHorarios       // A função que o onChange vai chamar
   };
 };

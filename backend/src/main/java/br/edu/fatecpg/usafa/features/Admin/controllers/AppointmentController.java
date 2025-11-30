@@ -1,5 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.controllers;
-
+package br.edu.fatecpg.usafa.features.admin.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -8,15 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.appointment.AppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Appointment.IAppointmentService;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaSummaryDTO;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentService;
+
 
 import java.util.List;
 
 /**
- * (Admin) Controller para o CRUD síncrono de Agendamentos (Appointments) no SQL.
+ * (Admin) Controller para o CRUD síncrono de Agendamentos (Appointments) no
+ * SQL.
  * Gerencia agendamentos que o admin cria ou modifica diretamente.
  */
 @RestController
@@ -27,7 +27,7 @@ import java.util.List;
 public class AppointmentController {
 
     private final IAppointmentService adminAppointmentService;
-    
+
     /**
      * GET /admin/appointments
      * Busca todos os agendamentos. [cite: 58-59]
@@ -43,10 +43,11 @@ public class AppointmentController {
      * Cria um novo agendamento. [cite: 60]
      */
     @PostMapping
-    public ResponseEntity<ConsultaSummaryDTO> createAppointment(
-            @Valid @RequestBody AppointmentRequestDto appointmentData
-    ) {
-        ConsultaSummaryDTO newAppointment = adminAppointmentService.createAppointment(appointmentData, null);
+    public ResponseEntity<AppointmentResponseDto> createAppointment( // Mude de ConsultaSummaryDTO para
+                                                                     // AppointmentResponseDto
+            @Valid @RequestBody AppointmentRequestDto appointmentData) {
+        // Ajuste o tipo de retorno na Service também
+        AppointmentResponseDto newAppointment = adminAppointmentService.createAppointment(appointmentData, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(newAppointment);
     }
 
@@ -57,8 +58,7 @@ public class AppointmentController {
     @PutMapping("/{id}")
     public ResponseEntity<AppointmentResponseDto> updateAppointment(
             @PathVariable String id, // Usando String/UUID para o publicId
-            @Valid @RequestBody AppointmentRequestDto appointmentData
-    ) {
+            @Valid @RequestBody AppointmentRequestDto appointmentData) {
         AppointmentResponseDto updatedAppointment = adminAppointmentService.updateAppointment(id, appointmentData);
         return ResponseEntity.ok(updatedAppointment);
     }

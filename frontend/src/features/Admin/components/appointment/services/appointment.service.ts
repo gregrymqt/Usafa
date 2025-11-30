@@ -3,6 +3,7 @@ import type { Page } from '../../../../../shared/utils/forPages.utils';
 import type {
   Appointment,
   AppointmentFormData,
+  FormSelectOption // Certifique-se de exportar isso no seu arquivo de tipos
 } from '../types/appointment.type';
 
 interface GetAppointmentsParams {
@@ -11,9 +12,6 @@ interface GetAppointmentsParams {
   search: string;
 }
 
-/**
- * O endpoint base para o recurso de agendamentos no backend.
- */
 const APPOINTMENTS_ENDPOINT = '/admin/appointments';
 
 /**
@@ -55,4 +53,21 @@ export const updateAppointment = async (
  */
 export const deleteAppointment = async (id: number | string): Promise<void> => {
   await api.delete(`${APPOINTMENTS_ENDPOINT}/${id}`);
+};
+
+// --- MÉTODOS AUXILIARES PARA O FORMULÁRIO ---
+
+/**
+ * Busca a lista de Tipos de Consulta (Especialidades)
+ */
+export const getTypeOptions = async (): Promise<FormSelectOption[]> => {
+  // Ajuste a rota '/tipos-consulta/options' conforme seu controller Java
+  return await api.get<FormSelectOption[]>('/tipos-consulta/options');
+};
+
+/**
+ * Busca Horários (Slots) filtrados pelo Tipo
+ */
+export const getSlotsByType = async (tipoId: string): Promise<FormSelectOption[]> => {
+  return await api.get<FormSelectOption[]>(`/consultas/horarios-disponiveis/${tipoId}`);
 };

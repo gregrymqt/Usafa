@@ -1,4 +1,4 @@
-import { BuscaUsafa } from "../../features/Profile/components/BuscaUsafa";
+import { BuscaUsafa } from "../../features/Profile/components/buscaUsafa/BuscaUsafa";
 
 export default function App(cepValue: string ) {
   return (

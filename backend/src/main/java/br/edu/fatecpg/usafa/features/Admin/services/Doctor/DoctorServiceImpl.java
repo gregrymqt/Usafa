@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.Admin.services.Doctor;
+package br.edu.fatecpg.usafa.features.admin.services.Doctor;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -8,15 +8,16 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorRequestDto;
-import br.edu.fatecpg.usafa.features.Admin.dtos.doctor.DoctorResponseDto;
-import br.edu.fatecpg.usafa.features.Admin.interfaces.Doctor.IDoctorService;
-import br.edu.fatecpg.usafa.features.Admin.repositories.IMedicoRepository;
-import br.edu.fatecpg.usafa.features.Admin.utils.doctor.DoctorHelper;
-import br.edu.fatecpg.usafa.features.Admin.utils.doctor.DoctorMapper;
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.doctor.DoctorResponseDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Doctor.IDoctorService;
+import br.edu.fatecpg.usafa.features.admin.repositories.IMedicoRepository;
+import br.edu.fatecpg.usafa.features.admin.utils.doctor.DoctorHelper;
+import br.edu.fatecpg.usafa.features.admin.utils.doctor.DoctorMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
+import br.edu.fatecpg.usafa.models.Picture;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,17 @@ public class DoctorServiceImpl implements IDoctorService {
         medico.setEmail(doctorDto.getEmail()); // Campo adicionado
         medico.setCrm(doctorDto.getCrm());     // Campo adicionado
         medico.setTipoConsulta(especialidade); 
+
+        // Lógica para criar a Picture
+        String pictureUrl = doctorDto.getPicture();
+        if (pictureUrl != null && !pictureUrl.isBlank()) {
+            Picture newPicture = Picture.builder()
+                    .url(pictureUrl)
+                    .group("perfil_medico") // Grupo específico para médicos
+                    .title("Foto de Perfil de Dr(a). " + doctorDto.getName())
+                    .build();
+            medico.setPicture(newPicture);
+        }
         
         try {
             // 3. Salvar
@@ -124,6 +136,26 @@ public class DoctorServiceImpl implements IDoctorService {
         medico.setEmail(doctorDto.getEmail()); // Campo adicionado
         medico.setCrm(doctorDto.getCrm());     // Campo adicionado
         medico.setTipoConsulta(especialidade); 
+
+        // Lógica para atualizar ou criar a Picture
+        String newPictureUrl = doctorDto.getPicture();
+        if (newPictureUrl != null && !newPictureUrl.isBlank()) {
+            Picture currentPicture = medico.getPicture();
+            if (currentPicture != null) {
+                // Se já existe, apenas atualiza a URL
+                log.info("Atualizando URL da foto de perfil para o médico: {}", medico.getPublicId());
+                currentPicture.setUrl(newPictureUrl);
+            } else {
+                // Se não existe, cria uma nova
+                log.info("Criando nova foto de perfil para o médico: {}", medico.getPublicId());
+                Picture newPicture = Picture.builder()
+                        .url(newPictureUrl)
+                        .group("perfil_medico")
+                        .title("Foto de Perfil de Dr(a). " + medico.getNome())
+                        .build();
+                medico.setPicture(newPicture);
+            }
+        }
 
         try {
             // 3. Salvar
