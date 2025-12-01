@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientResponseDto;
+import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPasswordCreationTokenService;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPatientService;
 import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientHelper;
 import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientMapper;
@@ -34,6 +35,7 @@ public class PatientServiceImpl implements IPatientService {
     private final ICacheService cacheService;
     private final PatientMapper mapper;
     private final PatientHelper helper;
+    private final IPasswordCreationTokenService passwordCreationTokenService;
 
     private static final String CACHE_KEY_ALL_PATIENTS = "patients:all";
 
@@ -124,6 +126,10 @@ public class PatientServiceImpl implements IPatientService {
         try {
             User savedUser = userRepository.save(user);
             cacheService.delete(CACHE_KEY_ALL_PATIENTS); // Invalida cache da lista completa
+
+            // Gera o token de criação de senha para o novo usuário.
+            passwordCreationTokenService.createAndSaveToken(savedUser);
+
             return mapper.toDto(savedUser);
         } catch (DataAccessException e) {
             if (e.getMessage() != null && e.getMessage().contains("ConstraintViolationException")) {

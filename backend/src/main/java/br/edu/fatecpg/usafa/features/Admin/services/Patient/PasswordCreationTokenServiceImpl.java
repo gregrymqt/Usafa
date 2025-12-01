@@ -34,11 +34,17 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
      * Estratégia: Limpa vestígios antigos -> Salva no Banco -> Salva no Cache com TTL.
      */
         public String createAndSaveToken(User user) {
-        String userPublicId = user.getPublicId().toString();
-        
-        // 1. Limpeza preventiva: Remove qualquer token anterior (Cache + Banco)
-        deleteToken(userPublicId);
+        final String userPublicId = user.getPublicId().toString();
 
+        // 1. Verifica se já existe um token válido (não expirado)
+        Optional<PasswordCreationToken> existingTokenOpt = findTokenByUserPublicId(userPublicId);
+        if (existingTokenOpt.isPresent() && existingTokenOpt.get().getExpiryDate().isAfter(LocalDateTime.now())) {
+            log.info("Token válido já existe para o usuário: {}. Reutilizando.", userPublicId);
+            // Reconstruímos a URL da mesma forma que faríamos para um novo token.
+            return createPasswordBaseUrl + userPublicId;
+        }
+
+        // 2. Se não existe ou expirou, cria um novo. A limpeza de tokens antigos é feita se necessário.
         log.info("Gerando novo token de criação de senha para: {}", userPublicId);
 
         // 2. Prepara o novo Token

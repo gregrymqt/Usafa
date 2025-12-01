@@ -50,13 +50,7 @@ $sidebar-text: $white;
   margin-left: 1rem;
 }
 
-.contentArea {
-  // Mobile: Removemos o padding lateral, deixamos só o topo por causa do header fixo
-  padding: 0; 
-  padding-top: $header-height-mobile; 
-  flex: 1;
-  width: 100%; // Garante largura total
-}
+
 
 /* --- Sidebar --- */
 .sidebar {
@@ -202,8 +196,8 @@ $sidebar-text: $white;
   }
 
   .contentArea {
-    padding: 0; // <--- AQUI É O SEGREDO: Zero padding
-    padding-top: 0; // Remove o espaço do header mobile
+    padding: 2rem; // Adicione um padding geral para desktop. Ajuste o valor conforme necessário.
+    padding-top: 2rem; // Garante consistência se houver necessidade de ajuste específico.
     flex: 1;
     overflow-y: auto; // O scroll fica aqui
     overflow-x: hidden; // Evita scroll horizontal indesejado
