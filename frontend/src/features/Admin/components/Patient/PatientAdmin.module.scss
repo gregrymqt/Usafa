@@ -1,112 +1,129 @@
-@use '../../../../styles/variables' as *; // Ajuste o caminho conforme necessário
+@use '../../../../styles/variables' as *;
 @use 'sass:color';
-/* --- Estilos do Formulário de Busca --- */
+
+/* --- Estilos da Busca --- */
 .searchForm {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   align-items: center;
 }
 
 .searchInput {
   flex-grow: 1;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid $border-color;
+  padding: 0.75rem 1rem; // Touch friendly
+  border: 1px solid $border-light;
   border-radius: $radius-md;
   font-size: 1rem;
-  background-color: $bg-input;
+  background-color: $white;
   color: $text-strong;
   transition: all 0.2s;
+  box-shadow: $shadow-sm;
 
   &:focus {
     outline: none;
-    border-color: $border-focus;
-    background-color: $white;
-    box-shadow: 0 0 0 3px rgba($primary-color, 0.15); // Glow padrão
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
   }
 
   &::placeholder {
-    color: $text-light;
+    color: $text-secondary;
   }
 }
 
 .searchButton, .clearSearchButton {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   border: none;
   border-radius: $radius-md;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
   color: $white;
+  font-size: 0.95rem;
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
   }
 }
 
 .searchButton {
   background-color: $primary-color;
-
   &:hover:not(:disabled) {
-    background-color: $primary-hover;
+    background-color: darken($primary-color, 10%);
+    transform: translateY(-1px);
   }
 }
 
 .clearSearchButton {
-  background-color: $text-secondary; // Cinza escuro para limpar
-
+  background-color: $text-secondary;
   &:hover:not(:disabled) {
-    background-color: color.adjust($text-secondary, $lightness: -10%);
+    background-color: darken($text-secondary, 10%);
   }
 }
 
-/* Conteúdo (Loading, Erro, Lista) */
+.searchError {
+  width: 100%;
+  color: $error-text;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+
+/* --- Área de Conteúdo --- */
 .adminContent {
-  padding-top: 1.5rem;
-  
-  .loading,
-  .error,
-  .empty {
-    text-align: center;
-    padding: 2rem;
-    color: $text-secondary;
-    font-size: 1.125rem;
-    background-color: $bg-light;
-    border-radius: $radius-md;
-    margin-bottom: 1rem;
-  }
-
-  .error {
-    color: $error-text;
-    background-color: $error-bg;
-    border: 1px solid $error-border;
-  }
+  width: 100%;
 }
 
-/* Lista de Cards */
+.loading, .error, .empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: $text-secondary;
+  background-color: rgba(255,255,255,0.6);
+  border: 2px dashed $border-light;
+  border-radius: $radius-md;
+  margin-bottom: 1rem;
+}
+
+.error {
+  color: $error-text;
+  border-color: rgba($error-text, 0.3);
+  background-color: rgba($error-bg, 0.2);
+}
+
+/* --- Grid de Pacientes --- */
 .patientList {
   display: grid;
   gap: 1rem;
   
-  @media (min-width: $breakpoint-xl) {
-    grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr; // Mobile
+
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr); // Tablet
     gap: 1.5rem;
+  }
+
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr); // Desktop
   }
 }
 
-/* Card (Mobile-first) */
+/* --- Card de Paciente --- */
 .patientCard {
   background-color: $white;
   border: 1px solid $border-light;
-  border-radius: $radius-md; // Padronizado com AdminDashboard
-  box-shadow: $shadow-card;
-  overflow: hidden;
-  transition: box-shadow 0.2s;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  overflow: visible;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
-    box-shadow: $shadow-lg;
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
   }
 }
 
@@ -114,110 +131,39 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1rem 1.5rem;
-  background-color: $bg-input; // Fundo leve para o cabeçalho do card
-  border-bottom: 1px solid $border-light;
+  padding: 1rem;
+  background-color: #fafafa;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-radius: $radius-md $radius-md 0 0;
 }
 
 .cardInfo {
   h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: $text-strong;
     margin: 0;
   }
   p {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     color: $text-secondary;
     margin: 0.25rem 0 0 0;
   }
 }
 
 .cardBody {
-  padding: 1rem 1.5rem;
+  padding: 1rem;
   font-size: 0.9rem;
   color: $text-color;
+  flex-grow: 1;
 
   p {
     margin: 0.5rem 0;
     display: flex;
-    justify-content: space-between; // Alinha label e valor
+    justify-content: space-between;
     
     strong {
       color: $text-secondary;
-      font-weight: 500;
-    }
-  }
-}
-
-.searchError {
-  color: $error-text;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-}
-
-/* Menu de Ações (Kebab) */
-.actionMenu {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.actionButton {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 50%;
-  cursor: pointer;
-  color: $text-secondary;
-  transition: background-color 0.2s, color 0.2s;
-
-  &:hover {
-    background-color: $bg-hover;
-    color: $primary-color;
-  }
-}
-
-.actionIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-/* Dropdown Menu */
-.actionDropdown {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  margin-top: 0.25rem;
-  min-width: 160px;
-  background-color: $white;
-  border-radius: $radius-md;
-  border: 1px solid $border-light;
-  box-shadow: $shadow-dropdown;
-  z-index: 10;
-  overflow: hidden;
-}
-
-.dropdownItem {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  color: $text-color;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: $bg-hover;
-  }
-
-  &.deleteItem {
-    color: $error-text;
-    
-    &:hover {
-      background-color: $error-bg; // Usa o fundo vermelho claro global
     }
   }
 }

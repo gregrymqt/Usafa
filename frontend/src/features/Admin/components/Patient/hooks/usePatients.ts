@@ -1,21 +1,21 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from "react";
 import type {
   Patient,
   PatientFormData,
   NewPatientData,
   UpdatePatientData,
-} from '../types/patient.types';
-import * as patientService from '../services/patient.service';
-import { showErrorToast, showSuccessToast } from '../../../utils/adminUtils';
-import { useDebounce } from '../../../../../shared/utils/forPages.utils';
-import { ApiError } from '../../../../../shared';
-import { validateCpf } from '../../../../../shared/utils/validators.utils';
+} from "../types/patient.types";
+import * as patientService from "../services/patient.service";
+import { showErrorToast, showSuccessToast } from "../../../utils/adminUtils";
+import { useDebounce } from "../../../../../shared/utils/forPages.utils";
+import { ApiError } from "../../../../../shared";
+import { validateCpf } from "../../../../../shared/utils/validators.utils";
 
 /**
  * Converte a data do formulário (YYYY-MM-DD) para ISO string UTC.
  */
 const convertFormDateToISO = (dateString: string): string => {
-  if (!dateString) return '';
+  if (!dateString) return "";
   // Garante que a data seja tratada como UTC
   return `${dateString}T00:00:00Z`;
 };
@@ -24,7 +24,7 @@ export const usePatients = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Lógica de Paginação e Scroll Infinito
   const [page, setPage] = useState(0);
@@ -36,36 +36,50 @@ export const usePatients = () => {
   /**
    * Busca os pacientes da API com paginação e filtro.
    */
-  const fetchPatients = useCallback(async (search: string, pageNumber: number, isNewSearch = false) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Se o termo de busca parece um CPF, usa o endpoint de busca segura.
-      if (validateCpf(search)) {
-        const result = await patientService.searchPatientByCpf(search);
-        setPatients(result); // Substitui a lista com o resultado (0 ou 1 paciente)
-        setHasMore(false); // Busca por CPF não tem paginação
-        setPage(0);
-      } else {
-        // Caso contrário, usa a busca geral paginada.
-        const response = await patientService.getPatients({
-          page: pageNumber,
-          size: 8,
-          search,
-        });
-        setPatients(prev => (isNewSearch ? response.content : [...prev, ...response.content]));
-        setHasMore(!response.last);
-        setPage(pageNumber);
+  const fetchPatients = useCallback(
+    async (search: string, pageNumber: number, isNewSearch = false) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Se o termo de busca parece um CPF, usa o endpoint de busca segura.
+        if (validateCpf(search)) {
+          // Lógica de CPF
+          const result = await patientService.searchPatientByCpf(search);
+
+          // CORREÇÃO VISUAL: Se não achar nada pelo CPF, limpa a lista ou avisa
+          if (result.length === 0) {
+            setPatients([]);
+            showErrorToast("Nenhum paciente encontrado com este CPF.");
+          } else {
+            setPatients(result);
+          }
+
+          setHasMore(false);
+          setPage(0);
+        } else {
+          // Caso contrário, usa a busca geral paginada.
+          const response = await patientService.getPatients({
+            page: pageNumber,
+            size: 8,
+            search,
+          });
+          setPatients((prev) =>
+            isNewSearch ? response.content : [...prev, ...response.content]
+          );
+          setHasMore(!response.last);
+          setPage(pageNumber);
+        }
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message);
+          showErrorToast("Não foi possível carregar os pacientes.");
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-        showErrorToast('Não foi possível carregar os pacientes.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   /**
    * Adiciona um novo paciente.
@@ -84,7 +98,7 @@ export const usePatients = () => {
       setPatients((prev) => [newPatient, ...prev]);
       // Recarrega os dados para refletir a adição na paginação correta
       fetchPatients(searchTerm, 0, true);
-      showSuccessToast('Paciente cadastrado com sucesso!');
+      showSuccessToast("Paciente cadastrado com sucesso!");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -95,8 +109,6 @@ export const usePatients = () => {
       setIsLoading(false);
     }
   };
-  
-  
 
   /**
    * Remove um paciente.
@@ -107,7 +119,7 @@ export const usePatients = () => {
       await patientService.deletePatient(patientId);
       // Recarrega os dados da página atual
       fetchPatients(debouncedSearchTerm, 0, true); // Recarrega do início após deletar
-      showSuccessToast('Paciente deletado com sucesso.');
+      showSuccessToast("Paciente deletado com sucesso.");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -120,9 +132,7 @@ export const usePatients = () => {
    * Edita um paciente.
    * Recebe os dados do formulário e converte a data.
    */
-  const editPatient = async (
-    patientId: string,
-    formData: PatientFormData) => {
+  const editPatient = async (patientId: string, formData: PatientFormData) => {
     setIsLoading(true);
     try {
       // Converte a data do formulário para o formato da API (ISO)
@@ -131,11 +141,14 @@ export const usePatients = () => {
         birthDate: convertFormDateToISO(formData.birthDate),
       };
 
-      const updatedPatient = await patientService.updatePatient(patientId, apiData);
+      const updatedPatient = await patientService.updatePatient(
+        patientId,
+        apiData
+      );
       setPatients((prev) =>
         prev.map((p) => (p.id === patientId ? updatedPatient : p))
       );
-      showSuccessToast('Paciente atualizado com sucesso!');
+      showSuccessToast("Paciente atualizado com sucesso!");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

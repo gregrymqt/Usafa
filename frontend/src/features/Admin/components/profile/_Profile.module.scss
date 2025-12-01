@@ -1,25 +1,35 @@
-@use  '../../../../styles/variables' as *; // Ajuste o caminho conforme sua estrutura
+@use '../../../../styles/variables' as *;
 
 .profileContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem;
   width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: $bg-body;
+
+  // Mobile First: Padding menor
+  padding: 1rem;
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2rem; // Desktop: Padding maior para "desgrudar"
+  }
 
   h2 {
     font-size: 1.5rem;
     color: $text-strong;
-    border-bottom: 1px solid $border-light; // Borda mais sutil
+    margin-bottom: 1.5rem;
     padding-bottom: 0.5rem;
-    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05); // Detalhe sutil
   }
 
   .infoCard {
     background-color: $white;
     border-radius: $radius-md;
-    box-shadow: $shadow-card; // Sombra padronizada para cards
-    overflow: hidden;
-    border: 1px solid $border-light; // Opcional: borda fina para definição extra
+    box-shadow: $shadow-card;
+    overflow: hidden; // Garante que bordas da tabela não vazem
+    border: 1px solid $border-light;
+    
+    // Garante que o card não estoure a tela no mobile
+    width: 100%; 
+    max-width: 800px; // Limite de largura para não ficar muito esticado em monitores gigantes
   }
 }

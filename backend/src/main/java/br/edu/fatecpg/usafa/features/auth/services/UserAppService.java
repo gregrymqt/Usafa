@@ -66,7 +66,7 @@ public class UserAppService implements IUserAppService {
     public ResponseDTO processManualRegistration(RegisterRequestDTO data) {
         log.info("Iniciando registro manual para: {}", data.email());
 
-        if (userRepository.findByEmail(data.email()).isPresent()) {
+        if (userRepository.findUserByEmail(data.email()).isPresent()) {
             log.warn("Tentativa de registro duplicado para email: {}", data.email());
             throw new BusinessRuleException("Este e-mail já está em uso.");
         }
@@ -102,7 +102,7 @@ public class UserAppService implements IUserAppService {
     public ResponseGoogleDTO processGoogleLogin(LoginGoogleRequestDTO googleUser) {
         log.info("Processando Login Google para email: {}", googleUser.email());
 
-        Optional<User> existingUserOpt = userRepository.findByEmail(googleUser.email());
+        Optional<User> existingUserOpt = userRepository.findUserByEmail(googleUser.email());
         User userToSave;
         boolean isNewUser = false;
         boolean needsCompletion = false;
@@ -208,6 +208,7 @@ public class UserAppService implements IUserAppService {
                     user.setCpf(data.cpf());
                     user.setPhone(data.phone());
                     user.setBirthDate(LocalDate.parse(data.birthDate()));
+                    user.setPassword(passwordEncoder.encode(data.password()));
 
                     User savedUser = userRepository.save(user);
                     log.info("Usuário atualizado com sucesso.");

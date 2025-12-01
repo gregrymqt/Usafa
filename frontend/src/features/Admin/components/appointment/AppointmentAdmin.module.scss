@@ -1,54 +1,44 @@
-@use '../../../../styles/variables' as *; // Ajuste o caminho
+@use '../../../../styles/variables' as *;
 
-/* Estados (Loading, Empty, Error) */
+// Container da Grade (Grid)
 .adminContent {
-  padding-top: 1.5rem;
+  width: 100%;
+  padding-top: 1rem; // Pequeno respiro do topo
 }
 
-.loading,
-.error,
-.empty {
-  text-align: center;
-  padding: 2rem;
-  color: $text-secondary;
-  font-size: 1.125rem;
-  background-color: $bg-light;
-  border-radius: $radius-md;
-  margin-bottom: 1rem;
-}
-
-.error {
-  color: $error-text;
-  background-color: $error-bg;
-  border: 1px solid $error-border;
-}
-
-/* Lista de Cards de Consulta */
 .appointmentList {
   display: grid;
   gap: 1rem;
   
+  // Mobile First: 1 Coluna (Cards empilhados)
+  grid-template-columns: 1fr; 
+
+  // Tablet: 2 Colunas
   @media (min-width: $breakpoint-md) {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
-  @media (min-width: 1280px) { // 1280px pode ser aproximado para $breakpoint-xl
+
+  // Desktop Grande: 3 Colunas
+  @media (min-width: 1200px) { 
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Card de Consulta (Mobile-first) */
+// Estilo do Card
 .appointmentCard {
   background-color: $white;
   border: 1px solid $border-light;
-  border-radius: $radius-md; // Padronizado (8px ou conforme config)
-  box-shadow: $shadow-card;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm; // Sombra leve inicial
   display: flex;
-  flex-direction: column; 
-  overflow: hidden;
-  transition: box-shadow 0.2s;
+  flex-direction: column;
+  overflow: visible; // Importante para o Dropdown do menu não cortar
+  transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover {
-    box-shadow: $shadow-lg;
+    transform: translateY(-2px); // Leve levitação
+    box-shadow: $shadow-md;
   }
 }
 
@@ -56,145 +46,93 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1rem 1.5rem;
-  background-color: $bg-input; // Leve distinção no cabeçalho
-  border-bottom: 1px solid $border-light;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  background-color: #fafafa; // Fundo sutil para o header
+  border-radius: $radius-md $radius-md 0 0;
 }
 
 .cardInfo {
   h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     color: $text-strong;
     margin: 0;
+    line-height: 1.4;
   }
   p {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     color: $text-secondary;
-    margin: 0.25rem 0 0 0;
+    margin-top: 0.25rem;
   }
 }
 
 .cardBody {
-  padding: 1rem 1.5rem;
-  font-size: 0.875rem;
-  color: $text-color;
-  flex-grow: 1;
+  padding: 1rem;
+  flex-grow: 1; // Empurra o rodapé para baixo se o conteúdo variar
   
   p {
     margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: $text-color;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; // Label na esquerda, valor na direita
     
     strong {
-        color: $text-secondary;
-        font-weight: 500;
+      color: $text-secondary;
     }
   }
 }
 
 .cardFooter {
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   border-top: 1px solid $border-light;
-  background-color: $bg-light;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end; // Badge alinhada à direita
 }
 
-/* Badge de Status - Usando variáveis globais semânticas */
+// Badges de Status (Mantendo suas cores semânticas)
 .statusBadge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 700;
-  border-radius: $radius-pill;
+  border-radius: 99px; // Pill shape perfeito
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  
+  // Exemplo de fallback caso as variáveis não carreguem
+  background-color: #e0e0e0; 
+  color: #333;
 
-  // Mapeamento Global:
-  // Agendada -> Info (Azul)
   &.statusAgendada {
-    background-color: $info-bg;
-    color: $info-text;
-    border: 1px solid $info-border; // Opcional, para definição extra
+    background-color: rgba($info-bg, 0.2); // Transparência para modernizar
+    color: darken($info-text, 10%);
+    border: 1px solid transparent; 
   }
   
-  // Concluída -> Success (Verde)
   &.statusConcluída, &.statusConcluida {
-    background-color: $success-bg;
-    color: $success-text;
-    border: 1px solid $success-border;
+    background-color: rgba($success-bg, 0.2);
+    color: darken($success-text, 10%);
   }
   
-  // Cancelada -> Error (Vermelho)
   &.statusCancelada {
-    background-color: $error-bg;
-    color: $error-text;
-    border: 1px solid $error-border;
+    background-color: rgba($error-bg, 0.2);
+    color: darken($error-text, 10%);
   }
 }
 
-/* Menu de Ações (Kebab) */
-.actionMenu {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.actionButton {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 50%;
-  cursor: pointer;
+// Estados de Feedback
+.loading, .error, .empty {
+  text-align: center;
+  padding: 3rem 1rem;
   color: $text-secondary;
-  transition: background-color 0.2s, color 0.2s;
-
-  &:hover {
-    background-color: $bg-hover;
-    color: $primary-color;
-  }
-}
-
-.actionIcon {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.actionDropdown {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  margin-top: 0.25rem;
-  min-width: 160px; // Largura mínima segura
-  background-color: $white;
+  background-color: rgba(255,255,255,0.5);
   border-radius: $radius-md;
-  border: 1px solid $border-light;
-  box-shadow: $shadow-dropdown;
-  z-index: 10;
-  overflow: hidden;
+  border: 2px dashed $border-light;
 }
 
-.dropdownItem {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  color: $text-color;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: $bg-hover;
-  }
-
-  &.deleteItem {
-    color: $error-text;
-    &:hover {
-      background-color: $error-bg;
-    }
-  }
+.error {
+  color: $error-text;
+  border-color: rgba($error-text, 0.3);
 }

@@ -1,37 +1,66 @@
 @use '../../../../styles/variables' as *;
 
 .pageContainer {
-  padding: 2rem;
-  max-width: $container-max-width;
-  margin: 0 auto;
-  background-color: $bg-body;
+  width: 100%;
   min-height: 100vh;
+  box-sizing: border-box;
+  background-color: $bg-body;
 
-  .topBar {
-    display: flex;
+  // Mobile First: Padding base
+  padding: 1rem;
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2rem; // Desktop: Mais espaço
+  }
+}
+
+.topBar {
+  display: flex;
+  flex-direction: column; // Mobile: Um embaixo do outro
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row; // Desktop: Lado a lado
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+  }
 
-    h1 {
-      color: $text-strong;
+  h1 {
+    color: $text-strong;
+    font-size: 1.5rem;
+    margin: 0;
+
+    @media (min-width: $breakpoint-md) {
       font-size: 1.8rem;
     }
+  }
+}
 
-    .addButton {
-      background-color: $primary-color;
-      color: $white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: $radius-md;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: $shadow-sm;
-      transition: background 0.2s;
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 100%; // Mobile: Botão largura total (fácil de tocar)
+  padding: 0.75rem 1.5rem;
+  
+  background-color: $primary-color;
+  color: $white;
+  font-weight: 600;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: all 0.2s ease-in-out;
+  font-size: 1rem;
 
-      &:hover {
-        background-color: $primary-hover;
-      }
-    }
+  &:hover {
+    background-color: darken($primary-color, 10%);
+    transform: translateY(-2px);
+  }
+
+  @media (min-width: $breakpoint-md) {
+    width: auto; // Desktop: Botão tamanho normal
   }
 }

@@ -36,7 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         System.out.println("Tentando carregar usuário: " + username);
         
 
-        User user = userRepository.findByEmail(username)
+        User user = userRepository.findUserByEmail(username)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("Usuário não encontrado com o email: " + username));
         return user;

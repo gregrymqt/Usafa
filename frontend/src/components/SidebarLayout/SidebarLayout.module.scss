@@ -50,6 +50,14 @@ $sidebar-text: $white;
   margin-left: 1rem;
 }
 
+.contentArea {
+  // Mobile: Removemos o padding lateral, deixamos só o topo por causa do header fixo
+  padding: 0; 
+  padding-top: $header-height-mobile; 
+  flex: 1;
+  width: 100%; // Garante largura total
+}
+
 /* --- Sidebar --- */
 .sidebar {
   position: fixed;
@@ -190,13 +198,14 @@ $sidebar-text: $white;
     transform: none;
     width: $sidebar-width;
     height: 100vh;
-    flex-shrink: 0;
-    transition: none;
+    flex-shrink: 0; // Impede a sidebar de esmagar
   }
 
   .contentArea {
-    padding: 2rem;
+    padding: 0; // <--- AQUI É O SEGREDO: Zero padding
+    padding-top: 0; // Remove o espaço do header mobile
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto; // O scroll fica aqui
+    overflow-x: hidden; // Evita scroll horizontal indesejado
   }
 }

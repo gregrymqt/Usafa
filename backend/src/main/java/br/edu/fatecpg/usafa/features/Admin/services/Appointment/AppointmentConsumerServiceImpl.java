@@ -2,6 +2,8 @@ package br.edu.fatecpg.usafa.features.admin.services.Appointment;
 
 
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -18,8 +20,7 @@ import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 
 @Service
 @RequiredArgsConstructor
@@ -37,26 +38,25 @@ public class AppointmentConsumerServiceImpl implements IAppointmentConsumerServi
     private final AppointmentConsumerHelper helper;
 
     @Override
-    public List<RequestAppointment> getAllConsultaRequests() {
-        // 1. Tenta buscar do Cache primeiro (Performance)
-        @SuppressWarnings("unchecked")
-        List<RequestAppointment> cachedList = cacheService.get(CACHE_KEY_REQUESTS, List.class);
-        
-        if (cachedList != null) {
-            log.info("Admin: Retornando solicitações do Cache Redis.");
-            return cachedList;
+    public Page<RequestAppointment> getAllConsultaRequests(String search, String status, Pageable pageable) {
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasStatus = status != null && !status.trim().isEmpty();
+    
+        log.info("Admin: Buscando solicitações. Search: '{}', Status: '{}'", search, status);
+    
+        if (hasSearch && hasStatus) {
+            // 1. Filtro por NOME e STATUS
+            return mongoRepository.findByPatientNameContainingIgnoreCaseAndStatus(search, status, pageable);
+        } else if (hasSearch) {
+            // 2. Filtro apenas por NOME
+            return mongoRepository.findByPatientNameContainingIgnoreCase(search, pageable);
+        } else if (hasStatus) {
+            // 3. Filtro apenas por STATUS
+            return mongoRepository.findByStatus(status, pageable);
+        } else {
+            // 4. Sem filtros, busca todos
+            return mongoRepository.findAll(pageable);
         }
-
-        // 2. Se não tiver no cache, busca no Mongo
-        log.info("Admin: Buscando solicitações no MongoDB (Cache Miss).");
-        List<RequestAppointment> requests = mongoRepository.findAll(Sort.by(Sort.Direction.DESC, "dia", "horario"));
-
-        // 3. Salva no Cache (Ex: 10 minutos de TTL para não ficar obsoleto muito tempo)
-        if (!requests.isEmpty()) {
-            cacheService.saveWithTtl(CACHE_KEY_REQUESTS, requests, 10, TimeUnit.MINUTES);
-        }
-
-        return requests;
     }
 
     @Override

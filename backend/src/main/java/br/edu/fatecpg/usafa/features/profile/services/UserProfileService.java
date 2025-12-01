@@ -41,7 +41,7 @@ public class UserProfileService implements IUserProfileService {
             return cachedProfile;
         }
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findUserByEmail(email)
                 .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado."));
 
         UserProfileResponseDTO response = new UserProfileResponseDTO(user);
@@ -57,7 +57,7 @@ public class UserProfileService implements IUserProfileService {
     @Transactional
     public UserProfileResponseDTO updateUserProfile(String email, UserProfileUpdateDTO updateDTO, MultipartFile file) {
         // 1. Busca usuário
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findUserByEmail(email)
                 .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado para atualização."));
 
         // 2. Atualiza dados textuais

@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./HomeForm.module.scss";
 import { HomeContent, CONTENT_TYPES } from "../../types/homeAdmin.type";
-import { useHomeAdmin } from "../../hooks/useHomeAdmin";
+import { useHomeForm } from "../../hooks/useHomeForm";
 
 interface HomeFormProps {
   initialData?: HomeContent | null;
@@ -21,8 +21,8 @@ const HomeForm: React.FC<HomeFormProps> = ({
     previewUrl,
     handleInputChange,
     handleFileChange,
-    handleSubmit,
-  } = useHomeAdmin({ initialData, onSubmit });
+    handleSubmit
+  } = useHomeForm({ initialData, onSubmit });
 
   return (
     <form className={styles.formContainer} onSubmit={handleSubmit}>

@@ -44,7 +44,29 @@
 }
 
 .submitButton {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: $radius-md;
+  background-color: $primary-color;
+  color: $white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-hover;
+    box-shadow: $shadow-md;
+  }
+
+  &:disabled {
+    background-color: $bg-disabled;
+    color: $text-muted;
+    cursor: not-allowed;
+  }
+}
+
+.submitButtonWrapper {
   margin-top: 0.5rem;
-  // O estilo do botão geralmente vem de uma classe global (.btn ou similar), 
-  // mas se for estilizar aqui, use @extend ou variáveis.
 }

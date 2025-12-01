@@ -1,0 +1,56 @@
+@use '../../../../styles/variables' as *;
+
+.patientContainer {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: $bg-body;
+  
+  padding: 1rem; // Mobile
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2rem; // Desktop
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem; // Um pouco mais de espaço para separar da tabela
+  border-bottom: 1px solid rgba(0,0,0,0.05); // Separador sutil
+  padding-bottom: 1rem;
+
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row;
+    justify-content: space-between; // Título na esquerda, botão na direita (se houver título)
+    align-items: center;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+// Se você quiser um estilo levemente diferente para paciente (ex: cor secundária), ajuste aqui
+.addButton {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  
+  background-color: $primary-color; 
+  color: $white;
+  font-weight: 600;
+  border-radius: $radius-md;
+  border: none;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: background-color 0.2s, transform 0.2s;
+
+  &:hover {
+    filter: brightness(0.9);
+    transform: scale(1.02);
+  }
+
+  @media (min-width: $breakpoint-md) {
+    width: auto;
+    min-width: 180px; // Garante um tamanho mínimo elegante no desktop
+  }
+}

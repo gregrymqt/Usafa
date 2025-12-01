@@ -6,7 +6,7 @@ import type { FormField } from '../../../../components/Form/types/form.type';
 import { useCreatePassword } from './hooks/useCreatePassword';
 
 // Componente auxiliar para os indicadores de validação de senha
-const ValidationIndicator: React.FC<{ label: string; isValid: boolean }> = ({ label, isValid }) => (
+export const ValidationIndicator: React.FC<{ label: string; isValid: boolean }> = ({ label, isValid }) => (
   <li className={isValid ? styles.valid : styles.invalid}>
     {isValid ? '✓' : '✗'} {label}
   </li>

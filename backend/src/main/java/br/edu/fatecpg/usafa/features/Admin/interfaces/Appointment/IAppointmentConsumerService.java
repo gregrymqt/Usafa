@@ -2,8 +2,9 @@ package br.edu.fatecpg.usafa.features.admin.interfaces.Appointment;
 
 import br.edu.fatecpg.usafa.document.RequestAppointment; // Importa o Documento do MongoDB [cite: 13]
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.UpdateAppointmentDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 /**
  * Interface de serviço para o Admin gerenciar as solicitações de consulta
@@ -14,7 +15,7 @@ public interface IAppointmentConsumerService {
     /**
      * (Admin) Busca todas as solicitações de consulta do MongoDB.
      */
-    List<RequestAppointment> getAllConsultaRequests();
+    Page<RequestAppointment> getAllConsultaRequests(String search, String status, Pageable pageable);
 
     /**
      * (Admin) Atualiza uma solicitação de consulta (dia, hora, status).

@@ -24,6 +24,7 @@ import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -51,28 +52,27 @@ public class PatientServiceImpl implements IPatientService {
         // Verifica se há termo de busca (ignora espaços em branco)
         if (search != null && !search.trim().isEmpty()) {
             // Busca por Nome OU Email contendo o termo
-            userPage = userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    search, search, pageable);
+            userPage = userRepository.searchPatients(
+                    search, pageable);
         } else {
             // Busca todos sem filtro
-            userPage = userRepository.findAll(pageable);
+            userPage = userRepository.findAllPatients(pageable);
         }
 
         // Mapeia a Page<User> para Page<PatientResponseDto>
         return userPage.map(mapper::toDto);
     }
 
-    /**
-     * Busca específica por CPF.
-     */
     @Override
     @Transactional(readOnly = true)
     public List<PatientResponseDto> searchByCpf(String cpf) {
-        log.info("Buscando paciente pelo CPF: {}", cpf);
+        log.info("Buscando paciente específico pelo CPF: {}", cpf);
 
-        return userRepository.findByCpf(cpf)
-                .map(user -> List.of(mapper.toDto(user))) // Se achou, cria lista com 1
-                .orElse(Collections.emptyList());         // Se não, retorna lista vazia
+        // A query no repositório já exclui usuários com o papel 'ADMIN'.
+        return userRepository.findPatientByCpf(cpf)
+                .map(mapper::toDto)
+                .map(List::of)
+                .orElse(Collections.emptyList());
     }
 
     /**

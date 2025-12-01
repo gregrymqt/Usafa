@@ -10,6 +10,7 @@ interface GetRequestsParams {
   page: number;
   size: number;
   search: string;
+  status: string;
 }
 
 /**
@@ -23,6 +24,11 @@ const getRequests = async (params: GetRequestsParams): Promise<Page<ConsultaDocu
 
   if (params.search) {
     queryParams.append('search', params.search);
+  }
+
+  // Adiciona o filtro de status se ele existir
+  if (params.status) {
+    queryParams.append('status', params.status);
   }
   const data = await api.get<Page<ConsultaDocument>>(`${API_URL}?${queryParams.toString()}`);
   return data;

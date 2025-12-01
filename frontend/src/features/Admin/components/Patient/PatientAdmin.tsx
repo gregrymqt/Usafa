@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import styles from './PatientAdmin.module.scss';
-import { showDeleteConfirm } from '../../utils/adminUtils';
-import type { Patient, PatientAdminProps } from './types/patient.types';
-import { ActionMenu } from '../../../../components/ActionMenu/ActionMenu';
-import { useInfiniteScroll } from '../../../../shared/utils/forPages.utils';
-import { validateCpf } from '../../../../shared/utils/validators.utils';
+import React, { useState } from "react";
+import styles from "./PatientAdmin.module.scss";
+import { showDeleteConfirm } from "../../utils/adminUtils";
+import type { Patient, PatientAdminProps } from "./types/patient.types";
+import { ActionMenu } from "../../../../components/ActionMenu/ActionMenu";
+import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
+import { validateCpf } from "../../../../shared/utils/validators.utils";
 
 export const PatientAdmin: React.FC<PatientAdminProps> = ({
-  patients = [], // <--- CORREÇÃO AQUI: Garante que nunca seja undefined
+  patients = [], // Proteção contra undefined
   isLoading,
   error,
   hasMore,
@@ -16,7 +16,7 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
   loadMorePatients,
   onSearch,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const handleDeleteClick = async (patient: Patient) => {
@@ -26,7 +26,6 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
     }
   };
 
-  // Hook para o scroll infinito
   const { lastElementRef } = useInfiniteScroll(
     loadMorePatients,
     hasMore,
@@ -37,8 +36,9 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
     e.preventDefault();
     setSearchError(null);
 
+    // Validação opcional de CPF
     if (searchTerm && !validateCpf(searchTerm)) {
-      setSearchError('CPF inválido. Verifique o número digitado.');
+      setSearchError("CPF inválido. Verifique o número digitado.");
       return;
     }
 
@@ -46,7 +46,6 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
   };
 
   const renderContent = () => {
-    // Agora patients nunca será undefined, então .length não vai quebrar
     if (isLoading && patients.length === 0) {
       return <p className={styles.loading}>Carregando pacientes...</p>;
     }
@@ -54,7 +53,7 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
       return <p className={styles.error}>Erro: {error}</p>;
     }
     if (patients.length === 0) {
-      return <p className={styles.empty}>Nenhum paciente cadastrado.</p>;
+      return <p className={styles.empty}>Nenhum paciente encontrado.</p>;
     }
 
     return (
@@ -70,7 +69,9 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
               <div className={styles.cardHeader}>
                 <div className={styles.cardInfo}>
                   <h3>{patient.name}</h3>
-                  <p>CPF: {patient.cpf || 'Não informado'}</p>
+                  <p>CPF: {patient.cpf || "Não informado"}</p>
+                  {/* Se tiver ID visível, descomente abaixo */}
+                  {/* <p style={{fontSize: '0.75rem'}}>ID: {patient.id}</p> */}
                 </div>
                 <ActionMenu
                   onUpdate={() => onEditPatient(patient)}
@@ -80,10 +81,10 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
 
               <div className={styles.cardBody}>
                 <p>
-                  <strong>Email:</strong> {patient.email}
+                  <strong>Email:</strong> <span>{patient.email}</span>
                 </p>
                 <p>
-                  <strong>Telefone:</strong> {patient.phone}
+                  <strong>Telefone:</strong> <span>{patient.phone}</span>
                 </p>
               </div>
             </div>
@@ -95,6 +96,7 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
 
   return (
     <section className={styles.adminContent}>
+      {/* Formulário de Busca */}
       <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
         <input
           type="text"
@@ -103,21 +105,43 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}
         />
-        <button type="submit" className={styles.searchButton} disabled={isLoading}>
-          {isLoading ? 'Buscando...' : 'Buscar'}
+        <button
+          type="submit"
+          className={styles.searchButton}
+          disabled={isLoading}
+        >
+          {isLoading ? "..." : "Buscar"}
         </button>
-        {searchError && (
-          <p className={styles.searchError}>{searchError}</p>
+        
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchTerm("");
+              setSearchError(null);
+              onSearch(""); // Limpa a busca no pai
+            }}
+            className={styles.clearSearchButton}
+          >
+            Limpar
+          </button>
         )}
-        {searchTerm && <button type="button" onClick={() => onSearch('')} className={styles.clearSearchButton}>Limpar Busca</button>}
       </form>
+      
+      {searchError && <p className={styles.searchError}>{searchError}</p>}
 
       {renderContent()}
-      {/* Indicador de carregamento para as páginas seguintes */}
-      {isLoading && patients.length > 0 && <p className={styles.loading}>Carregando mais...</p>}
-      {/* Mensagem de fim de lista */}
+
+      {/* Loaders e Mensagens de Fim */}
+      {isLoading && patients.length > 0 && (
+        <p className={styles.loading} style={{ border: 'none', background: 'transparent' }}>
+          Carregando mais...
+        </p>
+      )}
       {!isLoading && !hasMore && patients.length > 0 && (
-        <p className={styles.empty}>Fim dos resultados.</p>
+        <p className={styles.empty} style={{ border: 'none', background: 'transparent', padding: '1rem' }}>
+          Fim dos resultados.
+        </p>
       )}
     </section>
   );

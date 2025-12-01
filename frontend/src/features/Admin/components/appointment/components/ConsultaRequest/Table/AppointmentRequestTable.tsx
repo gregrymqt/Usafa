@@ -43,6 +43,11 @@ export const ConsultaRequestTable: React.FC = () => {
     error,
     handleUpdateStatus,
     handleDeleteRequest,
+    // 1. Obtém os novos estados e setters do hook
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
   } = useConsultaRequests();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -107,6 +112,35 @@ export const ConsultaRequestTable: React.FC = () => {
   // 8. Renderiza a tabela (igual ao seu arquivo) [cite: 11]
  return (
     <div className={styles.tableWrapper}>
+      {/* 2. Adiciona a barra de filtros */}
+      <div className={styles.filterBar}>
+        <div className={styles.filterGroup}>
+          <label htmlFor="search-paciente">Buscar por Paciente</label>
+          <input
+            id="search-paciente"
+            type="text"
+            placeholder="Digite o nome do paciente..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+        <div className={styles.filterGroup}>
+          <label htmlFor="status-filter">Filtrar por Status</label>
+          <select
+            id="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className={styles.statusSelect}
+          >
+            <option value="">Todos</option>
+            <option value="PENDING">Pendente</option>
+            <option value="CONFIRMED">Aprovado</option>
+            <option value="CANCELLED">Recusado</option>
+          </select>
+        </div>
+      </div>
+
       <Table<TableRowData>
         colunas={columns}
         dados={tableData}

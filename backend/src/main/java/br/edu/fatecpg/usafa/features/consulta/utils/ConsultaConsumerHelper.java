@@ -65,13 +65,13 @@ public class ConsultaConsumerHelper {
 
         // Dados Relacionais (SQL -> Mongo Flat)
         doc.setUserPublicId(user.getPublicId().toString());
-        doc.setNomePaciente(user.getName());
+        doc.setPatientName(user.getName());
 
         doc.setMedicoPublicId(slot.getMedico().getPublicId());
-        doc.setNomeMedico(slot.getMedico().getNome());
+        doc.setDoctorName(slot.getMedico().getNome());
 
         doc.setTipoConsultaPublicId(tipo.getPublicId());
-        doc.setNomeTipoConsulta(tipo.getNome());
+        doc.setAppointmentTypeName(tipo.getNome());
 
         // Dados Temporais (Vêm do Slot)
         doc.setDia(slot.getDataHoraInicio().toLocalDate());

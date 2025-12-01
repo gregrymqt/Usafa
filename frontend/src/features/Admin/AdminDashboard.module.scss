@@ -1,11 +1,15 @@
 @use '../../styles/variables' as *; // Ajuste o caminho se necessário
 
 .adminPage {
-  padding: 1rem;
-  background-color: $bg-body; // Usando o fundo padrão do sistema
+  width: 100%;
   min-height: 100vh;
-  // font-family: 'Inter', sans-serif; // Se já estiver no global/reset, pode remover aqui
+  background-color: $bg-body;
+  box-sizing: border-box; // Garante que o padding não estoure a largura
+  
+  // Padding Mobile
+  padding: 1rem; 
 
+  // Padding Desktop (quando a tela for maior que 768px)
   @media (min-width: $breakpoint-md) {
     padding: 2rem;
   }

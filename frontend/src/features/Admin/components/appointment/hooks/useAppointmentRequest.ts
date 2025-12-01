@@ -12,6 +12,7 @@ export const useConsultaRequests = () => {
   const [error, setError] = useState<ApiError | null>(null);
   const [pageData, setPageData] = useState<Page<ConsultaDocument>>();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState(''); // 1. Adiciona estado para o filtro de status
   const [currentPage, setCurrentPage] = useState(0); // Página atual, base 0
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -31,15 +32,16 @@ export const useConsultaRequests = () => {
   /**
    * Busca as solicitações da API com paginação e filtro.
    */
-  const fetchRequests = useCallback(async (page: number, search: string) => {
+  const fetchRequests = useCallback(async (page: number, search: string, status: string) => { // 2. Adiciona 'status' como parâmetro
     try {
       setIsLoading(true);
       setError(null);
-      // Assumindo que o service agora tem um método paginado
+      // 3. Passa os filtros 'search' e 'status' para o serviço
       const response = await consultaService.getRequests({
         page,
         size: 10, // Itens por página
         search,
+        status,
       });
       setRequests(response.content);
       setPageData(response);
@@ -57,12 +59,12 @@ export const useConsultaRequests = () => {
 
   // Efeito para buscar os dados quando a página ou a busca mudam
   useEffect(() => {
-    // Quando o termo de busca muda, voltamos para a primeira página
-    if (currentPage !== 0) {
+    // Quando um filtro muda, voltamos para a primeira página
+    if (currentPage !== 0) { // Evita um re-render desnecessário se já estiver na página 0
       setCurrentPage(0);
     }
-    fetchRequests(currentPage, debouncedSearchTerm);
-  }, [debouncedSearchTerm, currentPage, fetchRequests]);
+    fetchRequests(currentPage, debouncedSearchTerm, statusFilter);
+  }, [debouncedSearchTerm, statusFilter, currentPage, fetchRequests]); // 4. Adiciona 'statusFilter' às dependências
 
   const handleUpdateStatus = useCallback(
     async (id: string, data: ConsultaUpdateData) => {
@@ -86,12 +88,12 @@ export const useConsultaRequests = () => {
     try {
       await consultaService.deleteRequest(id);
       showSuccessToast('Solicitação deletada com sucesso.');
-      // Recarrega a página atual para manter a consistência da paginação
-      fetchRequests(currentPage, debouncedSearchTerm);
+      // 5. Recarrega a página atual com os filtros ativos
+      fetchRequests(currentPage, debouncedSearchTerm, statusFilter);
     } catch (err) {
       showErrorToast(`Falha ao deletar a solicitação. ${err instanceof ApiError ? err.message : ''}`);
     }
-  }, [currentPage, debouncedSearchTerm, fetchRequests]);
+  }, [currentPage, debouncedSearchTerm, statusFilter, fetchRequests]); // 6. Adiciona 'statusFilter' às dependências
 
   return {
     requests,
@@ -99,6 +101,8 @@ export const useConsultaRequests = () => {
     error,
     searchTerm,
     setSearchTerm,
+    statusFilter,      // 7. Expõe o estado do filtro e seu setter
+    setStatusFilter,
     currentPage: currentPage + 1, // Expor para a UI como base 1
     totalPages,
     goToPage,
@@ -108,6 +112,6 @@ export const useConsultaRequests = () => {
     canGoPrev,
     handleUpdateStatus,
     handleDeleteRequest,
-    refetch: () => fetchRequests(currentPage, debouncedSearchTerm),
+    refetch: () => fetchRequests(currentPage, debouncedSearchTerm, statusFilter), // 8. Atualiza o refetch
   };
 };

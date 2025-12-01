@@ -1,49 +1,63 @@
-@use '../../../../styles/variables' as *; // Ajuste o caminho
+@use '../../../../styles/variables' as *;
 
-/* Conteúdo (Loading, Erro, Lista) */
+/* --- Área de Conteúdo --- */
 .adminContent {
-  .loading,
-  .error,
-  .empty {
-    text-align: center;
-    padding: 2rem;
-    color: $text-secondary; // Padronizado
-    font-size: 1.125rem;
-    background-color: $bg-light; // Fundo leve para mensagens
-    border-radius: $radius-md;
-    margin-bottom: 1rem;
-  }
-  
-  .error {
-    color: $error-text;
-    background-color: $error-bg;
-    border: 1px solid $error-border;
-  }
+  width: 100%;
+  padding-top: 1rem;
 }
 
-/* Lista de Cards */
+/* Mensagens de Feedback */
+.loading, .error, .empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: $text-secondary;
+  font-size: 1rem;
+  background-color: rgba(255,255,255, 0.6);
+  border: 2px dashed $border-light;
+  border-radius: $radius-md;
+  margin-bottom: 1rem;
+}
+
+.error {
+  color: $error-text;
+  border-color: rgba($error-text, 0.3);
+  background-color: rgba($error-bg, 0.2);
+}
+
+/* --- Lista em Grid Responsivo --- */
 .doctorList {
   display: grid;
   gap: 1rem;
   
-  // Para desktop
-  @media (min-width: $breakpoint-xl) {
+  // Mobile: 1 Coluna
+  grid-template-columns: 1fr;
+
+  // Tablet: 2 Colunas
+  @media (min-width: $breakpoint-md) {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
   }
+
+  // Desktop Grande: 3 Colunas
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-/* Card (Mobile-first) */
+/* --- Card do Médico --- */
 .doctorCard {
   background-color: $white;
   border: 1px solid $border-light;
-  border-radius: $radius-md; // Padronizado (8px)
-  box-shadow: $shadow-card;  // Sombra padronizada
-  overflow: hidden;
-  transition: box-shadow 0.2s;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  overflow: visible; // Para não cortar o menu dropdown
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
-    box-shadow: $shadow-lg;
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
   }
 }
 
@@ -51,37 +65,41 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1rem 1.5rem;
-  background-color: $bg-input; // Cabeçalho levemente cinza
-  border-bottom: 1px solid $border-light;
+  padding: 1rem;
+  background-color: #fafafa; // Fundo sutil
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-radius: $radius-md $radius-md 0 0;
 }
 
 .cardInfo {
   h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: $text-strong; // Títulos escuros para leitura melhor
-    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $text-strong;
+    margin: 0 0 0.25rem 0;
   }
   
   p {
-    font-size: 0.875rem;
-    color: $text-secondary;
-    margin: 0.25rem 0 0 0;
+    font-size: 0.85rem;
+    color: $primary-color; // Especialidade em destaque
+    font-weight: 500;
+    margin: 0;
   }
 }
 
 .cardBody {
-  padding: 1rem 1.5rem;
-  font-size: 0.875rem;
+  padding: 1rem;
+  flex-grow: 1;
+  font-size: 0.9rem;
   color: $text-color;
   
   p {
     margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
     
     strong {
-      color: $text-secondary; // Label em cinza médio
-      font-weight: 500;
+      color: $text-secondary;
     }
   }
 }

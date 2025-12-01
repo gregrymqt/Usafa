@@ -56,7 +56,7 @@ public class UserUtils {
             return Optional.empty();
         }
 
-        return userRepository.findByEmail(email);
+        return userRepository.findUserByEmail(email);
     }
 
     /**

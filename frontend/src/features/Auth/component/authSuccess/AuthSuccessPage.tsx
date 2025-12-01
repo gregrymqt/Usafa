@@ -1,103 +1,142 @@
 // src/pages/AuthSuccessPage/AuthSuccessPage.tsx
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // 4. Importa os estilos
-import styles from './AuthSuccessPage.module.scss';
-import AuthForm from '../../../../components/Form/AuthForm';
-import type { FormField } from '../../../../components/Form/types/form.type';
-import { validateCpf, validateCep, validatePhone } from '../../../../shared/utils/validators.utils';
-import { useAuthSuccess } from './hooks/useAuthSuccess';
+import styles from "./AuthSuccessPage.module.scss";
+// Importando o estilo da página de criação de senha para reutilizar as classes de validação
+import passwordStyles from "../CreatePassword/CreatePasswordPage.module.scss";
+
+import AuthForm from "../../../../components/Form/AuthForm";
+import type { FormField } from "../../../../components/Form/types/form.type";
+// Adicionando a importação da função validatePassword
+import {
+  validateCpf,
+  validateCep,
+  validatePhone,
+  getPasswordValidationState,
+  isPasswordValid,
+} from "../../../../shared/utils/validators.utils";
+import { useAuthSuccess } from "./hooks/useAuthSuccess";
+import { ValidationIndicator } from "../CreatePassword/CreatePasswordPage";
 
 /**
  * Página de transição que agora é controlada pelo hook useAuthSuccess.
  */
 const AuthSuccessPage: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // 5. CHAMA O HOOK
-  const { status, error, handleGoogleFormSubmit, isLoading } =
-    useAuthSuccess();
+  const { status, error, handleGoogleFormSubmit, isLoading } = useAuthSuccess();
 
   // 6. Estado local para os campos do formulário Google
-  const [cpf, setCpf] = useState('');
-  const [cep, setCep] = useState('');
-  const [phone, setPhone] = useState('');
-  const [birthDate, setBirthDate] = useState('');
+  const [cpf, setCpf] = useState("");
+  const [cep, setCep] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Lógica de validação da senha, reutilizada do useCreatePassword
+  const passwordValidation = useMemo(
+    () => getPasswordValidationState(password),
+    [password]
+  );
 
   const [formError, setFormError] = useState<string | null>(null);
 
   // 7. Lógica de submit para o formulário Google
-  const handleSubmitCpfCep = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmitCpfCep = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
     setFormError(null);
 
     if (!validateCpf(cpf)) {
-      setFormError('Por favor, insira um CPF válido.');
+      setFormError("Por favor, insira um CPF válido.");
       return;
     }
     if (!validateCep(cep)) {
-      setFormError('Por favor, insira um CEP válido (8 dígitos).');
+      setFormError("Por favor, insira um CEP válido (8 dígitos).");
       return;
     }
     if (!validatePhone(phone)) {
-      setFormError('Por favor, insira um telefone válido.');
+      setFormError("Por favor, insira um telefone válido.");
       return;
     }
     if (!birthDate) {
-      setFormError('Por favor, insira sua data de nascimento.');
+      setFormError("Por favor, insira sua data de nascimento.");
+      return;
+    }
+    if (!isPasswordValid(passwordValidation)) {
+      setFormError("Sua senha não atende a todos os critérios de segurança.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setFormError("As senhas não coincidem.");
       return;
     }
 
-    await handleGoogleFormSubmit({ cpf, cep, phone, birthDate });
+    await handleGoogleFormSubmit({ cpf, cep, phone, birthDate, password });
   };
 
   // 8. Define os campos para o AuthForm genérico
   const formFields: FormField[] = [
     {
-      elementType: 'input',
-      type: 'tel',
-      name: 'cpf',
-      label: 'CPF',
-      placeholder: '000.000.000-00',
+      elementType: "input",
+      type: "tel",
+      name: "cpf",
+      label: "CPF",
+      placeholder: "000.000.000-00",
       value: cpf,
       onChange: (val) => setCpf(val as string), // Ajuste para o tipo
       required: true,
-      autoComplete: 'off',
+      autoComplete: "off",
     },
     {
-      elementType: 'input',
-      type: 'tel',
-      name: 'cep',
-      label: 'CEP',
-      placeholder: '00000-000',
+      elementType: "input",
+      type: "tel",
+      name: "cep",
+      label: "CEP",
+      placeholder: "00000-000",
       value: cep,
       onChange: (val) => setCep(val as string), // Ajuste para o tipo
       required: true,
-      autoComplete: 'off',
+      autoComplete: "off",
     },
     {
-      elementType: 'input',
-      type: 'tel',
-      name: 'phone',
-      label: 'Telefone',
-      placeholder: '(00) 00000-0000',
+      elementType: "input",
+      type: "tel",
+      name: "phone",
+      label: "Telefone",
+      placeholder: "(00) 00000-0000",
       value: phone,
       onChange: (val) => setPhone(val as string),
       required: true,
-      autoComplete: 'off',
+      autoComplete: "off",
     },
     {
-      elementType: 'input',
-      type: 'date', // Tipo 'date' para facilitar a seleção
-      name: 'birthDate',
-      label: 'Data de Nascimento',
-      placeholder: 'DD/MM/AAAA',
+      elementType: "input",
+      type: "date", // Tipo 'date' para facilitar a seleção
+      name: "birthDate",
+      label: "Data de Nascimento",
+      placeholder: "DD/MM/AAAA",
       value: birthDate,
       onChange: (val) => setBirthDate(val as string),
       required: true,
-      autoComplete: 'off',
+      autoComplete: "off",
+    },
+    {
+      elementType: "input",
+      name: "password",
+      label: "Crie uma Senha",
+      type: "password",
+      placeholder: "Crie sua senha de acesso",
+      value: password,
+      onChange: (val) => setPassword(val as string),
+      required: true,
+      autoComplete: "new-password",
     },
   ];
 
@@ -133,8 +172,8 @@ const AuthSuccessPage: React.FC = () => {
     <>
       <h1 className={styles.title}>Quase lá!</h1>
       <p className={styles.subtitle}>
-        Percebemos que é seu primeiro login com o Google.
-        Por favor, complete seu cadastro:
+        Percebemos que é seu primeiro login com o Google. Por favor, complete
+        seu cadastro:
       </p>
       <AuthForm
         fields={formFields}
@@ -142,6 +181,46 @@ const AuthSuccessPage: React.FC = () => {
         isLoading={isLoading}
         buttonText="Salvar e continuar"
       >
+        {/* Campo adicional para confirmação de senha */}
+        <div className={styles.inputGroup}>
+          <label htmlFor="confirmPassword">Confirmar Senha</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repita sua nova senha"
+            disabled={isLoading}
+            required
+            autoComplete="new-password"
+          />
+        </div>
+
+        {/* Indicadores de Validação da Senha */}
+        {password.length > 0 && (
+          <div className={passwordStyles.validationBox}>
+            <p>Sua senha deve conter:</p>
+            <ul>
+              <ValidationIndicator
+                label="Pelo menos 8 caracteres"
+                isValid={passwordValidation.hasMinLength}
+              />
+              <ValidationIndicator
+                label="Uma letra maiúscula"
+                isValid={passwordValidation.hasUpperCase}
+              />
+              <ValidationIndicator
+                label="Um número"
+                isValid={passwordValidation.hasNumber}
+              />
+              <ValidationIndicator
+                label="Um caractere especial (!@#...)"
+                isValid={passwordValidation.hasSpecialChar}
+              />
+            </ul>
+          </div>
+        )}
+
         {formError && <div className={styles.formError}>{formError}</div>}
         {error && <div className={styles.formError}>{error}</div>}
       </AuthForm>
@@ -152,9 +231,9 @@ const AuthSuccessPage: React.FC = () => {
     <>
       <h1 className={styles.title}>Ocorreu um erro</h1>
       <p className={`${styles.subtitle} ${styles.apiError}`}>
-        {error || 'Não foi possível completar a autenticação.'}
+        {error || "Não foi possível completar a autenticação."}
       </p>
-      <button onClick={() => navigate('/login')} className={styles.backButton}>
+      <button onClick={() => navigate("/login")} className={styles.backButton}>
         Voltar para o login
       </button>
     </>
@@ -162,13 +241,13 @@ const AuthSuccessPage: React.FC = () => {
 
   const renderContent = () => {
     switch (status) {
-      case 'google_form':
+      case "google_form":
         return renderGoogleForm();
-      case 'redirecting':
+      case "redirecting":
         return renderRedirecting();
-      case 'error':
+      case "error":
         return renderError();
-      case 'loading':
+      case "loading":
       default:
         return <div className={styles.spinner}></div>;
     }

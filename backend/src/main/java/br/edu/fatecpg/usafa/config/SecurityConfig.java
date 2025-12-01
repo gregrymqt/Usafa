@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler; // <--- Importe isso
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -28,26 +28,36 @@ import java.util.List;
 public class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
-    
-    // CORREÇÃO AQUI: Injete a Interface, não a classe de configuração
-    private final AuthenticationSuccessHandler oAuth2SuccessHandler; 
+    private final AuthenticationSuccessHandler oAuth2SuccessHandler;
+    private final JwtAuthFilter jwtAuthFilter; // Movi para cá para injeção via construtor
 
     @Value("${app.cors.allowed-origin}")
     private String allowedOrigin;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/oauth2/**", "/login/**", "/error", "/v3/api-docs/**", "/swagger-ui/**", "/api/v1/maps/**").permitAll()
+                .requestMatchers(
+                    "/auth/**",          // Cobre Login, Register e seu LogoutController
+                    "/oauth2/**",        // Endpoints do OAuth2
+                    "/login/**",         // Páginas de login padrão
+                    "/error",            // Tratamento de erros
+                    "/v3/api-docs/**",   // Swagger
+                    "/swagger-ui/**",    // Swagger UI
+                    "/api/v1/maps/**",   // Sua API de mapas
+                    "/home/**"           // <--- CORREÇÃO: Libera toda a área da Home
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
-                // CORREÇÃO AQUI: Passe o objeto injetado diretamente
-                .successHandler(oAuth2SuccessHandler) 
+                .successHandler(oAuth2SuccessHandler)
             )
+            // Desabilita o logout padrão do Spring para evitar conflito com seu Controller customizado
+            .logout(AbstractHttpConfigurer::disable) 
+            
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -56,16 +66,28 @@ public class SecurityConfig {
 
         return http.build();
     }
-    
-    // ... o resto do método corsConfigurationSource continua igual ...
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(allowedOrigin.split(",")));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // Tem que ter PUT
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Auth-Token", "ngrok-skip-browser-warning")); // Adicione o ngrok se estiver usando free tier
+        
+        // Garante que a string não venha vazia antes de dar split
+        if (allowedOrigin != null && !allowedOrigin.isEmpty()) {
+            configuration.setAllowedOrigins(List.of(allowedOrigin.split(",")));
+        } else {
+            configuration.setAllowedOrigins(List.of("*")); // Fallback seguro (ou remova se preferir erro)
+        }
+
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "X-Auth-Token", 
+            "ngrok-skip-browser-warning"
+        ));
         configuration.setExposedHeaders(List.of("X-Auth-Token"));
         configuration.setAllowCredentials(true);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

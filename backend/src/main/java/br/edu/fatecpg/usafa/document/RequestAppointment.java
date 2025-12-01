@@ -37,9 +37,9 @@ public class RequestAppointment {
     private String tipoConsultaPublicId;
 
     // Dados desnormalizados (para evitar JOINS)
-    private String nomePaciente;
-    private String nomeMedico;
-    private String nomeTipoConsulta;
+    private String patientName;
+    private String doctorName;
+    private String appointmentTypeName;
 
     /**
      * Construtor auxiliar para criar o Documento a partir dos dados validados.
@@ -56,8 +56,8 @@ public class RequestAppointment {
         this.tipoConsultaPublicId = tipo.getPublicId().toString();
 
         // Desnormalização
-        this.nomePaciente = user.getName();
-        this.nomeMedico = medico.getNome();
-        this.nomeTipoConsulta = tipo.getNome();
+        this.patientName = user.getName();
+        this.doctorName = medico.getNome();
+        this.appointmentTypeName = tipo.getNome();
     }
 }

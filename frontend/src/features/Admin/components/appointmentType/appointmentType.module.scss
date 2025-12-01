@@ -1,33 +1,52 @@
-@use '../../../../styles/variables' as *; // Ajuste o caminho conforme sua estrutura
+@use '../../../../styles/variables' as *;
 
-.container {
-  padding: 1rem;
+// 1. Container Principal (O mesmo padrão das outras telas)
+.pageContainer {
   width: 100%;
-  max-width: $gallery-max-width; // Usando a variável global (1200px)
-  margin: 0 auto;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: $bg-body;
   
+  // Mobile First: Padding confortável mas compacto
+  padding: 1rem;
+
+  // Desktop: Mais respiro
+  @media (min-width: $breakpoint-md) {
+    padding: 2rem;
+  }
+
   h2 {
     color: $text-strong;
-    margin-bottom: 1.5rem;
     font-size: 1.5rem;
-    text-align: center;
+    margin-bottom: 1.5rem;
     
+    // Mobile: Centralizado / Desktop: Esquerda
+    text-align: center; 
     @media (min-width: $breakpoint-md) {
       text-align: left;
     }
   }
 }
 
+// 2. Sistema de Abas (Tabs)
 .tabs {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid $border-light; // Variável global
+  border-bottom: 2px solid $border-light;
   
+  // Mobile: Permite scroll horizontal se tiver muitas abas
+  overflow-x: auto; 
+  white-space: nowrap; 
+  padding-bottom: 2px; // Ajuste para a borda
+
   button {
     background: none;
     border: none;
-    padding: 0.75rem 1.5rem;
+    
+    // Mobile: Botões grandes para toque (44px min height recomendado p/ UX)
+    padding: 0.75rem 1.5rem; 
+    
     font-size: 1rem;
     font-weight: 600;
     color: $text-secondary;
@@ -35,37 +54,47 @@
     position: relative;
     transition: all 0.3s ease;
 
+    // Estado Ativo
     &.active {
-      color: $primary-color; // Azul padrão do sistema
+      color: $primary-color;
       
       &::after {
         content: '';
         position: absolute;
-        bottom: -2px;
+        bottom: -4px; // Cola na linha de baixo
         left: 0;
         width: 100%;
-        height: 2px;
+        height: 3px; // Espessura maior para visibilidade
         background-color: $primary-color;
+        border-radius: 2px 2px 0 0;
       }
     }
 
     &:hover:not(.active) {
       color: $text-strong;
-      background-color: $bg-hover; // Cinza claro padrão
-      border-radius: 4px 4px 0 0;
+      background-color: rgba(0,0,0,0.03);
+      border-radius: $radius-md $radius-md 0 0;
     }
   }
 }
 
+// 3. Área de Conteúdo (Tabela ou Form)
 .contentArea {
   background: $white;
   border-radius: $radius-md;
-  box-shadow: $shadow-card; // Sombra padronizada
-  padding: 1.5rem;
+  box-shadow: $shadow-card;
+  
+  // Mobile: Padding interno menor
+  padding: 1rem; 
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2rem; // Desktop: Padding interno maior
+  }
+
   animation: fadeIn 0.3s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }

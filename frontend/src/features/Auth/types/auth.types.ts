@@ -31,6 +31,7 @@ export interface UpdateUserData {
   cpf: string;
   phone: string;
   birthDate: string;
+  password?: string;
 }
 
 export interface AuthContextType {

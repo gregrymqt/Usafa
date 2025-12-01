@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 
 // --- Imports de Lógica ---
-import { usePatients } from '../components/Patient/hooks/usePatients';
-import type { Patient, PatientFormData } from '../components/Patient/types/patient.types';
+
 
 // --- Imports de UI ---
-import styles from '../AdminDashboard.module.scss';
-import { PatientAdmin } from '../components/Patient/PatientAdmin';
-import { PatientForm } from '../components/Patient/components/PatientForm';
-import { Modal } from '../../../components/Modal/Modal';
+import styles from './_PatientPartial.module.scss';
+import { Modal } from '../../../../components/Modal/Modal';
+import { PatientForm } from '../../components/Patient/components/PatientForm';
+import { usePatients } from '../../components/Patient/hooks/usePatients';
+import { PatientAdmin } from '../../components/Patient/PatientAdmin';
+import { Patient, PatientFormData } from '../../components/Patient/types/patient.types';
+
 
 export const PatientPartial: React.FC = () => {
   // --- Lógica de Pacientes (Completa) ---
@@ -58,8 +60,10 @@ export const PatientPartial: React.FC = () => {
   };
 
   return (
-    <>
-      <header className={styles.adminHeader}>
+    
+      <div className={styles.patientContainer}> 
+      
+      <header className={styles.header}> {/* Use a classe header */}
         <button onClick={handleOpenCreatePatientModal} className={styles.addButton}>
           Adicionar Paciente
         </button>
@@ -92,6 +96,6 @@ export const PatientPartial: React.FC = () => {
           isLoading={isLoadingPatients}
         />
       </Modal>
-    </>
+      </div>
   );
 };

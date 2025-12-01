@@ -8,51 +8,59 @@ import { DoctorIcon, PatientIcon, AppointmentIcon } from './utils/AdminIcons';
 import { FaUserCircle, FaClipboardList, FaHome } from 'react-icons/fa'; 
 
 // Views Existentes
-import { AppointmentPartial } from './PartialViews/_Appointment';
-import { DoctorPartial } from './PartialViews/_Doctor';
-import { PatientPartial } from './PartialViews/_Patient';
+import { AppointmentPartial } from './PartialViews/Appointment/_Appointment';
+
 import { ProfilePartial } from './components/profile/_Profile';
 import HomeAdmin from './components/HomeAdmin/HomeAdmin';
 import TipoConsultaManager from './components/appointmentType/AppointmentTypeAdmin';
+import { DoctorPartial } from './PartialViews/Doctor/_Doctor';
+import { PatientPartial } from './PartialViews/Patient/_Patient';
 
 // Nova View (Ajuste o caminho '../Admin/TipoConsulta' se a pasta estiver em outro local)
 
 const AdminLogo = () => (
   <span style={{ fontWeight: 700 }}>Painel Admin</span>
 );
-
 const AdminDashboard: React.FC = () => {
-  // Lista de abas da Sidebar
+  
+  // 1. Crie essa função simples para aplicar o seu SCSS
+  const wrapContent = (component: React.ReactNode) => (
+    <div className="adminPage"> {/* <--- AQUI ESTÁ A MÁGICA QUE FALTAVA */}
+      {component}
+    </div>
+  );
+
+  // 2. Use a função para envolver seus componentes
   const adminViews: ISidebarView[] = [
     {
       name: 'Meu Perfil',
       icon: <FaUserCircle />, 
-      component: <ProfilePartial />,
+      component: wrapContent(<ProfilePartial />), // Envolva aqui
     },
     {
       name: 'Gestão da Home',
       icon: <FaHome />,
-      component: <HomeAdmin />,
+      component: wrapContent(<HomeAdmin />), // Envolva aqui
     },
     {
-      name: 'Tipos de Consulta', // Nova aba adicionada
+      name: 'Tipos de Consulta',
       icon: <FaClipboardList />,
-      component: <TipoConsultaManager />,
+      component: wrapContent(<TipoConsultaManager />), // Envolva aqui
     },
     {
       name: 'Médicos',
       icon: <DoctorIcon />,
-      component: <DoctorPartial />,
+      component: wrapContent(<DoctorPartial />), // Envolva aqui
     },
     {
       name: 'Pacientes',
       icon: <PatientIcon />,
-      component: <PatientPartial />,
+      component: wrapContent(<PatientPartial />), // Envolva aqui
     },
     {
       name: 'Consultas',
       icon: <AppointmentIcon />,
-      component: <AppointmentPartial />,
+      component: wrapContent(<AppointmentPartial />), // Envolva aqui
     },
   ];
 

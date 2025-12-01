@@ -50,6 +50,47 @@
   line-height: 1.5;
 }
 
+// Estilização para o campo de confirmação de senha
+.inputGroup {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 1rem; // Espaçamento abaixo do campo
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: $text-strong;
+    font-size: 0.9rem; // Alinha com o label do AuthForm
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    font-size: 1rem;
+    background-color: $bg-input;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box; // Garante que padding não afete a largura total
+
+    &:focus {
+      outline: none;
+      border-color: $border-focus;
+      box-shadow: $shadow-focus;
+      background-color: $white;
+    }
+
+    &::placeholder {
+      color: $text-light;
+    }
+
+    &:disabled {
+      background-color: $bg-disabled;
+    }
+  }
+}
+
 // Estilos de Erro
 .apiError {
   color: $error-text;

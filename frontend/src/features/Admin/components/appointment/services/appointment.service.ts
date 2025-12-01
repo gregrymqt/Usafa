@@ -62,7 +62,7 @@ export const deleteAppointment = async (id: number | string): Promise<void> => {
  */
 export const getTypeOptions = async (): Promise<FormSelectOption[]> => {
   // Ajuste a rota '/tipos-consulta/options' conforme seu controller Java
-  return await api.get<FormSelectOption[]>('/tipos-consulta/options');
+  return await api.get<FormSelectOption[]>('/tipos-consulta');
 };
 
 /**

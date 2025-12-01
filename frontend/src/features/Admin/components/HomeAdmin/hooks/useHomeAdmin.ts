@@ -1,72 +1,93 @@
-import { useState, useEffect, useCallback } from "react";
-import { HomeContent } from "../types/homeAdmin.type";
+import { useState, useEffect, useCallback } from 'react';
+import Swal from 'sweetalert2';
+import { HomeContent } from '../types/homeAdmin.type';
+import { homeService } from '../services/home.service';
 
-interface UseHomeAdminProps {
-  initialData?: HomeContent | null;
-  onSubmit: (data: Partial<HomeContent>) => void;
-}
 
-export const useHomeAdmin = ({ initialData, onSubmit }: UseHomeAdminProps) => {
-  const [formData, setFormData] = useState<Partial<HomeContent>>({
-    type: "CAROUSEL_MAIN",
-    title: "",
-    description: "",
-    isActive: true,
-  });
+export const useHomeAdmin = () => {
+  const [items, setItems] = useState<HomeContent[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<HomeContent | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fetchItems = useCallback(async () => {
+    try {
+      const data = await homeService.getAll();
+      setItems(data);
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Erro', 'Falha ao carregar os conteúdos da home.', 'error');
+    }
+  }, []);
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-      setPreviewUrl(initialData.imageUrl || null);
-    } else {
-      // Reseta o formulário para o estado inicial se não houver dados (modo de criação)
-      setFormData({
-        type: "CAROUSEL_MAIN",
-        title: "",
-        description: "",
-        isActive: true,
-      });
-      setPreviewUrl(null);
-    }
-  }, [initialData]);
+    fetchItems();
+  }, [fetchItems]);
 
-  const handleInputChange = useCallback(
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-      >
-    ) => {
-      const { name, value, type } = e.target;
-      // Se for checkbox, pega 'checked', senão pega 'value'
-      const finalValue =
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
+  const handleOpenCreate = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
 
-      setFormData((prev) => ({ ...prev, [name]: finalValue }));
-    },
-    []
-  );
+  const handleEdit = (item: HomeContent) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, imageFile: file }));
-      setPreviewUrl(URL.createObjectURL(file));
+  const handleDelete = async (id: number | string) => {
+    try {
+      await homeService.delete(id);
+      setItems(prev => prev.filter(i => i.id !== id));
+      // Opcional: Notificação de sucesso
+      // Swal.fire('Deletado!', 'O item foi removido.', 'success');
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Erro', 'Ocorreu um erro ao deletar o item.', 'error');
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.type) return;
-    onSubmit(formData);
+  const handleFormSubmit = async (formData: Partial<HomeContent>) => {
+    setIsLoading(true);
+    try {
+      if (editingItem) {
+        const updated = await homeService.update(editingItem.id, formData);
+        setItems(prev => prev.map(i => (i.id === updated.id ? updated : i)));
+        Swal.fire('Sucesso!', 'Item atualizado com sucesso.', 'success');
+      } else {
+        // Validação para garantir que os campos obrigatórios para criação existem
+        if (!formData.title || !formData.type) {
+          Swal.fire('Erro', 'Título e Tipo são campos obrigatórios.', 'error');
+          return;
+        }
+
+        // Agora o TS sabe que formData tem as propriedades necessárias para 'create'
+        const created = await homeService.create(formData as Omit<HomeContent, 'id'>);
+        setItems(prev => [...prev, created]);
+        Swal.fire('Sucesso!', 'Novo item criado.', 'success');
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      const action = editingItem ? 'atualizar' : 'criar';
+      Swal.fire('Erro', `Falha ao ${action} o item.`, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   return {
-    formData,
-    previewUrl,
-    handleInputChange,
-    handleFileChange,
-    handleSubmit,
+    items,
+    isModalOpen,
+    editingItem,
+    isLoading,
+    handleOpenCreate,
+    handleEdit,
+    handleDelete,
+    handleFormSubmit,
+    closeModal,
   };
 };

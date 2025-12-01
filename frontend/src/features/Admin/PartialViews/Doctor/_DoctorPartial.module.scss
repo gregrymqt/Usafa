@@ -1,0 +1,65 @@
+@use '../../../../styles/variables' as *; 
+// Ajuste o caminho acima conforme a localização real do seu arquivo de variáveis
+// Supondo variáveis: $bg-body, $primary-color, $white, $radius-md, $shadow-sm, $breakpoint-md
+
+.doctorContainer {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: $bg-body; // Fundo cinza claro para destacar os cards
+
+  // Mobile First: Padding menor para aproveitar a tela
+  padding: 1rem; 
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2rem; // Desktop: Mais respiro
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column; // Mobile: Itens empilhados
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row; // Desktop: Lado a lado
+    justify-content: flex-end; // Botão alinhado à direita
+    align-items: center;
+  }
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  width: 100%; // Mobile: Botão full-width para toque fácil
+  padding: 0.75rem 1.5rem;
+  
+  background-color: $primary-color;
+  color: $white;
+  font-weight: 600;
+  font-size: 1rem;
+  
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: darken($primary-color, 10%); // Escurece levemente no hover
+    transform: translateY(-2px); // Efeito visual de clique
+    box-shadow: $shadow-md;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (min-width: $breakpoint-md) {
+    width: auto; // Desktop: Botão ocupa apenas o espaço necessário
+  }
+}
