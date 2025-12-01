@@ -38,10 +38,10 @@ const getRequests = async (params: GetRequestsParams): Promise<Page<ConsultaDocu
  * Atualiza o status de uma consulta específica.
  * Mapeia o endpoint PATCH /{id}/status 
  */
+// Corrigido em consultaService.ts
 const updateStatus = async (id: string, updateData: ConsultaUpdateData): Promise<ConsultaDocument> => {
-
-  // Chama o endpoint de patch com o DTO 
-  const data = await api.patch<ConsultaDocument>(`${API_URL}/${id}/status`, updateData);
+  // A rota no backend é apenas /{id}, o corpo do JSON define o que muda
+  const data = await api.patch<ConsultaDocument>(`${API_URL}/${id}`, updateData); 
   return data;
 };
 
@@ -53,7 +53,7 @@ const deleteRequest = async (id: string): Promise<void> => {
     Você precisa implementar o endpoint @DeleteMapping no AdminAppointmentConsumerController.`);
   
   // Quando você criar o endpoint no backend, descomente a linha abaixo:
-  // await api.delete(`${API_URL}/${id}`);
+  await api.delete(`${API_URL}/${id}`);
 
   // Simula uma resposta bem-sucedida por enquanto
   return Promise.resolve();

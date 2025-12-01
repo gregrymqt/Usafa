@@ -1,20 +1,21 @@
 import React from 'react';
-
-import { HomeContent } from '../../types/home.type';
-import styles from './Service.module.scss'; // Seus estilos
-import Carousel from '../../../../components/Carousel/Carousel';
+import styles from './Service.module.css';
 import { Card } from '../../../../components/Card/Card';
+import Carousel from '../../../../components/Carousel/Carousel';
+import { HomeContent } from '../../types/home.type';
 
 interface ServicesSectionProps {
   items: HomeContent[];
 }
 
 const ServicesSection: React.FC<ServicesSectionProps> = ({ items }) => {
-  // Configurações do Swiper mantidas
+  if (!items || items.length === 0) return null;
+
   const cardCarouselOptions = {
     pagination: { clickable: true },
     navigation: true,
-    loop: items.length > 3, // Só faz loop se tiver bastantes itens
+    // Loop só deve ser true se houver slides suficientes para preencher a view
+    loop: items.length >= 3, 
     autoplay: { delay: 4000, disableOnInteraction: false },
     slidesPerView: 1,
     spaceBetween: 20,
@@ -25,8 +26,6 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ items }) => {
     },
   };
 
-  if (items.length === 0) return null; // Não renderiza a seção se não tiver serviços
-
   return (
     <section className={styles.servicesContainer}>
       <h2>Nossos Serviços</h2>
@@ -34,13 +33,14 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ items }) => {
         <Carousel
           items={items}
           renderItem={(card) => (
-            <div style={{ width: '100%' }}> 
+            <div style={{ padding: '10px' }}> {/* Padding para sombra do card não cortar */}
               <Card
                 title={card.title}
                 description={card.description}
                 imageUrl={card.imageUrl}
               >
-                <a href="#" className={styles.cardActionLink}>Saiba mais</a>
+                {/* Botão ou Link de ação */}
+                <button className={styles.cardButton}>Saiba Mais</button>
               </Card>
             </div>
           )}

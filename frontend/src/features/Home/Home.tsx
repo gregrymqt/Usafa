@@ -1,6 +1,10 @@
 import React from 'react';
 
-import styles from './Home.module.scss';
+import styles from './Home.module.css';
+
+// Importe o CSS do Swiper se necessário no seu projeto
+import 'swiper/css';
+import 'swiper/css/pagination';
 import Carousel from '../../components/Carousel/Carousel';
 import AboutSection from './components/AboutSection/About';
 import ServicesSection from './components/ServicesSection/Service';
@@ -16,23 +20,30 @@ const Home: React.FC = () => {
   } = useHomeLogic();
 
   if (loading) {
-    return <div className={styles.loader}>Carregando conteúdo...</div>;
+    // Idealmente use um componente de Skeleton ou Spinner aqui
+    return <div className={styles.loader}>Carregando...</div>;
   }
 
   return (
     <div className={styles.homeContainer}>
       
-      {/* 1. Carrossel Principal (Só renderiza se tiver itens) */}
+      {/* 1. CARROSSEL PRINCIPAL */}
       {carouselItems.length > 0 && (
         <section className={styles.mainCarouselSection}>
           <Carousel
             items={carouselItems}
             renderItem={(item) => (
-              <img
-                src={item.imageUrl} // Agora vem do banco
-                alt={item.title}
-                className={styles.mainCarouselImage}
-              />
+              <div className={styles.carouselItemWrapper}>
+                 <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className={styles.mainCarouselImage}
+                  />
+                  {/* Se quiser colocar texto sobre a imagem no banner */}
+                  <div className={styles.bannerCaption}>
+                      <h2>{item.title}</h2>
+                  </div>
+              </div>
             )}
             swiperOptions={{
               pagination: { clickable: true },
@@ -43,20 +54,21 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {/* 2. Seção de Serviços Dinâmica */}
+      {/* 2. SERVIÇOS */}
       <ServicesSection items={serviceItems} />
 
-      {/* 3. Sobre Nós Dinâmico */}
-      <AboutSection data={aboutItem} />
+      {/* 3. SOBRE NÓS */}
+      {/* Verifica se aboutItem existe antes de renderizar a seção inteira se preferir */}
+      {aboutItem && <AboutSection data={aboutItem} />}
 
-      {/* 4. Galeria (Se quiser manter como lista simples vinda do CMS) */}
+      {/* 4. GALERIA */}
       {galleryItems.length > 0 && (
         <section className={styles.gallerySection}>
           <h2>Galeria</h2>
           <div className={styles.galleryGrid}>
             {galleryItems.map(item => (
               <div key={item.id} className={styles.galleryItem}>
-                <img src={item.imageUrl} alt={item.title} />
+                <img src={item.imageUrl} alt={item.title} loading="lazy" />
               </div>
             ))}
           </div>

@@ -1,4 +1,6 @@
 @use '../../../../styles/variables' as *; 
+@use 'sass:color';
+
 // Ajuste o caminho acima conforme a localização real do seu arquivo de variáveis
 // Supondo variáveis: $bg-body, $primary-color, $white, $radius-md, $shadow-sm, $breakpoint-md
 
@@ -50,7 +52,7 @@
   transition: all 0.2s ease-in-out;
 
   &:hover {
-    background-color: darken($primary-color, 10%); // Escurece levemente no hover
+    background-color: color.adjust($primary-color, 10%); // Escurece levemente no hover
     transform: translateY(-2px); // Efeito visual de clique
     box-shadow: $shadow-md;
   }

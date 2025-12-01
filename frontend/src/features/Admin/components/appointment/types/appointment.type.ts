@@ -1,4 +1,4 @@
-import type { Patient } from "../../Patient/types/patient.types";
+import type { Patient } from "../../Patient/types/patient.type";
 import type { Doctor } from "../../doctors/types/doctor.type";
 
 export type AppointmentStatus =

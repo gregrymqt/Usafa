@@ -3,9 +3,9 @@ import { HomeContent } from '../types/home.type';
 
 export const getHomeContent = async (): Promise<HomeContent[]> => {
   try {
-    // Chama o endpoint que você mostrou: @GetMapping public ResponseEntity<List<HomeContentDto>>...
-    const response = await api.get<HomeContent[]>('/home/content');
-    return response || []; // Garante retorno de array
+    // ATENÇÃO: Mudamos para /public para pegar o Cache e apenas itens ativos
+    const data  = await api.get<HomeContent[]>('/home/content/public');
+    return data || []; 
   } catch (error) {
     console.error("Erro ao buscar conteúdo da home", error);
     return [];

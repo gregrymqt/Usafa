@@ -42,6 +42,7 @@ public class ConsultaService implements IConsultaService {
     private final ConsultaHelper helper;
     private final IHorarioSlotRepository horarioSlotRepository;
 
+    
     @Override
     @Transactional(readOnly = true)
     public List<ConsultaDTO> findConsultasByUser(User user) {

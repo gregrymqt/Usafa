@@ -1,5 +1,6 @@
 import {
   FormSelectOption,
+  Solicitacao,
   type Consulta,
   type ConsultaFormOptions,
   type ConsultaRequest,
@@ -75,5 +76,21 @@ export const getHorariosPorTipo = async (tipoConsultaId: string): Promise<FormSe
     console.error('Erro ao buscar horários:', error);
     // Retorna lista vazia em caso de erro para não quebrar o front
     return [];
+  }
+};
+
+export const getSolicitacoes = async (userId: string, page: number): Promise<Page<Solicitacao>> => {
+  try {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      size: '10', // Padrão
+      sort: 'dia,desc'
+    });
+    // Bate no endpoint que criamos no Controller [cite: 36]
+    const data = await api.get<Page<Solicitacao>>(`/consultas/requests/user/${userId}?${queryParams.toString()}`);
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar solicitações:', error);
+    throw new Error('Não foi possível carregar suas solicitações.');
   }
 };

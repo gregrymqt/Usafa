@@ -1,5 +1,4 @@
 export interface TipoConsulta {
-  id: number;
   publicId: string;
   nome: string;
 }

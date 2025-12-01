@@ -1,0 +1,66 @@
+@use '../../../../styles/variables' as *;
+
+.agendarConsultaContainer {
+  width: 100%;
+  // O formulário real já tem seu próprio padding e sombra.
+  // Este contêiner serve principalmente para o estado de carregamento.
+}
+
+.formLoadingSkeleton {
+  background-color: $white;
+  padding: 1.5rem;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+
+  // Animação de pulso para o skeleton
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  .skeletonItem {
+    background-color: $neutral-bg;
+    border-radius: $radius-md;
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .skeletonTitle {
+    height: 2rem;
+    width: 60%;
+    margin: 0 auto 2.5rem auto;
+  }
+
+  .skeletonField {
+    margin-bottom: 1.5rem;
+  }
+
+  .skeletonLabel {
+    height: 0.875rem;
+    width: 40%;
+    margin-bottom: 0.75rem;
+    border-radius: $radius-sm;
+  }
+
+  .skeletonInput {
+    height: 2.75rem; // Altura aproximada do input (padding + line-height)
+    width: 100%;
+  }
+
+  .skeletonButton {
+    height: 3rem;
+    width: 100%;
+    margin-top: 1.5rem;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    padding: 2.5rem;
+    max-width: $form-max-width; // Centraliza o skeleton no desktop
+    margin: 2rem auto;
+  }
+}

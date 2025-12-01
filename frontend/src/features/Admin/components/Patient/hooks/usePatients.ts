@@ -4,7 +4,7 @@ import type {
   PatientFormData,
   NewPatientData,
   UpdatePatientData,
-} from "../types/patient.types";
+} from "../types/patient.type";
 import * as patientService from "../services/patient.service";
 import { showErrorToast, showSuccessToast } from "../../../utils/adminUtils";
 import { useDebounce } from "../../../../../shared/utils/forPages.utils";

@@ -51,7 +51,7 @@
 .searchButton {
   background-color: $primary-color;
   &:hover:not(:disabled) {
-    background-color: darken($primary-color, 10%);
+    background-color: color.adjust($primary-color, 10%);
     transform: translateY(-1px);
   }
 }
@@ -59,7 +59,7 @@
 .clearSearchButton {
   background-color: $text-secondary;
   &:hover:not(:disabled) {
-    background-color: darken($text-secondary, 10%);
+    background-color: color.adjust($text-secondary, 10%);
   }
 }
 

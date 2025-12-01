@@ -1,0 +1,13 @@
+@use '../../../../styles/variables' as *;
+
+.meusDadosContainer {
+  // Mobile-first: O container ocupa a largura total por padrão.
+  // O padding/margem interna virá do `ProfileCard`.
+  width: 100%;
+
+  // Desktop: Centraliza o conteúdo e define uma largura máxima para melhor legibilidade.
+  @media (min-width: $breakpoint-md) {
+    max-width: 600px; // Mantendo o valor que estava no inline style
+    margin: 0 auto;   // Centraliza horizontalmente
+  }
+}

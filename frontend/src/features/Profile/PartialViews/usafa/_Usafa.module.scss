@@ -1,0 +1,12 @@
+@use '../../../../styles/variables' as *;
+
+.usafaContainer {
+  // Mobile-first: O container ocupa a largura total por padrão.
+  width: 100%;
+
+  // Desktop: Centraliza o conteúdo e define uma largura máxima para melhor legibilidade.
+  @media (min-width: $breakpoint-md) {
+    max-width: 600px; // Usando a mesma largura do _MeusDados para consistência
+    margin: 0 auto;   // Centraliza horizontalmente
+  }
+}

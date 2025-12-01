@@ -1,9 +1,9 @@
 // ... imports anteriores
 import styles from './Profile.module.scss';
 import { useUserProfileData } from './hooks/userHook'; 
-import { _MeusDadosPartial } from './PartialViews/_MeusDados';
+import { _MeusDadosPartial } from './PartialViews/meusDados/_MeusDados';
 import { _VisualizarDadosPartial } from './PartialViews/visualizarDados/_VisualizarDados';
-import { _UsafaPartial } from './PartialViews/_Usafa';
+import { _UsafaPartial } from './PartialViews/usafa/_Usafa';
 import { UserIcon, MapPinIcon } from './components/icons'; 
 import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
 import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';

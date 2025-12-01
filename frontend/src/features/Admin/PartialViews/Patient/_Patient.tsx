@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 
 // --- Imports de Lógica ---
-
+import { usePatients } from '../../components/Patient/hooks/usePatients';
 
 // --- Imports de UI ---
 import styles from './_PatientPartial.module.scss';
 import { Modal } from '../../../../components/Modal/Modal';
-import { PatientForm } from '../../components/Patient/components/PatientForm';
-import { usePatients } from '../../components/Patient/hooks/usePatients';
+import { PatientForm } from '../../components/Patient/components/Form/PatientForm';
 import { PatientAdmin } from '../../components/Patient/PatientAdmin';
-import { Patient, PatientFormData } from '../../components/Patient/types/patient.types';
+import { Patient, PatientFormData } from '../../components/Patient/types/patient.type';
+import { PasswordTokenManager } from '../../components/Patient/components/Token/PasswordTokenManager';
 
 
 export const PatientPartial: React.FC = () => {
@@ -22,6 +22,9 @@ export const PatientPartial: React.FC = () => {
     removePatient,
     editPatient,
   } = usePatients();
+
+  // --- Lógica de UI ---
+  const [activeTab, setActiveTab] = useState<'patients' | 'tokens'>('patients');
 
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
@@ -60,42 +63,59 @@ export const PatientPartial: React.FC = () => {
   };
 
   return (
-    
-      <div className={styles.patientContainer}> 
-      
-      <header className={styles.header}> {/* Use a classe header */}
-        <button onClick={handleOpenCreatePatientModal} className={styles.addButton}>
-          Adicionar Paciente
+    <div className={styles.container}>
+      {/* --- Navegação por Abas --- */}
+      <nav className={styles.tabNav}>
+        <button
+          onClick={() => setActiveTab('patients')}
+          className={`${styles.tabButton} ${activeTab === 'patients' ? styles.active : ''}`}
+        >
+          Gerenciar Pacientes
         </button>
-      </header>
+        <button
+          onClick={() => setActiveTab('tokens')}
+          className={`${styles.tabButton} ${activeTab === 'tokens' ? styles.active : ''}`}
+        >
+          Gerenciar Tokens de Senha
+        </button>
+      </nav>
 
-      {/* Conteúdo da Aba */}
-      <PatientAdmin
-        patients={patients}
-        isLoading={isLoadingPatients}
-        error={errorPatients}
-        onEditPatient={handleOpenEditPatientModal}
-        onDeletePatient={handleDeletePatient}
-        
-        // --- CORREÇÃO: Adicionadas as props obrigatórias de paginação ---
-        hasMore={false}
-        loadMorePatients={() => {}}
-        onSearch={() => {}}
-      />
+      {/* --- Conteúdo da Aba Ativa --- */}
+      <div className={styles.tabContent}>
+        {activeTab === 'patients' && (
+          <>
+            <header className={styles.header}>
+              <button onClick={handleOpenCreatePatientModal} className={styles.addButton}>
+                Adicionar Paciente
+              </button>
+            </header>
+            <PatientAdmin
+              patients={patients}
+              isLoading={isLoadingPatients}
+              error={errorPatients}
+              onEditPatient={handleOpenEditPatientModal}
+              onDeletePatient={handleDeletePatient}
+              hasMore={false} // Mock para paginação
+              loadMorePatients={() => {}} // Mock para paginação
+              onSearch={() => {}} // Mock para busca
+            />
+            <Modal
+              isOpen={isPatientModalOpen}
+              onClose={handleClosePatientModal}
+              title={editingPatient ? 'Atualizar Paciente' : 'Adicionar Novo Paciente'}
+            >
+              <PatientForm
+                onSubmit={handlePatientFormSubmit}
+                onCancel={handleClosePatientModal}
+                initialData={editingPatient}
+                isLoading={isLoadingPatients}
+              />
+            </Modal>
+          </>
+        )}
 
-      {/* Modal de Pacientes */}
-      <Modal
-        isOpen={isPatientModalOpen}
-        onClose={handleClosePatientModal} 
-        title={editingPatient ? 'Atualizar Paciente' : 'Adicionar Novo Paciente'}
-      >
-        <PatientForm
-          onSubmit={handlePatientFormSubmit}
-          onCancel={handleClosePatientModal}
-          initialData={editingPatient}
-          isLoading={isLoadingPatients}
-        />
-      </Modal>
+        {activeTab === 'tokens' && <PasswordTokenManager />}
       </div>
+    </div>
   );
 };

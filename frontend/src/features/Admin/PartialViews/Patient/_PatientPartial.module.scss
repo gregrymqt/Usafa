@@ -1,32 +1,57 @@
 @use '../../../../styles/variables' as *;
 
-.patientContainer {
+.container {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  min-height: 100vh;
-  box-sizing: border-box;
+  height: 100%;
   background-color: $bg-body;
-  
-  padding: 1rem; // Mobile
+}
+
+/* --- Navegação por Abas --- */
+.tabNav {
+  display: flex;
+  border-bottom: 1px solid $border-color;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem; // Espaçamento lateral para mobile
+  flex-wrap: wrap; // Permite que os botões quebrem a linha em telas pequenas
 
   @media (min-width: $breakpoint-md) {
-    padding: 2rem; // Desktop
+    padding: 0 2rem; // Aumenta o espaçamento no desktop
+  }
+}
+
+.tabButton {
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: $text-secondary;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: -1px; // Alinha com a borda inferior do container
+
+  &:hover {
+    background-color: $neutral-bg;
+    color: $text-strong;
+  }
+
+  &.active {
+    color: $primary-color;
+    border-bottom-color: $primary-color;
+    font-weight: 600;
   }
 }
 
 .header {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem; // Um pouco mais de espaço para separar da tabela
-  border-bottom: 1px solid rgba(0,0,0,0.05); // Separador sutil
-  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem; // Espaçamento lateral para mobile
 
   @media (min-width: $breakpoint-md) {
-    flex-direction: row;
-    justify-content: space-between; // Título na esquerda, botão na direita (se houver título)
-    align-items: center;
-    border-bottom: none;
-    padding-bottom: 0;
+    padding: 0 2rem; // Aumenta o espaçamento no desktop
   }
 }
 
@@ -53,4 +78,9 @@
     width: auto;
     min-width: 180px; // Garante um tamanho mínimo elegante no desktop
   }
+}
+
+/* --- Conteúdo da Aba --- */
+.tabContent {
+  flex: 1;
 }

@@ -4,6 +4,7 @@ import br.edu.fatecpg.usafa.document.RequestAppointment;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
@@ -78,5 +79,24 @@ public class ConsultaConsumerHelper {
         doc.setHorario(slot.getDataHoraInicio().toLocalTime());
 
         return doc;
+    }
+
+    /**
+     * Mapeia um objeto RequestAppointment (documento MongoDB) para um RequestAppointmentResponseDto.
+     */
+    public RequestAppointmentResponseDto mapToDto(RequestAppointment doc) {
+        return RequestAppointmentResponseDto.builder()
+            .id(doc.getId())
+            .sintomas(doc.getSintomas())
+            .dia(doc.getDia())
+            .horario(doc.getHorario())
+            .status(doc.getStatus())
+            .userPublicId(doc.getUserPublicId())
+            .medicoPublicId(doc.getMedicoPublicId())
+            .tipoConsultaPublicId(doc.getTipoConsultaPublicId())
+            .patientName(doc.getPatientName())
+            .doctorName(doc.getDoctorName())
+            .appointmentTypeName(doc.getAppointmentTypeName())
+            .build();
     }
 }

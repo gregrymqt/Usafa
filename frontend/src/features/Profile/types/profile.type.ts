@@ -18,7 +18,7 @@ export interface Consulta {
  */
 export interface UserData {
   publicId: string;
-  nome: string;    // O Form usa 'nome'
+  name: string;    // O Form usa 'nome'
   email: string;
   cep: string;
   cartaoSus: string;

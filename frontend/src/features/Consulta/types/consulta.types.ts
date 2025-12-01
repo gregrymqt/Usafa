@@ -61,3 +61,13 @@ export interface NotificationEnvelope<T> {
   message: string;
   data: T;
 }
+
+export interface Solicitacao {
+  id: string;
+  dia: string;      // "2023-10-25"
+  horario: string;  // "14:30"
+  status: 'PENDENTE' | 'ACEITA' | 'RECUSADA';
+  doctorName: string;
+  appointmentTypeName: string;
+  sintomas: string;
+}

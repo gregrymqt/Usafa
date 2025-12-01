@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./PatientAdmin.module.scss";
 import { showDeleteConfirm } from "../../utils/adminUtils";
-import type { Patient, PatientAdminProps } from "./types/patient.types";
+import type { Patient, PatientAdminProps } from "./types/patient.type";
 import { ActionMenu } from "../../../../components/ActionMenu/ActionMenu";
 import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
 import { validateCpf } from "../../../../shared/utils/validators.utils";

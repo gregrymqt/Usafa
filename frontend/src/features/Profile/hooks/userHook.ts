@@ -14,7 +14,7 @@ export const useUserProfileData = () => {
     return {
       email: user.email,
       cep: user.cep,
-      nome: user.name,
+      name: user.name,
       cpf: 'Não informado',
       cartaoSus: '',
       endereco: '',
@@ -40,7 +40,7 @@ export const useUserProfileData = () => {
              return {
                 email: user.email,
                 cep: user.cep,
-                nome: user.name,
+                name: user.name,
                 cpf: 'Não informado',
                 cartaoSus: '',
                 endereco: '',
@@ -54,7 +54,7 @@ export const useUserProfileData = () => {
         }
 
         // Se os dados essenciais não mudaram, não faz nada (evita loop)
-        if (prev.nome === user.name && prev.cep === user.cep && prev.email === user.email) {
+        if (prev.name === user.name && prev.cep === user.cep && prev.email === user.email) {
           return prev;
         }
 
@@ -80,7 +80,7 @@ export const useUserProfileData = () => {
 
       // Atualiza sessão global (se necessário)
       updateSessionUser({
-        name: updatedUserApi.nome,
+        name: updatedUserApi.name,
         cep: updatedUserApi.cep,
         picture: updatedUserApi.picture // Se quiser atualizar a foto no header/sessão
       });

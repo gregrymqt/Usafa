@@ -1,206 +1,112 @@
+// hooks/useConsulta.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  NotificationEnvelope,
-  type Consulta,
-  type ConsultaFormOptions,
-  type FormSelectOption,
-  type ConsultaRequest,
-  type ConsultaSummary,
-} from '../types/consulta.types';
-import { getConsultas, getFormOptions, requestConsulta, getHorariosPorTipo } from '../services/consulta.service';
-import {
-  connectWebSocket,
-  subscribe,
-  unsubscribe,
-} from '../../../shared/services/websocket.service';
-import { useDebounce } from '../../../shared/utils/forPages.utils';
+import { useDebounce } from '../../../shared/utils/forPages.utils'; // [cite: 3]
+import { connectWebSocket, subscribe, unsubscribe } from '../../../shared/services/websocket.service'; // [cite: 2]
+import type { NotificationEnvelope, ConsultaSummary, ConsultaRequest } from '../types/consulta.types';
+
+// Import dos Partials
+import { useConsultasConfirmadas } from './partials/useConsultasConfirmadas';
+import { useSolicitacoes } from './partials/useSolicitacoes';
+import { useConsultaForm } from './partials/useConsultaForm';
 
 export const useConsulta = (userId: string) => {
-  // --- Estados ---
-  const [consultas, setConsultas] = useState<Consulta[]>([]);
-  const [isLoadingConsultas, setIsLoadingConsultas] = useState(true); 
-  const [formOptions, setFormOptions] = useState<ConsultaFormOptions | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false); 
-  const [error, setError] = useState<string | null>(null);
-  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null); // Lista dinâmica de horários
-  const [opcoesHorarios, setOpcoesHorarios] = useState<FormSelectOption[]>([]); // Loadingzinho do select
-  const [isLoadingHorarios, setIsLoadingHorarios] = useState(false); // Loadingzinho do select
-  
-  // --- Paginação e Busca ---
+  // 1. Estados de Busca Global
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  
-  // Ref para o WebSocket conseguir ler o termo atual sem reiniciar conexão
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // [cite: 9]
   const searchTermRef = useRef(debouncedSearchTerm);
+  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
 
+  // 2. Uso dos Hooks Parciais
+  const sql = useConsultasConfirmadas(userId);
+  const mongo = useSolicitacoes(userId);
+  const form = useConsultaForm(userId);
+
+  // 3. Efeitos de Busca
   useEffect(() => {
-    searchTermRef.current = debouncedSearchTerm;
+    searchTermRef.current = debouncedSearchTerm; // [cite: 11]
   }, [debouncedSearchTerm]);
 
-  // --- 1. Busca de Consultas (HTTP) ---
-  const fetchConsultas = useCallback(async (search: string, pageNumber: number, isNewSearch = false) => {
-    if (!userId) return; // Proteção contra ID vazio
-
-    setIsLoadingConsultas(true);
-    setError(null);
-    try {
-      const consultasData = await getConsultas(userId, { page: pageNumber, size: 10, search });
-      
-      // --- CORREÇÃO AQUI ---
-      // Adicionamos '|| []' para garantir que nunca seja undefined
-      const novosItens = consultasData.content || []; 
-
-      setConsultas(prev => isNewSearch ? novosItens : [...prev, ...novosItens]);
-      
-      // Verifica se 'last' existe, senão assume true para parar a paginação
-      setHasMore(consultasData.last === false); 
-      setPage(pageNumber);
-    } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError('Falha ao carregar suas consultas.');
-      
-      // Opcional: Se der erro, zera a lista na busca nova para não mostrar dados velhos
-      if (isNewSearch) setConsultas([]); 
-    } finally {
-      setIsLoadingConsultas(false);
-    }
-  }, [userId]);
-
-  const buscarHorarios = useCallback(async (tipoId: string) => {
-    // Se não tiver ID (ex: usuário limpou o select), limpa a lista
-    if (!tipoId) {
-      setOpcoesHorarios([]);
-      return;
-    }
-
-    setIsLoadingHorarios(true);
-    try {
-      const horarios = await getHorariosPorTipo(tipoId);
-      setOpcoesHorarios(horarios);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoadingHorarios(false);
-    }
-  }, []);
-
-  // --- 2. Carga Inicial ---
   useEffect(() => {
     if (userId) {
-      getFormOptions()
-        .then(setFormOptions)
-        .catch(err => console.error("Erro ao carregar opções:", err));
-      
-      // Busca inicial (apenas se não tiver busca digitada)
-      if (!debouncedSearchTerm) {
-         fetchConsultas('', 0, true);
-      }
+      // Busca SQL (filtra pelo termo)
+      sql.fetchConsultas(debouncedSearchTerm, 0, true);
+      // Busca Mongo (sem filtro de texto complexo por enquanto)
+      mongo.fetchSolicitacoes(0, true);
     }
-  }, [userId]); // Removi fetchConsultas daqui para evitar loops, ele já é chamado no efeito abaixo
+  }, [debouncedSearchTerm, userId]);
 
-  // --- 3. Reação à Busca ---
-  useEffect(() => {
-    if (userId) {
-        fetchConsultas(debouncedSearchTerm, 0, true);
-    }
-  }, [debouncedSearchTerm, fetchConsultas, userId]);
-
-
-  // --- 4. Função Auxiliar de WebSocket (Interna) ---
-  // Esta função não roda automaticamente, só quando chamamos.
-  const setupWebSocketListener = () => {
-    console.log("Iniciando conexão WebSocket sob demanda...");
-    connectWebSocket(); 
+  // 4. Lógica WebSocket (Real-time)
+  const setupWebSocketListener = useCallback(() => {
+    console.log("Iniciando WebSocket...");
+    connectWebSocket(); // 
     
     const topic = `/user/${userId}/queue/consultas`;
-
-    const onNotificationReceived = (envelope: NotificationEnvelope<ConsultaSummary>) => {
-      console.log("WebSocket Recebeu:", envelope.message);
+    
+    subscribe<NotificationEnvelope<ConsultaSummary>>(topic, (envelope) => {
+      console.log("Notificação recebida:", envelope.message); // [cite: 21]
+      setConfirmedConsulta(envelope.data);
       
-      const summary = envelope.data; 
-      setConfirmedConsulta(summary);
-      
-      // Atualiza a tabela
-      fetchConsultas(searchTermRef.current, 0, true);
-    };
+      // Atualiza ambas as listas quando chega novidade
+      sql.fetchConsultas(searchTermRef.current, 0, true); // [cite: 22]
+      mongo.fetchSolicitacoes(0, true); // Atualiza também as solicitações (status mudou)
+    });
+  }, [userId, sql, mongo]);
 
-    // Inscreve-se para ouvir a resposta
-    subscribe<NotificationEnvelope<ConsultaSummary>>(topic, onNotificationReceived);
-  };
+  // 5. Submit Integrado (Socket + Form)
+  const handleSubmitConsulta = async (data: Partial<ConsultaRequest>) => {
+    // A) Inicia escuta ANTES de enviar [cite: 26]
+    setupWebSocketListener();
 
-
-  // --- 5. Ação de Enviar (Modificada) ---
-  const handleSubmitConsulta = async (partialRequest: Partial<ConsultaRequest>) => {
-    try {
-      setIsSubmitting(true);
-      setError(null); 
-      
-      // A) Inicia a escuta do WebSocket ANTES do envio HTTP
-      // Isso garante que se o backend for muito rápido, já estamos ouvindo.
-      setupWebSocketListener();
-
-      const fullRequest: ConsultaRequest = {
-        patientId: userId,
-        tipoConsultaId: partialRequest.tipoConsultaId!,
-        horarioSlotId: Number(partialRequest.horarioSlotId!),
-        sintomas: partialRequest.sintomas || ''
-      };
-
-      // B) Faz o envio HTTP
-      await requestConsulta(fullRequest);
-
-      setShowSuccessMessage(true); 
-      setTimeout(() => setShowSuccessMessage(false), 5000);
-      
-      // Atualiza opções para remover o horário agendado da lista
-      const updatedOptions = await getFormOptions();
-      setFormOptions(updatedOptions);
-      
-      // Atualiza a lista via HTTP também (redundância segura)
-      fetchConsultas(searchTerm, 0, true);
-
-    } catch (err) { 
-      if (err instanceof Error) setError(err.message);
-      else setError('Erro ao realizar agendamento.'); 
-    } finally {
-      setIsSubmitting(false); 
+    // B) Envia formulário
+    const success = await form.submitRequest(data);
+    
+    // C) Se deu certo, atualiza a lista de Solicitações imediatamente (feedback visual "Pendente")
+    if (success) {
+       mongo.fetchSolicitacoes(0, true);
     }
   };
 
-  const loadMoreConsultas = useCallback(() => {
-    if (!isLoadingConsultas && hasMore) {
-      fetchConsultas(debouncedSearchTerm, page + 1);
-    }
-  }, [isLoadingConsultas, hasMore, debouncedSearchTerm, page, fetchConsultas]);
-
-  const closeConfirmationModal = useCallback(() => { 
+  const closeConfirmationModal = () => {
     setConfirmedConsulta(null);
-    // Opcional: Se quiser desconectar o socket ao fechar o modal para economizar mais:
-    const topic = `/user/${userId}/queue/consultas`;
-    unsubscribe(topic);
-  }, [userId]);
+    unsubscribe(`/user/${userId}/queue/consultas`); // [cite: 33]
+  };
 
-  return { 
-    consultas,
-    isLoadingConsultas,
-    formOptions,
-    isSubmitting,
-    showSuccessMessage,
+  // 6. Retorno Unificado
+  return {
+    // Dados SQL
+    consultas: sql.consultas,
+    isLoadingConsultas: sql.isLoading,
+    hasMoreConsultas: sql.hasMore,
+    loadMoreConsultas: () => sql.loadMore(debouncedSearchTerm),
+
+    // Dados Mongo (Novo)
+    solicitacoes: mongo.solicitacoes,
+    isLoadingSolicitacoes: mongo.isLoading,
+    hasMoreSolicitacoes: mongo.hasMore,
+    loadMoreSolicitacoes: mongo.loadMore,
+
+    // Formulário
+    formOptions: form.formOptions,
+    opcoesHorarios: form.opcoesHorarios,
+    isLoadingHorarios: form.isLoadingHorarios,
+    isSubmitting: form.isSubmitting,
+    showSuccessMessage: form.showSuccessMessage,
+    error: form.error,
+    buscarHorarios: form.buscarHorarios,
+    handleSubmitConsulta, // Versão integrada
+
+    // Feedback Real-time
     confirmedConsulta,
-    error,
+    closeConfirmationModal,
+
+    // Busca
     searchTerm,
     setSearchTerm,
-    hasMore,
-    loadMoreConsultas,
-    handleSubmitConsulta,
-    closeConfirmationModal,
-    refetchConsultas: () => fetchConsultas(debouncedSearchTerm, 0, true),
-    opcoesHorarios,      // A lista que vai para o select
-    isLoadingHorarios,   // O status de loading
-    buscarHorarios       // A função que o onChange vai chamar
+    
+    // Útil para botão de refresh manual
+    refetchAll: () => {
+      sql.fetchConsultas(debouncedSearchTerm, 0, true);
+      mongo.fetchSolicitacoes(0, true);
+    }
   };
 };

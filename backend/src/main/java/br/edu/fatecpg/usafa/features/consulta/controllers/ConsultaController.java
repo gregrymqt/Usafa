@@ -2,7 +2,12 @@ package br.edu.fatecpg.usafa.features.consulta.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +21,8 @@ import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaConsumerService;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 import br.edu.fatecpg.usafa.models.User;
 
@@ -32,7 +39,7 @@ public class ConsultaController {
     private final UserUtils userUtils;
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String CONSULTA_QUEUE_NAME = "fila:consultas:request";
-
+    private final IConsultaConsumerService consultaConsumerService;
     /**
      * Endpoint para buscar o histórico de consultas.
      * Use hasAnyRole se Admin também puder ver.
@@ -111,5 +118,32 @@ public class ConsultaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erro interno ao processar solicitação.");
         }
+    }
+
+    @GetMapping("/requests/user/{userId}") // URL Diferenciada
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Page<RequestAppointmentResponseDto>> getSolicitacoesPorUsuario(
+            @PathVariable String userId,
+            @RequestParam(required = false) String status, // Filtro opcional (?status=PENDENTE)
+            @PageableDefault(sort = "dia", direction = Sort.Direction.DESC) Pageable pageable,
+            Authentication authentication
+    ) {
+        // 1. Segurança: Verifica se o usuário existe
+        User user = userUtils.getUserFromAuthentication(authentication)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        // 2. Segurança: Garante que o usuário só veja os SEUS pedidos (a menos que seja Admin)
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !user.getPublicId().toString().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // 3. Busca no Mongo através da Service
+        Page<RequestAppointmentResponseDto> requests = consultaConsumerService
+                .findByUserPublicIdAndStatus(userId, status, pageable);
+
+        return ResponseEntity.ok(requests);
     }
 }

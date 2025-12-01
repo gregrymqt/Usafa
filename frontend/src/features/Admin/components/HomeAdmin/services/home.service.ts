@@ -6,8 +6,13 @@ const ENDPOINT = "/home/content";
 
 export const homeService = {
   // GET: Aberto a todos (conforme sua regra)
-  getAll: async (): Promise<HomeContent[]> => {
-    return api.get<HomeContent[]>(ENDPOINT);
+  getPublic: async (): Promise<HomeContent[]> => {
+    return api.get<HomeContent[]>(`${ENDPOINT}/public`);
+  },
+
+  // Para o painel administrativo (vê inativos também)
+  getAllAdmin: async (): Promise<HomeContent[]> => {
+    return api.get<HomeContent[]>(`${ENDPOINT}/admin`);
   },
 
   // CREATE: Envia Imagem + Dados

@@ -25,6 +25,11 @@ export interface ConsultaRequestTableProps {
   onDelete: (id: string) => void;
 }
 
+export enum StatusConsulta {
+  PENDENTE = 'PENDENTE',
+  ACEITA = 'ACEITA',
+  RECUSADA = 'RECUSADA'
+}
 
 /**
  * Define a estrutura do documento que vem do MongoDB
@@ -47,6 +52,5 @@ export interface ConsultaDocument {
   horario: string; // "10:00"
   sintomas: string | null;
   
-  // Status
-  status: 'PENDENTE' | 'ACEITA' | 'RECUSADA' | string; // string para flexibilidade
+  status: StatusConsulta;
 }

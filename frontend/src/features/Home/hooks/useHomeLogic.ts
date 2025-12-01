@@ -6,7 +6,6 @@ export const useHomeLogic = () => {
   const [allContent, setAllContent] = useState<HomeContent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Busca Única ao carregar a página
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -17,26 +16,23 @@ export const useHomeLogic = () => {
     loadData();
   }, []);
 
-  // 2. Separa os dados por categoria usando useMemo (Performance)
-  
-  // Filtra itens para o Carrossel Principal
+  // O Backend já filtrou isActive=true, então filtramos apenas pelo TYPE aqui.
+
   const carouselItems = useMemo(() => 
-    allContent.filter(item => item.type === 'CAROUSEL_MAIN' && item.isActive), 
+    allContent.filter(item => item.type === 'CAROUSEL_MAIN'), 
   [allContent]);
 
-  // Filtra itens para a Seção de Serviços
   const serviceItems = useMemo(() => 
-    allContent.filter(item => item.type === 'SERVICE_CARD' && item.isActive), 
+    allContent.filter(item => item.type === 'SERVICE_CARD'), 
   [allContent]);
 
-  // Filtra o item da Seção Sobre (Pega o primeiro que achar)
+  // Pega o primeiro 'About' que encontrar
   const aboutItem = useMemo(() => 
-    allContent.find(item => item.type === 'ABOUT_SECTION' && item.isActive), 
+    allContent.find(item => item.type === 'ABOUT_SECTION'), 
   [allContent]);
 
-  // Filtra itens da Galeria
   const galleryItems = useMemo(() => 
-    allContent.filter(item => item.type === 'GALLERY_PHOTO' && item.isActive), 
+    allContent.filter(item => item.type === 'GALLERY_PHOTO'), 
   [allContent]);
 
   return {

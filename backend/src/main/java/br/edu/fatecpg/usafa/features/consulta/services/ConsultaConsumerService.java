@@ -12,10 +12,14 @@ import br.edu.fatecpg.usafa.shared.webSockets.interfaces.INotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
 
 @Service
@@ -95,4 +99,21 @@ public class ConsultaConsumerService {
             log.error("Erro crítico ao processar solicitação do Redis", e);
         }
     }
+    
+    public Page<RequestAppointmentResponseDto> findByUserPublicIdAndStatus(String userPublicId, String status, Pageable pageable) {
+        
+        Page<RequestAppointment> pageResult;
+
+        // 1. Decide qual query usar (com ou sem filtro de status)
+        if (status != null && !status.trim().isEmpty()) {
+            pageResult = mongoRepository.findByUserPublicIdAndStatus(userPublicId, status, pageable);
+        } else {
+            pageResult = mongoRepository.findByUserPublicId(userPublicId, pageable);
+        }
+
+        // 2. Converte (Map) de Documento Mongo para DTO de Resposta
+        return pageResult.map(helper::mapToDto);
+    }
+
+
 }

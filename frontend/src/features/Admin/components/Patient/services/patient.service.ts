@@ -5,7 +5,7 @@ import type {
   NewPatientData,
   UpdatePatientData,
   GetPatientsParams,
-} from '../types/patient.types';
+} from '../types/patient.type';
 
 // O endpoint base para o recurso de pacientes no backend.
 const PATIENTS_ENDPOINT = '/admin/patients';

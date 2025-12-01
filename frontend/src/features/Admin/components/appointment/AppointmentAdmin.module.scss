@@ -1,4 +1,5 @@
 @use '../../../../styles/variables' as *;
+@use 'sass:color';
 
 // Container da Grade (Grid)
 .adminContent {
@@ -107,18 +108,18 @@
 
   &.statusAgendada {
     background-color: rgba($info-bg, 0.2); // Transparência para modernizar
-    color: darken($info-text, 10%);
+    color: color.adjust($info-text, 10%);
     border: 1px solid transparent; 
   }
   
   &.statusConcluída, &.statusConcluida {
     background-color: rgba($success-bg, 0.2);
-    color: darken($success-text, 10%);
+    color: color.adjust($success-text, 10%);
   }
   
   &.statusCancelada {
     background-color: rgba($error-bg, 0.2);
-    color: darken($error-text, 10%);
+    color: color.adjust($error-text, 10%);
   }
 }
 
