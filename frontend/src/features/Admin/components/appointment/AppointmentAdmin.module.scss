@@ -108,18 +108,18 @@
 
   &.statusAgendada {
     background-color: rgba($info-bg, 0.2); // Transparência para modernizar
-    color: color.adjust($info-text, 10%);
+    color: color.adjust($info-text, $lightness: 10%);
     border: 1px solid transparent; 
   }
   
   &.statusConcluída, &.statusConcluida {
     background-color: rgba($success-bg, 0.2);
-    color: color.adjust($success-text, 10%);
+    color: color.adjust($success-text, $lightness: 10%);
   }
   
   &.statusCancelada {
     background-color: rgba($error-bg, 0.2);
-    color: color.adjust($error-text, 10%);
+    color: color.adjust($error-text, $lightness: 10%);
   }
 }
 

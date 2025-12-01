@@ -52,7 +52,7 @@
   transition: all 0.2s ease-in-out;
 
   &:hover {
-    background-color: color.adjust($primary-color, 10%); // Escurece levemente no hover
+    background-color: color.adjust($primary-color, $lightness: -10%); // Escurece levemente no hover
     transform: translateY(-2px); // Efeito visual de clique
     box-shadow: $shadow-md;
   }

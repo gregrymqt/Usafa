@@ -1,3 +1,6 @@
+@use '../../styles/variables' as *;
+// Ajuste o caminho acima conforme a localização real do seu arquivo de variáveis
+
 .profileLogo {
   font-weight: 700;
 }
@@ -11,11 +14,11 @@
   padding: 1rem; // Adiciona um respiro nas laterais
   text-align: center; // Garante que o texto quebre de forma centralizada
   font-size: 1.1rem; // Tamanho base para mobile
-  color: #6b7280; // Um cinza suave
-  background-color: #f9fafb; // Um fundo levemente acinzentado
+  color: $text-secondary; // Um cinza suave
+  background-color: $bg-input; // Um fundo levemente acinzentado
 
   // Media query para telas maiores (tablets e desktops)
-  @media (min-width: 768px) {
+  @media (min-width: $breakpoint-md) {
     font-size: 1.25rem; // Aumenta a fonte em telas maiores
   }
 }

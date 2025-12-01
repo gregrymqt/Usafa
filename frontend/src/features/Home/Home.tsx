@@ -1,6 +1,6 @@
 import React from 'react';
 
-import styles from './Home.module.css';
+import styles from './Home.module.scss';
 
 // Importe o CSS do Swiper se necessário no seu projeto
 import 'swiper/css';

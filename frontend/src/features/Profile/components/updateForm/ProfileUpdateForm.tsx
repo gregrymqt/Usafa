@@ -10,7 +10,7 @@ export const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
   isUpdating,
   updateError,
 }) => {
-  const [name, setName] = useState(user.nome);
+  const [name, setName] = useState(user.name);
   const [cep, setCep] = useState(user.cep);
 
   // Novo estado para o arquivo e preview
@@ -19,7 +19,7 @@ export const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
 
   // Sincronização
   useEffect(() => {
-    setName(user.nome);
+    setName(user.name);
     setCep(user.cep);
     // Se não tivermos selecionado um arquivo novo, mantemos a foto atual do user
     if (!imageFile) {

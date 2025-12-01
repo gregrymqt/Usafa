@@ -26,7 +26,7 @@ export const _VisualizarDadosPartial: React.FC<VisualizarDadosProps> = ({ userDa
 
   // 4. Transformar os dados do usuário no formato que a tabela espera
   const dadosParaTabela: UserTableData[] = [
-    { propriedade: 'Nome Completo', valor: userData.nome }, // Corrigido: usar userData.nome
+    { propriedade: 'Nome Completo', valor: userData.name }, // Corrigido: usar userData.nome
     { propriedade: 'Email', valor: userData.email },
     { propriedade: 'CEP', valor: userData.cep || 'Não informado' },
     { propriedade: 'Telefone', valor: userData.phone || 'Não informado' },

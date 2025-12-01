@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './Service.module.css';
+import styles from './Service.module.scss';
 import { Card } from '../../../../components/Card/Card';
 import Carousel from '../../../../components/Carousel/Carousel';
 import { HomeContent } from '../../types/home.type';

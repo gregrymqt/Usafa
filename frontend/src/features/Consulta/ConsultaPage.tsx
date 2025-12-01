@@ -4,8 +4,10 @@ import { useConsulta } from './hooks/useConsulta';
 import { ConsultaSummarys } from './components/modal/ConsultaSummary';
 import { ListaConsultasPartial } from './PartialViews/Lista/ListaConsultasPartial';
 import { AgendarConsultaPartial } from './PartialViews/Agendar/_AgendarConsulta';
+import { useAuth } from '../Auth/hooks/useAuth';
 
-export const ConsultaPage: React.FC<{ userId: string }> = ({ userId }) => {
+ const ConsultaPage: React.FC = () => {
+  const {user } = useAuth();
   // 1. Consome o Hook Refatorado com os novos nomes
   const {
     // --- Dados SQL (Confirmadas) ---
@@ -33,7 +35,7 @@ export const ConsultaPage: React.FC<{ userId: string }> = ({ userId }) => {
     closeConfirmationModal,
     error,
     showSuccessMessage
-  } = useConsulta(userId);
+  } = useConsulta(user?.publicId || '');
 
   // Controle local para mostrar/esconder o formulário (UX Mobile melhor)
   const [showForm, setShowForm] = useState(false);
@@ -108,3 +110,5 @@ export const ConsultaPage: React.FC<{ userId: string }> = ({ userId }) => {
     </div>
   );
 };
+
+export default ConsultaPage;

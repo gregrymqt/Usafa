@@ -12,7 +12,7 @@ export const useHomeAdmin = () => {
 
   const fetchItems = useCallback(async () => {
     try {
-      const data = await homeService.getAll();
+      const data = await homeService.getAllAdmin();
       setItems(data);
     } catch (error) {
       console.error(error);

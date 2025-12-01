@@ -72,7 +72,8 @@ public class AppointmentMigrationService {
                 // Se falhar aqui, NÃO lançamos erro para não dar rollback no SQL (que já funcionou).
                 // O ideal é ter um Job que limpa registros duplicados depois.
                 log.error("ATENÇÃO: Consulta agendada no SQL, mas falha ao deletar do Mongo ID: {}", doc.getId());
-                // Opcional: doc.setStatus("MIGRADO_COM_ERRO_DELETE"); mongoRepository.save(doc);
+                doc.setStatus("MIGRADO_COM_ERRO_DELETE");
+                 mongoRepository.save(doc);
             }
 
             // Retorna o objeto atualizado apenas para a resposta da API (visual)
@@ -80,6 +81,14 @@ public class AppointmentMigrationService {
             return doc;
 
         } catch (BusinessRuleException be) {
+            log.warn("Regra de negócio violada na migração para SQL: {}", be.getMessage());
+            notificationService.send(
+                doc.getUserPublicId(),
+                "AGENDAMENTO_FALHOU",
+                be.getMessage(),
+                null,
+                "/queue/consultas"
+            );
             throw be; // Regras de negócio sobem normalmente
         } catch (Exception e) {
             log.error("Erro crítico na migração ID {}: {}", doc.getId(), e.getMessage());

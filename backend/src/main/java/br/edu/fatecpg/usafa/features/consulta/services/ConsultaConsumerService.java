@@ -20,12 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaConsumerService;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ConsultaConsumerService {
+public class ConsultaConsumerService implements IConsultaConsumerService {
 
     private final IConsultaDocumentRepository mongoRepository; 
     private final ICacheService cacheService; 
@@ -49,9 +50,10 @@ public class ConsultaConsumerService {
     @Async
     @Transactional // Garante consistência nas leituras do SQL
     public void processarSolicitacaoAsync(String messageJson) {
+        AppointmentRequestDto request = null;
         try {
             // 1. Deserializa o JSON para o DTO novo (que tem horarioSlotId)
-            AppointmentRequestDto request = objectMapper.readValue(messageJson, AppointmentRequestDto.class);
+            request = objectMapper.readValue(messageJson, AppointmentRequestDto.class);
             log.info("Processando solicitação para o usuário: {}", request.getPatientId());
 
             // 2. Valida e Busca dados (SQL) usando o Helper
@@ -94,7 +96,15 @@ public class ConsultaConsumerService {
 
         } catch (BusinessRuleException e) {
             log.warn("Regra de negócio violada (consumidor): {}", e.getMessage());
-            // Aqui você poderia notificar o usuário sobre o erro via WebSocket também
+            if (request != null) {
+                notificationService.send(
+                    request.getPatientId(),
+                    "SOLICITACAO_FALHOU",
+                    e.getMessage(),
+                    null,
+                    "/queue/consultas"
+                );
+            }
         } catch (Exception e) {
             log.error("Erro crítico ao processar solicitação do Redis", e);
         }
