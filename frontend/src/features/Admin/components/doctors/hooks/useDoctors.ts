@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { showErrorToast, showSuccessToast } from "../../../utils/adminUtils"; // Ajuste o caminho se necessário
 import type { Doctor, NewDoctorData } from "../types/doctor.type";
 import * as doctorService from "../services/doctor.service";
 import { ApiError } from "../../../../../shared/exceptions/ApiError";
 import { useDebounce } from "../../../../../shared/utils/forPages.utils";
+import Swal from "sweetalert2";
 
 /**
  * Hook customizado para gerenciar a lógica de médicos,
@@ -36,14 +36,14 @@ export const useDoctors = (initialSearchTerm = "") => {
       setHasMore(!data.last);
       setPage(pageNumber);
 
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-        showErrorToast('Não foi possível carregar os médicos.');
-      } else {
-        console.error(err);
-        showErrorToast('Erro desconhecido ao carregar médicos.');
-      }
+    } catch (error: unknown) {
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível carregar os médicos.";
+
+      Swal.fire("Erro ao Carregar", mensagemDoBackend, "error");
+      setError(mensagemDoBackend);
     } finally {
       setIsLoading(false);
     }
@@ -76,14 +76,15 @@ export const useDoctors = (initialSearchTerm = "") => {
       // Recarrega do zero para garantir consistência da lista
       fetchDoctors(debouncedSearchTerm, 0, true);
       
-      showSuccessToast('Médico criado com sucesso!');
+      Swal.fire('Sucesso', 'Médico criado com sucesso!', 'success');
       return newDoctor;
-    } catch (err) {
+    } catch (error: unknown) {
       // Tratamento de erro robusto
-      const errorMessage = err instanceof ApiError ? err.message : "Erro ao criar médico";
+      const errorMessage = error instanceof ApiError ? error.message : "Erro ao criar médico";
       setError(errorMessage);
-      showErrorToast(errorMessage);
-      throw err; // Repassa o erro para o componente não fechar o modal
+      Swal.fire('Erro ao Criar', errorMessage, 'error');
+
+      throw error; // Repassa o erro para o componente não fechar o modal
     } finally {
       setIsLoading(false);
     }
@@ -102,12 +103,13 @@ export const useDoctors = (initialSearchTerm = "") => {
       setDoctors((prev) => 
         prev.map((d) => (String(d.id) === String(id) ? updatedDoctor : d))
       );
-      showSuccessToast('Médico atualizado com sucesso!');
-    } catch (err) {
-      const errorMessage = err instanceof ApiError ? err.message : "Erro ao atualizar médico";
+      Swal.fire('Sucesso', 'Médico atualizado com sucesso!', 'success');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof ApiError ? error.message : "Erro ao atualizar médico";
       setError(errorMessage);
-      showErrorToast(errorMessage);
-      throw err;
+      Swal.fire('Erro ao Atualizar', errorMessage, 'error');
+
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -120,10 +122,11 @@ export const useDoctors = (initialSearchTerm = "") => {
     try {
       await doctorService.deleteDoctor(id);
       setDoctors((prev) => prev.filter((d) => String(d.id) !== String(id)));
-      showSuccessToast('Médico deletado com sucesso.');
-    } catch (err) {
-      const errorMessage = err instanceof ApiError ? err.message : "Falha ao deletar médico";
-      showErrorToast(errorMessage);
+      Swal.fire('Sucesso', 'Médico deletado com sucesso.', 'success');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof ApiError ? error.message : "Falha ao deletar médico";
+      Swal.fire('Não foi possível deletar', errorMessage, 'warning');
+      setError(errorMessage);
     }
   };
 

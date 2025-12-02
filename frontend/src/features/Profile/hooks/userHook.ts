@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import type { UserData, UserProfileUpdateDTO } from '../types/profile.type';
 import { updateUserData } from '../services/profile.service';
 import { useAuth } from '../../Auth/hooks/useAuth';
+import { ApiError } from '../../../shared';
 
 export const useUserProfileData = () => {
   const { user, updateSessionUser } = useAuth();
@@ -84,19 +86,18 @@ export const useUserProfileData = () => {
         cep: updatedUserApi.cep,
         picture: updatedUserApi.picture // Se quiser atualizar a foto no header/sessão
       });
-      
-      return true;
-    } catch (err: unknown) {
-      let errorMessage = "Ocorreu um erro inesperado ao atualizar o perfil.";
 
-      // Verifica se o erro tem a estrutura de um erro de API (como do Axios)
-      if (typeof err === 'object' && err !== null && 'response' in err) {
-        const apiError = err as { response?: { data?: { message?: string } } };
-        errorMessage = apiError.response?.data?.message || errorMessage;
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      }
+      Swal.fire('Sucesso!', 'Seu perfil foi atualizado.', 'success');
+      return true;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : "Ocorreu um erro inesperado ao atualizar o perfil.";
+
       setUpdateError(errorMessage);
+      Swal.fire('Erro ao Atualizar', errorMessage, 'error');
+
       return false;
     } finally {
       setIsUpdating(false);

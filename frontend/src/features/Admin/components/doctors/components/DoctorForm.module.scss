@@ -1,38 +1,156 @@
-@use '../../../../../styles/variables' as *; // Ajuste o caminho
-@use 'sass:color';
+@use '../../../../../styles/variables' as *;
 
-// Usamos :global para estilizar o botão dentro do AuthForm (estilo do botão azul/primary)
-:global(.authFormSubmitButton) {
-  // Se precisar de margem extra para separar do cancelar
-  margin-bottom: 0.75rem;
+.doctorFormContainer {
+  background-color: $white;
+  padding: 2rem;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
   width: 100%;
+  max-width: 500px;
+  margin: 2rem auto;
+  animation: fadeIn 0.3s ease-out;
+
+  @media (max-width: $breakpoint-md) {
+    padding: 1.5rem;
+    box-shadow: none;
+    background-color: transparent;
+    margin: 1rem auto;
+  }
 }
 
-// Estilo para o nosso botão "Cancelar"
+.photoUploadSection {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid $border-light;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+}
+
+.previewContainer {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+
+  .previewImage,
+  .placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid $white;
+    box-shadow: $shadow-md;
+    background-color: $bg-light;
+  }
+
+  .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: $text-light;
+    border: 2px dashed $border-color;
+  }
+}
+
+.uploadControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .sectionTitle {
+    font-weight: 600;
+    color: $text-strong;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .fileInputLabel {
+    cursor: pointer;
+    color: $primary-color;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: $primary-hover;
+      text-decoration: underline;
+    }
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+}
+
+.actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .cancelButton {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
   border-radius: $radius-md;
   font-weight: 600;
-  text-align: center;
-  font-size: 1rem;
-  
-  // Cores padronizadas com variáveis globais
-  border: 1px solid $border-color;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
   background-color: $bg-secondary-btn;
   color: $text-strong;
-  
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 0.5rem;
+  border: 1px solid $bg-secondary-btn-hover;
 
   &:hover:not(:disabled) {
     background-color: $bg-secondary-btn-hover;
-    border-color: color.adjust($border-color, $lightness: -10%);
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.specialtySelect {
+  // Reutiliza o estilo dos inputs do AuthForm para consistência
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  font-size: 1rem;
+  background-color: $bg-input;
+  color: $text-color;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  appearance: none; // Remove a aparência padrão do sistema
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem; // Espaço para o ícone
+
+  &:focus {
+    outline: none;
+    border-color: $border-focus;
+    box-shadow: $shadow-focus;
+    background-color: $white;
   }
 }

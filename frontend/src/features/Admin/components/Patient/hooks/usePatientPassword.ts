@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-import { showErrorToast, showSuccessToast } from '../../../utils/adminUtils';
+import Swal from 'sweetalert2';
 import { ApiError } from '../../../../../shared';
 import { patientPasswordService } from '../services/patientPassword.service';
 import { PasswordTokenResponse } from '../types/patientPassword.type';
@@ -23,14 +23,17 @@ export const usePatientPassword = () => {
     try {
       const response = await patientPasswordService.generateToken({ userPublicId });
       setTokenData(response);
-      showSuccessToast('Link de criação de senha gerado com sucesso!');
+      Swal.fire('Sucesso', 'Link de criação de senha gerado com sucesso!', 'success');
       // Retorna a resposta para que possa ser usada imediatamente (ex: copiar para a área de transferência)
       return response;
-    } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Ocorreu um erro inesperado.';
-      setError(message);
-      showErrorToast(`Falha ao gerar link: ${message}`);
-      throw err; // Propaga o erro para o componente, se necessário
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : 'Ocorreu um erro inesperado ao gerar o link.';
+      setError(errorMessage);
+      Swal.fire('Falha ao Gerar Link', errorMessage, 'error');
+      throw error; // Propaga o erro para o componente, se necessário
     } finally {
       setIsLoading(false);
     }
@@ -47,10 +50,10 @@ export const usePatientPassword = () => {
       const response = await patientPasswordService.getToken(userPublicId);
       setTokenData(response);
       return response;
-    } catch (err) {
+    } catch (error: unknown) {
       // Em caso de 404, o `api.service` já lança um ApiError.
-      const message = err instanceof ApiError ? err.message : 'Ocorreu um erro inesperado.';
-      setError(message);
+      const errorMessage = error instanceof ApiError ? error.message : 'Ocorreu um erro inesperado.';
+      setError(errorMessage);
       setTokenData(null); // Limpa dados antigos se a busca falhar
       // Não mostra toast para busca, para não poluir a UI
     } finally {
@@ -68,12 +71,15 @@ export const usePatientPassword = () => {
     try {
       await patientPasswordService.deleteToken(userPublicId);
       setTokenData(null); // Limpa o estado local
-      showSuccessToast('Token de senha invalidado com sucesso.');
-    } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Ocorreu um erro inesperado.';
-      setError(message);
-      showErrorToast(`Falha ao invalidar token: ${message}`);
-      throw err;
+      Swal.fire('Sucesso', 'Token de senha invalidado com sucesso.', 'success');
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : 'Ocorreu um erro inesperado ao invalidar o token.';
+      setError(errorMessage);
+      Swal.fire('Falha ao Invalidar', errorMessage, 'error');
+      throw error;
     } finally {
       setIsLoading(false);
     }

@@ -79,7 +79,7 @@ public class DoctorServiceImpl implements IDoctorService {
             throw new BusinessRuleException("Este e-mail já está em uso.");
         }
 
-        TipoConsulta especialidade = helper.findSpecialtyByName(doctorDto.getSpecialty());
+        TipoConsulta especialidade = helper.findSpecialtyByPublicId(doctorDto.getSpecialty());
 
         Medico medico = new Medico();
         medico.setNome(doctorDto.getName());
@@ -125,8 +125,8 @@ public class DoctorServiceImpl implements IDoctorService {
         medico.setEmail(doctorDto.getEmail());
 
         // Atualiza Especialidade se mudou
-        if (!medico.getTipoConsulta().getNome().equalsIgnoreCase(doctorDto.getSpecialty())) {
-            TipoConsulta novaEspec = helper.findSpecialtyByName(doctorDto.getSpecialty());
+        if (!medico.getTipoConsulta().getPublicId().equalsIgnoreCase(doctorDto.getSpecialty())) {
+            TipoConsulta novaEspec = helper.findSpecialtyByPublicId(doctorDto.getSpecialty());
             medico.setTipoConsulta(novaEspec);
         }
 

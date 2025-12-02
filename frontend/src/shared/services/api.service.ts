@@ -49,24 +49,24 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
   const session = getStorageItem<UserSession>(USER_STORAGE_KEY);
   const token = session?.token || null;
 
-  // --- DEBUG TEMPORÁRIO (Olhe no Console do Navegador) ---
-  console.log("Tentando acessar:", endpoint);
-  console.log("Token encontrado?", !!token); // Tem que ser TRUE
-  // -------------------------------------------------------
-
-  const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    // 1. CORREÇÃO: Header obrigatório para o Ngrok Free não bloquear a API
+  // --- CORREÇÃO AQUI ---
+  // Começamos apenas com os headers que são comuns a todos
+  const defaultHeaders: Record<string, string> = {
     'ngrok-skip-browser-warning': 'true' 
   };
+
+  // Só adicionamos 'application/json' se o body NÃO for FormData.
+  // Se for FormData, deixamos o navegador decidir o Content-Type (para incluir o boundary).
+  if (!(options.body instanceof FormData)) {
+    defaultHeaders['Content-Type'] = 'application/json';
+  }
+  // ---------------------
 
   const mergedHeaders = new Headers({
     ...defaultHeaders,
     ...(options.headers || {}),
   });
 
-  // 2. CORREÇÃO: Só adiciona o token do Storage se NÃO tiver um Authorization manual
-  // Isso permite que a gente passe um token específico na hora de completar o cadastro do Google
   if (token && !mergedHeaders.has('Authorization')) {
     mergedHeaders.set('Authorization', `Bearer ${token}`);
   }

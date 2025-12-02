@@ -3,6 +3,7 @@ package br.edu.fatecpg.usafa.models;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -19,7 +20,7 @@ public class Medico {
     private Long id;
 
     @Column(unique = true, nullable = false, updatable = false)
-    private String publicId; // 
+    private String publicId;
 
     private String nome;
 
@@ -44,4 +45,11 @@ public class Medico {
     // Um médico tem muitos slots de horário
     @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<HorarioSlot> horarios;
+
+    @PrePersist
+    public void generatePublicId() {
+        if (this.publicId == null) {
+            this.publicId = UUID.randomUUID().toString();
+        }
+    }
 }

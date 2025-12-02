@@ -4,6 +4,12 @@ import type { NewPatientData, Patient } from '../../types/patient.type';
 import styles from './PatientForm.module.scss';
 import AuthForm from '../../../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../../../components/Form/types/form.type';
+import {
+  validateEmail,
+  validateCpf,
+  validatePhone,
+  validateCep,
+} from '../../../../../../shared/utils/validators.utils';
 
 // Helper para formatar data (API envia ISO, input 'date' usa YYYY-MM-DD)
 const formatDateForInput = (isoDate: string): string => {
@@ -33,14 +39,28 @@ export const PatientForm: React.FC<PatientFormProps> = ({
   const [email, setEmail] = useState(initialData?.email || '');
   const [cpf, setCpf] = useState(initialData?.cpf || '');
   const [phone, setPhone] = useState(initialData?.phone || '');
+  const [cep, setCep] = useState(initialData?.cep || '');
   const [birthDate, setBirthDate] = useState(
     formatDateForInput(initialData?.birthDate || '')
   );
 
+  // Estados de erro para validação
+  const [emailError, setEmailError] = useState<string | undefined>();
+  const [cpfError, setCpfError] = useState<string | undefined>();
+  const [phoneError, setPhoneError] = useState<string | undefined>();
+  const [cepError, setCepError] = useState<string | undefined>();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validação final antes do envio
+    if (!validateEmail(email) || !validateCpf(cpf) || !validatePhone(phone) || !validateCep(cep)) {
+      console.error("Formulário com dados inválidos.");
+      return; // Impede o envio se houver erros
+    }
+
     // A API (hook) deve converter o YYYY-MM-DD para ISO string
-    const patientData = { name, email, cpf, phone, birthDate };
+    const patientData = { name, email, cpf, phone, cep, birthDate };
     
     try {
       await onSubmit(patientData);
@@ -68,8 +88,15 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         label: 'Email',
         placeholder: 'paciente@email.com',
         value: email,
-        onChange: (val) => setEmail(val as string),
+        onChange: (val) => {
+          const newEmail = val as string;
+          setEmail(newEmail);
+          setEmailError(
+            validateEmail(newEmail) ? undefined : 'Formato de email inválido.'
+          );
+        },
         required: true,
+        error: emailError,
       },
       {
         elementType: 'input',
@@ -78,8 +105,15 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         label: 'CPF',
         placeholder: '000.000.000-00',
         value: cpf,
-        onChange: (val) => setCpf(val as string),
+        onChange: (val) => {
+          const newCpf = val as string;
+          setCpf(newCpf);
+          setCpfError(
+            validateCpf(newCpf) ? undefined : 'CPF inválido.'
+          );
+        },
         required: true,
+        error: cpfError,
       },
       {
         elementType: 'input',
@@ -88,8 +122,32 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         label: 'Telefone',
         placeholder: '(11) 99999-8888',
         value: phone,
-        onChange: (val) => setPhone(val as string),
+        onChange: (val) => {
+          const newPhone = val as string;
+          setPhone(newPhone);
+          setPhoneError(
+            validatePhone(newPhone) ? undefined : 'Telefone inválido.'
+          );
+        },
         required: true,
+        error: phoneError,
+      },
+      {
+        elementType: 'input',
+        type: 'text',
+        name: 'cep',
+        label: 'CEP',
+        placeholder: '00000-000',
+        value: cep,
+        onChange: (val) => {
+          const newCep = val as string;
+          setCep(newCep);
+          setCepError(
+            validateCep(newCep) ? undefined : 'CEP inválido (deve ter 8 dígitos).'
+          );
+        },
+        required: true,
+        error: cepError,
       },
       {
         elementType: 'input',
@@ -102,7 +160,18 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         placeholder: '', // <--- CORREÇÃO AQUI
       },
     ],
-    [name, email, cpf, phone, birthDate]
+    [
+      name,
+      email,
+      cpf,
+      phone,
+      cep,
+      birthDate,
+      emailError,
+      cpfError,
+      phoneError,
+      cepError,
+    ]
   );
 
   return (

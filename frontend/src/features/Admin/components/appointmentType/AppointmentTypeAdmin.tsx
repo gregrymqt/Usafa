@@ -24,7 +24,7 @@ const TipoConsultaManager: React.FC = () => {
   const {
     activeTab,
     setActiveTab,
-    isLoading,
+    isLoadingTypes,
     tipos,
     editingItem,
     handleDelete,
@@ -73,7 +73,7 @@ const TipoConsultaManager: React.FC = () => {
       {/* Conteúdo */}
       <div className={styles.contentArea}>
         {activeTab === "list" ? (
-          isLoading && tipos.length === 0 ? (
+            !isLoadingTypes && tipos.length === 0 ? (
             <p>Carregando dados...</p>
           ) : (
             <Table<TipoConsultaTableData> colunas={columns} dados={tableData} />
@@ -82,7 +82,7 @@ const TipoConsultaManager: React.FC = () => {
           <AuthForm
             fields={formFields}
             handleSubmit={handleSubmit}
-            isLoading={isLoading}
+            isLoading={isLoadingTypes}
             buttonText={editingItem ? "Atualizar" : "Cadastrar"}
           >
             <div

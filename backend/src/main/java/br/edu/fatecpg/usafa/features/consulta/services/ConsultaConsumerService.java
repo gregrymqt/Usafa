@@ -8,8 +8,12 @@ import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
 import br.edu.fatecpg.usafa.models.User;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
+import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
+import br.edu.fatecpg.usafa.shared.exceptions.MongoConnectionException;
 import br.edu.fatecpg.usafa.shared.webSockets.interfaces.INotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.MongoException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaConsumerService;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataAccessException;
 
 @Service
 @RequiredArgsConstructor
@@ -104,6 +110,14 @@ public class ConsultaConsumerService implements IConsultaConsumerService {
                     null,
                     "/queue/consultas"
                 );
+            }
+        } catch (DataAccessException e) {
+            if (e instanceof DataAccessResourceFailureException || e.getCause() instanceof MongoException) {
+                log.error("Erro de conexão com o MongoDB ao salvar solicitação de agendamento.", e);
+                throw new MongoConnectionException("Falha de comunicação com o banco de dados ao salvar a solicitação.", e);
+            } else {
+                log.error("Erro de banco de dados ao salvar solicitação de agendamento: {}", e.getMessage(), e);
+                throw new DatabaseOperationException("Erro ao salvar a solicitação de agendamento.", e);
             }
         } catch (Exception e) {
             log.error("Erro crítico ao processar solicitação do Redis", e);

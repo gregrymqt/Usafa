@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import Swal from "sweetalert2";
 import type { HomeContent } from "../types/homeAdmin.type";
+import { ApiError } from "../../../../../shared";
 
 interface UseHomeAdminProps {
   initialData?: HomeContent | null;
@@ -56,10 +58,24 @@ export const useHomeForm = ({ initialData, onSubmit }: UseHomeAdminProps) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.type) return;
-    onSubmit(formData);
+    if (!formData.title || !formData.type) {
+      Swal.fire("Campos incompletos", "Título e Tipo são obrigatórios.", "warning");
+      return;
+    }
+
+    try {
+      await onSubmit(formData);
+    } catch (error: unknown) {
+      console.error("Falha na submissão do formulário:", error);
+      const action = initialData ? 'atualizar' : 'criar';
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : `Falha ao ${action} o item.`;
+      Swal.fire(`Erro ao ${action}`, mensagemDoBackend, 'error');
+    }
   };
 
   return {

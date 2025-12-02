@@ -1,7 +1,9 @@
 // hooks/partials/useConsultasConfirmadas.ts
 import { useState, useCallback } from 'react';
+import Swal from 'sweetalert2';
 import { Consulta } from '../../types/consulta.types';
 import { getConsultas } from '../../services/consulta.service';
+import { ApiError } from '../../../../shared';
 
 
 export const useConsultasConfirmadas = (userId: string) => {
@@ -20,11 +22,17 @@ export const useConsultasConfirmadas = (userId: string) => {
       setConsultas(prev => isNewSearch ? novosItens : [...prev, ...novosItens]);
       setHasMore(data.last === false);
       setPage(pageNumber);
-    } catch (err) {
-      console.error(err);
-      if (isNewSearch) setConsultas([]); // [cite: 14]
+    } catch (error: unknown) {
+      console.error(error);
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível carregar as consultas confirmadas.";
+
+      Swal.fire("Erro ao Carregar", mensagemDoBackend, "error");
+      if (isNewSearch) setConsultas([]);
     } finally {
-      setIsLoading(false); // [cite: 15]
+      setIsLoading(false);
     }
   }, [userId]);
 

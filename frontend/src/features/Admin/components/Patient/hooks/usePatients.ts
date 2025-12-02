@@ -6,18 +6,17 @@ import type {
   UpdatePatientData,
 } from "../types/patient.type";
 import * as patientService from "../services/patient.service";
-import { showErrorToast, showSuccessToast } from "../../../utils/adminUtils";
 import { useDebounce } from "../../../../../shared/utils/forPages.utils";
 import { ApiError } from "../../../../../shared";
 import { validateCpf } from "../../../../../shared/utils/validators.utils";
+import Swal from "sweetalert2";
 
 /**
  * Converte a data do formulário (YYYY-MM-DD) para ISO string UTC.
  */
 const convertFormDateToISO = (dateString: string): string => {
   if (!dateString) return "";
-  // Garante que a data seja tratada como UTC
-  return `${dateString}T00:00:00Z`;
+  return dateString; 
 };
 
 export const usePatients = () => {
@@ -49,7 +48,7 @@ export const usePatients = () => {
           // CORREÇÃO VISUAL: Se não achar nada pelo CPF, limpa a lista ou avisa
           if (result.length === 0) {
             setPatients([]);
-            showErrorToast("Nenhum paciente encontrado com este CPF.");
+            Swal.fire("Não Encontrado", "Nenhum paciente encontrado com este CPF.", "info");
           } else {
             setPatients(result);
           }
@@ -69,11 +68,14 @@ export const usePatients = () => {
           setHasMore(!response.last);
           setPage(pageNumber);
         }
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setError(err.message);
-          showErrorToast("Não foi possível carregar os pacientes.");
-        }
+      } catch (error: unknown) {
+        const mensagemDoBackend =
+          error instanceof ApiError
+            ? error.message
+            : "Não foi possível carregar os pacientes.";
+
+        Swal.fire("Erro ao Carregar", mensagemDoBackend, "error");
+        setError(mensagemDoBackend);
       } finally {
         setIsLoading(false);
       }
@@ -98,13 +100,16 @@ export const usePatients = () => {
       setPatients((prev) => [newPatient, ...prev]);
       // Recarrega os dados para refletir a adição na paginação correta
       fetchPatients(searchTerm, 0, true);
-      showSuccessToast("Paciente cadastrado com sucesso!");
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-        showErrorToast(`Falha ao cadastrar paciente: ${err.message}`);
-        throw err; // Propaga o erro para o formulário
-      }
+      Swal.fire("Sucesso", "Paciente cadastrado com sucesso!", "success");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : "Falha ao cadastrar paciente.";
+
+      setError(errorMessage);
+      Swal.fire("Erro ao Cadastrar", errorMessage, "error");
+      throw error; // Propaga o erro para o formulário
     } finally {
       setIsLoading(false);
     }
@@ -119,12 +124,14 @@ export const usePatients = () => {
       await patientService.deletePatient(patientId);
       // Recarrega os dados da página atual
       fetchPatients(debouncedSearchTerm, 0, true); // Recarrega do início após deletar
-      showSuccessToast("Paciente deletado com sucesso.");
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-        showErrorToast(`Falha ao deletar paciente: ${err.message}`);
-      }
+      Swal.fire("Sucesso", "Paciente deletado com sucesso.", "success");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : "Falha ao deletar paciente.";
+      Swal.fire("Não foi possível deletar", errorMessage, "warning");
+      setError(errorMessage);
     }
   };
 
@@ -148,13 +155,16 @@ export const usePatients = () => {
       setPatients((prev) =>
         prev.map((p) => (p.id === patientId ? updatedPatient : p))
       );
-      showSuccessToast("Paciente atualizado com sucesso!");
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-        showErrorToast(`Falha ao atualizar paciente: ${err.message}`);
-        throw err; // Propaga o erro
-      }
+      Swal.fire("Sucesso", "Paciente atualizado com sucesso!", "success");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : "Falha ao atualizar paciente.";
+
+      setError(errorMessage);
+      Swal.fire("Erro ao Atualizar", errorMessage, "error");
+      throw error; // Propaga o erro
     } finally {
       setIsLoading(false);
     }

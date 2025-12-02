@@ -27,9 +27,9 @@ public class DoctorHelper {
     /**
      * Busca uma Especialidade (TipoConsulta) pelo seu nome ou lança exceção.
      */
-    public TipoConsulta findSpecialtyByName(String specialtyName) {
-        return tipoConsultaRepository.findByNomeIgnoreCase(specialtyName)
-                .orElseThrow(() -> new BusinessRuleException("Especialidade '" + specialtyName + "' não encontrada")); 
+    public TipoConsulta findSpecialtyByPublicId(String specialtyPublicId) {
+        return tipoConsultaRepository.findByPublicId(specialtyPublicId)
+                .orElseThrow(() -> new BusinessRuleException("Especialidade '" + specialtyPublicId + "' não encontrada")); 
     }
 
     /**

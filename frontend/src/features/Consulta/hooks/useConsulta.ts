@@ -54,15 +54,20 @@ export const useConsulta = (userId: string) => {
 
   // 5. Submit Integrado (Socket + Form)
   const handleSubmitConsulta = async (data: Partial<ConsultaRequest>) => {
-    // A) Inicia escuta ANTES de enviar [cite: 26]
-    setupWebSocketListener();
+    try {
+      // A) Inicia escuta ANTES de enviar
+      setupWebSocketListener();
 
-    // B) Envia formulário
-    const success = await form.submitRequest(data);
-    
-    // C) Se deu certo, atualiza a lista de Solicitações imediatamente (feedback visual "Pendente")
-    if (success) {
-       mongo.fetchSolicitacoes(0, true);
+      // B) Envia formulário. O useConsultaForm já lida com o Swal.fire em caso de erro.
+      const success = await form.submitRequest(data);
+
+      // C) Se deu certo, atualiza a lista de Solicitações imediatamente (feedback visual "Pendente")
+      if (success) {
+        mongo.fetchSolicitacoes(0, true);
+      }
+    } catch (error) {
+      // Apenas logamos o erro aqui, pois o hook filho (useConsultaForm) já exibiu o alerta.
+      console.error("Erro capturado no hook principal useConsulta:", error);
     }
   };
 
@@ -90,7 +95,6 @@ export const useConsulta = (userId: string) => {
     opcoesHorarios: form.opcoesHorarios,
     isLoadingHorarios: form.isLoadingHorarios,
     isSubmitting: form.isSubmitting,
-    showSuccessMessage: form.showSuccessMessage,
     error: form.error,
     buscarHorarios: form.buscarHorarios,
     handleSubmitConsulta, // Versão integrada

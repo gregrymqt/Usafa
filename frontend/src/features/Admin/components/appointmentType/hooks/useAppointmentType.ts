@@ -1,79 +1,99 @@
 // src/features/Admin/TipoConsulta/hooks/useAppointmentType.ts
-import { useState, useEffect, useCallback } from 'react';
-import Swal from 'sweetalert2';
-import { appointmentTypeService } from '../services/appointmentType.service';
-import { TipoConsulta } from '../types/appointmentType.type';
-import { FormField } from '../../../../../components/Form/types/form.type';
+import { useState, useEffect, useCallback } from "react";
+import Swal from "sweetalert2";
+import { appointmentTypeService } from "../services/appointmentType.service";
+import { TipoConsulta } from "../types/appointmentType.type";
+import { ApiError } from "../../../../../shared/exceptions/ApiError";
+import { FormField } from "../../../../../components/Form/types/form.type";
 
 export const useAppointmentType = () => {
   // --- Estados ---
-  const [activeTab, setActiveTab] = useState<'list' | 'form'>('list');
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"list" | "form">("list");
+  const [isLoadingTypes, setIsLoadingTypes] = useState(false);
   const [tipos, setTipos] = useState<TipoConsulta[]>([]);
   const [editingItem, setEditingItem] = useState<TipoConsulta | null>(null);
-  const [formData, setFormData] = useState({ nome: '' });
+  const [formData, setFormData] = useState({ nome: "" });
 
   // --- Ações ---
 
   const fetchTipos = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoadingTypes(true);
     try {
       const data = await appointmentTypeService.getAll();
       setTipos(data || []);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      Swal.fire('Erro', 'Não foi possível carregar os tipos de consulta.', 'error');
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível carregar os tipos de consulta.";
+
+      Swal.fire("Erro ao Carregar", mensagemDoBackend, "error");
     } finally {
-      setIsLoading(false);
+      setIsLoadingTypes(false);
     }
   }, []);
 
   const handleDelete = async (publicId: string) => {
-    setIsLoading(true);
+    setIsLoadingTypes(true);
     try {
       await appointmentTypeService.delete(publicId);
       await fetchTipos();
-      // Opcional: Feedback visual de deleção, se desejar
-    } catch (error) {
+      Swal.fire("Sucesso", "Tipo de consulta excluído.", "success");
+    } catch (error: unknown) {
       console.error(error);
-      Swal.fire('Erro', 'Erro ao deletar o registro.', 'error');
+
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Erro desconhecido ao deletar.";
+
+      Swal.fire("Não foi possível deletar", mensagemDoBackend, "warning");
     } finally {
-      setIsLoading(false);
+      setIsLoadingTypes(false);
     }
   };
 
   const handleEditSetup = (item: TipoConsulta) => {
     setEditingItem(item);
     setFormData({ nome: item.nome });
-    setActiveTab('form');
+    setActiveTab("form");
   };
 
   const handleCancelEdit = () => {
     setEditingItem(null);
-    setFormData({ nome: '' });
-    setActiveTab('list');
+    setFormData({ nome: "" });
+    setActiveTab("list");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoadingTypes(true);
 
     try {
       if (editingItem) {
-        await appointmentTypeService.update(editingItem.publicId, formData.nome);
-        Swal.fire('Sucesso', 'Tipo de consulta atualizado!', 'success');
+        await appointmentTypeService.update(
+          editingItem.publicId,
+          formData.nome
+        );
+        Swal.fire("Sucesso", "Tipo de consulta atualizado!", "success");
       } else {
         await appointmentTypeService.create(formData.nome);
-        Swal.fire('Sucesso', 'Tipo de consulta criado!', 'success');
+        Swal.fire("Sucesso", "Tipo de consulta criado!", "success");
       }
 
       handleCancelEdit(); // Reseta e volta para lista
       fetchTipos();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      Swal.fire('Erro', 'Erro ao salvar os dados.', 'error');
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Ocorreu um erro ao salvar os dados.";
+
+      Swal.fire("Erro ao Salvar", mensagemDoBackend, "error");
     } finally {
-      setIsLoading(false);
+      setIsLoadingTypes(false);
     }
   };
 
@@ -82,15 +102,15 @@ export const useAppointmentType = () => {
   // Definimos os campos do formulário aqui para limpar a View
   const formFields: FormField[] = [
     {
-      name: 'nome',
-      label: 'Nome da Especialidade',
-      elementType: 'input',
-      type: 'text',
-      placeholder: 'Ex: Cardiologia, Dermatologia...',
+      name: "nome",
+      label: "Nome da Especialidade",
+      elementType: "input",
+      type: "text",
+      placeholder: "Ex: Cardiologia, Dermatologia...",
       required: true,
       value: formData.nome,
-      onChange: (val) => setFormData(prev => ({ ...prev, nome: val })),
-    }
+      onChange: (val) => setFormData((prev) => ({ ...prev, nome: val })),
+    },
   ];
 
   // Inicialização
@@ -102,17 +122,17 @@ export const useAppointmentType = () => {
     // State
     activeTab,
     setActiveTab,
-    isLoading,
+    isLoadingTypes,
     tipos,
     editingItem,
-    
+
     // Actions
     handleDelete,
     handleEditSetup,
     handleCancelEdit,
     handleSubmit,
-    
+
     // Configs
-    formFields
+    formFields,
   };
 };

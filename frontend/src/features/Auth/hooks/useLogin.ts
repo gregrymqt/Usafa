@@ -1,8 +1,10 @@
 import { useState } from "react";
+import Swal from "sweetalert2";
 import type { LoginCredentials, UserSession } from "../types/auth.types";
 import { login } from "../services/auth.service";
 import { validateEmail } from "../../../shared/utils/validators.utils"; // Só precisamos deste validador
 import { useAuth } from "./useAuth";
+import { ApiError } from "../../../shared";
 
 export const useLogin = () => {
 
@@ -15,23 +17,26 @@ export const useLogin = () => {
     setError(null);
 
     if (!validateEmail(credentials.email) || !credentials.password) {
-      setError("Email ou senha inválidos.");
+      const errorMessage = "Email e senha são obrigatórios.";
+      setError(errorMessage);
+      Swal.fire("Campos inválidos", errorMessage, "warning");
       setIsLoading(false);
       return;
     }
 
     try {
-      // 3. Chama o serviço de API
-      //    Assume que `login` retorna o ResponseDTO { token, publicId }
       const response: UserSession = await login(credentials);
-
       handleLoginSuccess(response);
-    } catch (err) {
-      // 6. Define uma mensagem de erro para a UI
-      setError("Email ou senha inválidos. Tente novamente.");
-      console.error("Falha no login:", err);
+    } catch (error: unknown) {
+      console.error("Falha no login:", error);
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : "Email ou senha inválidos. Tente novamente.";
+
+      setError(errorMessage);
+      Swal.fire("Falha no Login", errorMessage, "error");
     } finally {
-      // 7. Garante que o estado de loading seja desativado
       setIsLoading(false);
     }
   };

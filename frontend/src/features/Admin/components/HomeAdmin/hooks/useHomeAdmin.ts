@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import { HomeContent } from '../types/homeAdmin.type';
 import { homeService } from '../services/home.service';
+import { ApiError } from '../../../../../shared';
 
 
 export const useHomeAdmin = () => {
@@ -14,9 +15,13 @@ export const useHomeAdmin = () => {
     try {
       const data = await homeService.getAllAdmin();
       setItems(data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      Swal.fire('Erro', 'Falha ao carregar os conteúdos da home.', 'error');
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Falha ao carregar os conteúdos da home.";
+      Swal.fire("Erro ao Carregar", mensagemDoBackend, "error");
     }
   }, []);
 
@@ -39,10 +44,14 @@ export const useHomeAdmin = () => {
       await homeService.delete(id);
       setItems(prev => prev.filter(i => i.id !== id));
       // Opcional: Notificação de sucesso
-      // Swal.fire('Deletado!', 'O item foi removido.', 'success');
-    } catch (error) {
+      Swal.fire('Deletado!', 'O item foi removido.', 'success');
+    } catch (error: unknown) {
       console.error(error);
-      Swal.fire('Erro', 'Ocorreu um erro ao deletar o item.', 'error');
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Ocorreu um erro ao deletar o item.";
+      Swal.fire("Não foi possível deletar", mensagemDoBackend, "warning");
     }
   };
 
@@ -66,10 +75,14 @@ export const useHomeAdmin = () => {
         Swal.fire('Sucesso!', 'Novo item criado.', 'success');
       }
       setIsModalOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       const action = editingItem ? 'atualizar' : 'criar';
-      Swal.fire('Erro', `Falha ao ${action} o item.`, 'error');
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : `Falha ao ${action} o item.`;
+      Swal.fire(`Erro ao ${action}`, mensagemDoBackend, 'error');
     } finally {
       setIsLoading(false);
     }

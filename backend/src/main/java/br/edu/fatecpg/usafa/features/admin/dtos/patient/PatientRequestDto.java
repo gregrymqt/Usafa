@@ -30,7 +30,4 @@ public class PatientRequestDto {
     @NotBlank(message = "A data de nascimento é obrigatória")
     private String birthDate; // Formato ISO "1990-10-25T00:00:00Z"
 
-    // Se a criação de um paciente (User) exigir uma senha:
-    // @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
-    // private String password;
 }

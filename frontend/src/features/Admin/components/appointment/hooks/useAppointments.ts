@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
+import Swal from "sweetalert2";
 import { ApiError } from "../../../../../shared";
-import { showErrorToast, showSuccessToast } from "../../../utils/adminUtils";
 import type {
   Appointment,
   AppointmentFormData,
@@ -43,11 +43,14 @@ export const useAppointments = () => {
         );
         setHasMore(!response.last);
         setPage(pageNumber);
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setError(err.message);
-          showErrorToast("Não foi possível carregar as consultas.");
-        }
+      } catch (error: unknown) {
+        const mensagemDoBackend =
+          error instanceof ApiError
+            ? error.message
+            : "Não foi possível carregar as consultas.";
+
+        Swal.fire("Erro ao Carregar", mensagemDoBackend, "error");
+        setError(mensagemDoBackend);
       } finally {
         setIsLoading(false);
       }
@@ -60,8 +63,13 @@ export const useAppointments = () => {
     try {
       const types = await appointmentService.getTypeOptions();
       setTypeOptions(types);
-    } catch (err) {
-      console.error("Erro ao carregar tipos de consulta", err);
+    } catch (error: unknown) {
+      console.error("Erro ao carregar tipos de consulta", error);
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível carregar as opções de especialidade.";
+      Swal.fire("Erro", mensagemDoBackend, "error");
     }
   }, []);
 
@@ -75,9 +83,13 @@ export const useAppointments = () => {
     try {
       const slots = await appointmentService.getSlotsByType(tipoId);
       setSlotOptions(slots);
-    } catch (err) {
-      console.error("Erro ao buscar horários", err);
-      showErrorToast("Erro ao buscar horários disponíveis.");
+    } catch (error: unknown) {
+      console.error("Erro ao buscar horários", error);
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Erro ao buscar horários disponíveis.";
+      Swal.fire("Erro", mensagemDoBackend, "error");
     } finally {
       setIsLoadingSlots(false);
     }
@@ -91,13 +103,16 @@ export const useAppointments = () => {
       const newAppointment = await appointmentService.createAppointment(formData);
       setAppointments((prev) => [newAppointment, ...prev]);
       fetchAppointments(searchTerm, 0, true);
-      showSuccessToast("Consulta agendada com sucesso!");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-        showErrorToast(`Falha ao agendar consulta: ${err.message}`);
-      }
-      throw err;
+      Swal.fire("Sucesso", "Consulta agendada com sucesso!", "success");
+    } catch (error: unknown) {
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Falha ao agendar consulta.";
+
+      Swal.fire("Erro ao Agendar", mensagemDoBackend, "error");
+      setError(mensagemDoBackend);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -110,13 +125,16 @@ export const useAppointments = () => {
       setAppointments((prev) =>
         prev.map((a) => (a.id === id ? updatedAppointment : a))
       );
-      showSuccessToast("Consulta atualizada com sucesso!");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-        showErrorToast(`Falha ao atualizar consulta: ${err.message}`);
-      }
-      throw err;
+      Swal.fire("Sucesso", "Consulta atualizada com sucesso!", "success");
+    } catch (error: unknown) {
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Falha ao atualizar consulta.";
+
+      Swal.fire("Erro ao Atualizar", mensagemDoBackend, "error");
+      setError(mensagemDoBackend);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -125,13 +143,16 @@ export const useAppointments = () => {
   const removeAppointment = async (id: string) => {
     try {
       await appointmentService.deleteAppointment(id);
-      showSuccessToast("Consulta deletada com sucesso.");
+      Swal.fire("Sucesso", "Consulta deletada com sucesso.", "success");
       fetchAppointments(debouncedSearchTerm, 0, true);
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-        showErrorToast(`Falha ao deletar consulta: ${err.message}`);
-      }
+    } catch (error: unknown) {
+      const mensagemDoBackend =
+        error instanceof ApiError
+          ? error.message
+          : "Falha ao deletar consulta.";
+
+      Swal.fire("Não foi possível deletar", mensagemDoBackend, "warning");
+      setError(mensagemDoBackend);
     }
   };
 

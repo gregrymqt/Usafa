@@ -8,6 +8,7 @@ export interface Patient {
   cpf: string;
   phone: string;
   birthDate: string; // Formato ISO (ex: "1990-10-25T00:00:00Z")
+  cep: string;
 }
 
 /**
@@ -28,7 +29,8 @@ export type PatientFormData = {
   email: string;
   cpf: string;
   phone: string;
-  birthDate: string; // Formato YYYY-MM-DD
+  cep: string;
+  birthDate: string;
 };
 
 
