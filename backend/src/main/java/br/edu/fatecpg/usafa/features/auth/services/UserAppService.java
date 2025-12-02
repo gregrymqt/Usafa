@@ -37,7 +37,7 @@ public class UserAppService implements IUserAppService {
 
     // --- LOGIN MANUAL ---
     @Override
-    public ResponseDTO processManualLogin(LoginRequestDTO data) {
+    public UserResponseDTO processManualLogin(LoginRequestDTO data) {
         log.info("Tentativa de login manual para o email: {}", data.email());
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -63,7 +63,7 @@ public class UserAppService implements IUserAppService {
     // --- REGISTRO MANUAL ---
     @Override
     @Transactional
-    public ResponseDTO processManualRegistration(RegisterRequestDTO data) {
+    public UserResponseDTO processManualRegistration(RegisterRequestDTO data) {
         log.info("Iniciando registro manual para: {}", data.email());
 
         if (userRepository.findUserByEmail(data.email()).isPresent()) {
@@ -192,7 +192,7 @@ public class UserAppService implements IUserAppService {
     // --- ATUALIZAÇÃO ---
     @Override
     @Transactional
-    public Optional<ResponseDTO> updateUserByPublicId(String publicId, UpdateUserByPublicIdDTO data) {
+    public Optional<UserResponseDTO> updateUserByPublicId(String publicId, UpdateUserByPublicIdDTO data) {
         log.info("Atualizando dados do usuário PublicID: {}", publicId);
         UUID uuid;
         try {

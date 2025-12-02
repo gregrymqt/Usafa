@@ -1,49 +1,55 @@
 package br.edu.fatecpg.usafa.features.admin.services.Patient;
 
-import br.edu.fatecpg.usafa.document.PasswordCreationToken;
-
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.CreatePasswordDTO;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPasswordCreationTokenService;
 import br.edu.fatecpg.usafa.features.admin.repositories.IPasswordCreationTokenRepository;
+import br.edu.fatecpg.usafa.features.auth.dtos.UserResponseDTO;
+import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
+import br.edu.fatecpg.usafa.models.PasswordCreationToken;
 import br.edu.fatecpg.usafa.models.User;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
-import br.edu.fatecpg.usafa.shared.exceptions.MongoConnectionException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import br.edu.fatecpg.usafa.shared.exceptions.NotFoundException;
-import com.mongodb.MongoException;
+import br.edu.fatecpg.usafa.shared.tokens.JwtUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder; 
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenService { // Supondo que você tenha a
-                                                                                         // interface, se não tiver,
-                                                                                         // pode remover o implements
+public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenService {
 
+    private final IUserRepository userRepository;
     private final IPasswordCreationTokenRepository tokenRepository;
-    private final ICacheService cacheService; // Injeção do nosso serviço de cache
+    private final ICacheService cacheService;
+    private final UserUtils userUtils;
+    private final JwtUtils jwtUtils;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Value("${app.frontend.create-password-url}")
     private String createPasswordBaseUrl;
 
-    // Prefixo para organizar no Redis
     private static final String CACHE_PREFIX = "auth:password-token:";
     private static final long TOKEN_EXPIRATION_HOURS = 24;
 
     /**
-     * Cria e salva um novo token.
-     * Estratégia: Limpa vestígios antigos -> Salva no Banco -> Salva no Cache com
-     * TTL.
+     * Cria e salva um novo token na tabela dedicada.
      */
+    @Transactional
     public Optional<PasswordCreationToken> createAndSaveToken(User user) {
         if (user == null || user.getPublicId() == null) {
             log.error("Tentativa de criar token para um usuário nulo ou sem publicId.");
@@ -52,49 +58,98 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
 
         final String userPublicId = user.getPublicId().toString();
 
-        // 1. Verifica se já existe um token válido (não expirado)
-        Optional<PasswordCreationToken> existingTokenOpt = findTokenByUserPublicId(userPublicId);
-        if (existingTokenOpt.isPresent() && existingTokenOpt.get().getExpiryDate().isAfter(LocalDateTime.now())) {
-            log.info("Token válido já existe para o usuário: {}. Reutilizando.", userPublicId);
-            // Reconstruímos a URL da mesma forma que faríamos para um novo token.
-            return existingTokenOpt;
+        // 1. Verifica se já existe um token válido no banco SQL
+        Optional<PasswordCreationToken> existingTokenOpt = tokenRepository.findByUserAndExpiryDateAfter(user, LocalDateTime.now());
+
+        if (existingTokenOpt.isPresent()) {
+            log.info("Token válido já existe na tabela para: {}. Reutilizando.", userPublicId);
+            PasswordCreationToken existingToken = existingTokenOpt.get();
+            // Reconstrói a URL (pois não é salva no banco)
+            existingToken.setFullUrl(createPasswordBaseUrl + existingToken.getToken());
+            return Optional.of(existingToken);
         }
 
-        // 2. Se não existe ou expirou, cria um novo. A limpeza de tokens antigos é
-        // feita se necessário.
         log.info("Gerando novo token de criação de senha para: {}", userPublicId);
+        String newTokenString = UUID.randomUUID().toString();
+        String fullUrl = createPasswordBaseUrl + newTokenString;
+        LocalDateTime expiryDate = LocalDateTime.now().plusHours(TOKEN_EXPIRATION_HOURS);
 
-        // 2. Prepara o novo Token
-        String fullUrl = createPasswordBaseUrl + userPublicId;
-        Optional<PasswordCreationToken> newToken;
-        newToken = Optional.of(new PasswordCreationToken(userPublicId, fullUrl));
-        newToken.get().setExpiryDate(LocalDateTime.now().plusHours(TOKEN_EXPIRATION_HOURS));
-
-        // 3. Persiste no MongoDB (Fonte da verdade)
         try {
-            tokenRepository.save(newToken.get());
+            // 2. Remove token antigo (se houver) para manter relação 1:1 limpa
+            // Isso substitui a lógica antiga de setar null
+            tokenRepository.deleteByUser(user);
+            tokenRepository.flush(); // Garante que o delete ocorra antes do insert
+
+            // 3. Cria e Salva o novo
+            PasswordCreationToken newToken = new PasswordCreationToken(newTokenString, fullUrl);
+            newToken.setUser(user);
+            newToken.setExpiryDate(expiryDate);
+            
+            PasswordCreationToken savedToken = tokenRepository.save(newToken);
+
+            // 4. Salva no Cache
+            String cacheKey = CACHE_PREFIX + userPublicId;
+            cacheService.saveWithTtl(cacheKey, savedToken, TOKEN_EXPIRATION_HOURS, TimeUnit.HOURS);
+
+            return Optional.of(savedToken);
+
         } catch (DataAccessException e) {
-            if (e instanceof DataAccessResourceFailureException || e.getCause() instanceof MongoException) {
-                log.error("Erro de conexão com o MongoDB ao salvar o token para o usuário: {}", userPublicId, e);
-                throw new MongoConnectionException("Falha de comunicação com o banco de dados ao salvar o token.", e);
-            } else {
-                log.error("Erro ao salvar o token no MongoDB para o usuário: {}", userPublicId, e);
-                throw new DatabaseOperationException("Falha ao salvar o token de criação de senha.", e);
-            }
+            log.error("Erro ao salvar token SQL: {}", userPublicId, e);
+            throw new DatabaseOperationException("Falha ao salvar o token de senha.", e);
         }
-        // 4. Persiste no Redis (Acesso rápido)
-        String cacheKey = CACHE_PREFIX + userPublicId;
-        cacheService.saveWithTtl(cacheKey, newToken, TOKEN_EXPIRATION_HOURS, TimeUnit.HOURS);
+    }
 
-        log.info("Token salvo (Mongo + Redis) para o usuário: {}", userPublicId);
+    /**
+     * [NOVA LÓGICA] Define a senha do usuário e inativa o token utilizado.
+     */
+        @Transactional
+        public void createPassword(CreatePasswordDTO createPasswordDto) {
+            // 1. Busca o token no banco
+            PasswordCreationToken token = tokenRepository.findByToken(createPasswordDto.token())
+                    .orElseThrow(() -> new BusinessRuleException("Token inválido ou não encontrado."));
 
-        return newToken;
+            // 2. Validações de Segurança
+            if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+                throw new BusinessRuleException("Este link expirou.");
+            }
+            if (!token.isActive()) { // [LÓGICA PEDIDA] Verifica se já foi usado (está false)
+                throw new BusinessRuleException("Este link já foi utilizado.");
+            }
+
+            // 3. Define a nova senha no Usuário
+            User user = token.getUser();
+            user.setPassword(passwordEncoder.encode(createPasswordDto.password())); // Criptografa antes de salvar
+            userRepository.save(user);
+
+            // 4. Inativa o Token (active = false)
+            token.setActive(false); // [LÓGICA PEDIDA] Muda de true para false
+            tokenRepository.save(token);
+
+            log.info("Senha criada com sucesso para o usuário ID: {}", user.getId());
+        }
+
+
+        public UserResponseDTO validateTokenAndGetUser(String tokenId) {
+        
+        // 1. Busca o Token pelo ID da tabela de tokens
+        PasswordCreationToken token = tokenRepository.findByToken(tokenId)
+            .orElseThrow(() -> new BusinessRuleException("Link inválido ou expirado."));
+
+        // 2. Verifica se expirou
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new BusinessRuleException("Este link expirou.");
+        }
+
+        // 3. Pega o usuário associado a esse token
+        User user = token.getUser();
+        String tokenJwt = jwtUtils.generateToken(user);
+
+        // 4. Retorna os dados que o Front precisa (Nome, Email, etc.)
+        return  userUtils.buildResponseDTO(user, tokenJwt);
     }
 
     /**
      * Busca o token.
-     * Estratégia: Cache-Aside (Tenta Cache -> Se falhar, tenta Banco -> Popula
-     * Cache).
      */
     public Optional<PasswordCreationToken> findTokenByUserPublicId(String userPublicId) {
         String cacheKey = CACHE_PREFIX + userPublicId;
@@ -102,65 +157,64 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
         // 1. Tenta Cache
         PasswordCreationToken cachedToken = cacheService.get(cacheKey, PasswordCreationToken.class);
         if (cachedToken != null) {
-            log.debug("Token recuperado do cache para: {}", userPublicId);
             return Optional.of(cachedToken);
         }
 
-        // 2. Tenta Banco
-        log.info("Cache Miss. Buscando token no MongoDB para: {}", userPublicId);
-        Optional<PasswordCreationToken> dbTokenOpt;
+        // 2. Tenta Banco SQL
+        log.info("Cache Miss. Buscando token no SQL para: {}", userPublicId);
         try {
-            dbTokenOpt = tokenRepository.findByUserPublicId(userPublicId);
-        } catch (DataAccessException e) {
-            if (e instanceof DataAccessResourceFailureException || e.getCause() instanceof MongoException) {
-                log.error("Erro de conexão com o MongoDB ao buscar o token para o usuário: {}", userPublicId, e);
-                throw new MongoConnectionException("Falha de comunicação com o banco de dados ao buscar o token.", e);
-            } else {
-                log.error("Erro ao buscar o token no MongoDB para o usuário: {}", userPublicId, e);
-                throw new DatabaseOperationException("Falha ao buscar o token no banco de dados.", e);
-            }
-        }
+            UUID uuid = UUID.fromString(userPublicId);
+            
+            // Busca usando o novo método do Repositório
+            Optional<PasswordCreationToken> dbTokenOpt = tokenRepository.findByUser_PublicId(uuid);
 
-        // 3. Se achou no banco, popula o cache (se ainda estiver válido)
-        dbTokenOpt.ifPresent(token -> {
-            // Verifica se já não expirou antes de colocar no cache
-            if (token.getExpiryDate().isAfter(LocalDateTime.now())) {
-                // Calcula o tempo restante para não setar 24h de novo erroneamente
-                long hoursRemaining = java.time.Duration.between(LocalDateTime.now(), token.getExpiryDate()).toHours();
-                if (hoursRemaining > 0) {
-                    cacheService.saveWithTtl(cacheKey, token, hoursRemaining, TimeUnit.HOURS);
+            dbTokenOpt.ifPresent(token -> {
+                // [IMPORTANTE] Reconstruir a URL, pois o banco só tem o token hash
+                token.setFullUrl(createPasswordBaseUrl + token.getToken());
+
+                // Popula Cache se válido
+                if (token.getExpiryDate().isAfter(LocalDateTime.now())) {
+                    long hours = java.time.Duration.between(LocalDateTime.now(), token.getExpiryDate()).toHours();
+                    if (hours > 0) {
+                        cacheService.saveWithTtl(cacheKey, token, hours, TimeUnit.HOURS);
+                    }
                 }
-            }
-        });
+            });
 
-        return dbTokenOpt;
+            return dbTokenOpt;
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Public ID inválido: {}", userPublicId);
+            return Optional.empty();
+        } catch (DataAccessException e) {
+            log.error("Erro SQL ao buscar token: {}", userPublicId, e);
+            throw new DatabaseOperationException("Falha ao buscar o token.", e);
+        }
     }
 
     /**
-     * Deleta o token.
-     * Estratégia: Write-Through (Remove do Banco e Remove do Cache).
+     * Deleta o token (Deleta a linha da tabela).
      */
+    @Transactional
     public void deleteToken(String userPublicId) {
-        // 1. Remove do Banco
         try {
-            PasswordCreationToken token = tokenRepository.findByUserPublicId(userPublicId)
-                    .orElseThrow(() -> new NotFoundException("Token não encontrado para o usuário: " + userPublicId));
+            UUID uuid = UUID.fromString(userPublicId);
+            User user = userRepository.findByPublicId(uuid)
+                    .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + userPublicId));
 
-            tokenRepository.delete(token);
-            log.info("Token deletado do MongoDB para usuário: {}", userPublicId);
+            // [CORREÇÃO] Deleta a linha da tabela de tokens, em vez de setar null no User
+            tokenRepository.deleteByUser(user);
+            
+            log.info("Token deletado do SQL para: {}", userPublicId);
 
+        } catch (IllegalArgumentException e) {
+             throw new BusinessRuleException("ID inválido.");
         } catch (DataAccessException e) {
-            if (e instanceof DataAccessResourceFailureException || e.getCause() instanceof MongoException) {
-                log.error("Erro de conexão com o MongoDB ao deletar o token para o usuário: {}", userPublicId, e);
-                throw new MongoConnectionException("Falha de comunicação com o banco de dados ao deletar o token.", e);
-            } else {
-                log.error("Erro ao deletar o token do MongoDB para o usuário: {}", userPublicId, e);
-                throw new DatabaseOperationException("Falha ao deletar o token.", e);
-            }
+            log.error("Erro ao deletar token SQL: {}", userPublicId, e);
+            throw new DatabaseOperationException("Falha ao deletar o token.", e);
         }
 
-        // 2. Remove do Cache (Sempre, para garantir)
-        String cacheKey = CACHE_PREFIX + userPublicId;
-        cacheService.delete(cacheKey);
+        // Remove do Cache
+        cacheService.delete(CACHE_PREFIX + userPublicId);
     }
 }

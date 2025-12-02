@@ -1,12 +1,12 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
-import br.edu.fatecpg.usafa.document.RequestAppointment;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
+import br.edu.fatecpg.usafa.models.SolicitacaoConsulta;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
 import br.edu.fatecpg.usafa.models.User;
 import br.edu.fatecpg.usafa.models.enums.StatusHorario;
@@ -15,24 +15,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
-
 @Component
 @RequiredArgsConstructor
 public class ConsultaConsumerHelper {
 
     private final IUserRepository userRepository;
     private final ITipoConsultaRepository tipoConsultaRepository;
-    private final IHorarioSlotRepository horarioSlotRepository; // Substitui IMedicoRepository direto
+    private final IHorarioSlotRepository horarioSlotRepository;
 
     public User findUserOrThrow(String publicId) {
         return userRepository.findByPublicId(UUID.fromString(publicId))
                 .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado: " + publicId));
     }
 
-    /**
-     * Busca o Slot de Horário pelo ID.
-     * Substitui a busca manual de Médico, pois o Slot já contém o médico.
-     */
     public HorarioSlot findSlotOrThrow(Long slotId) {
         return horarioSlotRepository.findById(slotId)
                 .orElseThrow(() -> new BusinessRuleException("Horário selecionado não encontrado ou inválido."));
@@ -44,6 +39,7 @@ public class ConsultaConsumerHelper {
     }
 
     public void validateSlotAvailability(HorarioSlot slot) {
+        // [cite: 51] Lógica mantida
         if (slot.getStatus() != StatusHorario.DISPONIVEL) {
             throw new BusinessRuleException("Este horário não está mais disponível.");
         }
@@ -54,49 +50,50 @@ public class ConsultaConsumerHelper {
     }
 
     /**
-     * Cria o Documento MongoDB extraindo dados do Slot SQL.
+     * [MUDANÇA] Cria a Entidade SQL (SolicitacaoConsulta).
+     * Preenche os dados usando setters ou construtor.
      */
-    public RequestAppointment createDocumentFromSlot(AppointmentRequestDto request, User user, HorarioSlot slot,
-            TipoConsulta tipo) {
-        RequestAppointment doc = new RequestAppointment();
-
+    public SolicitacaoConsulta createEntityFromSlot(AppointmentRequestDto request, User user, HorarioSlot slot, TipoConsulta tipo) {
+        SolicitacaoConsulta entity = new SolicitacaoConsulta();
+        
         // Dados da Requisição
-        doc.setSintomas(request.getSintomas());
-        doc.setStatus("PENDENTE"); // Status inicial no Mongo
+        entity.setSintomas(request.getSintomas());
+        entity.setStatus("PENDENTE");
 
-        // Dados Relacionais (SQL -> Mongo Flat)
-        doc.setUserPublicId(user.getPublicId().toString());
-        doc.setPatientName(user.getName());
+        // Dados Temporais (Vêm do Slot SQL)
+        entity.setDia(slot.getDataHoraInicio().toLocalDate());
+        entity.setHorario(slot.getDataHoraInicio().toLocalTime());
 
-        doc.setMedicoPublicId(slot.getMedico().getPublicId());
-        doc.setDoctorName(slot.getMedico().getNome());
+        // Relacionamentos (JPA)
+        entity.setUser(user);
+        entity.setMedico(slot.getMedico());
+        entity.setTipoConsulta(tipo);
 
-        doc.setTipoConsultaPublicId(tipo.getPublicId());
-        doc.setAppointmentTypeName(tipo.getNome());
-
-        // Dados Temporais (Vêm do Slot)
-        doc.setDia(slot.getDataHoraInicio().toLocalDate());
-        doc.setHorario(slot.getDataHoraInicio().toLocalTime());
-
-        return doc;
+        return entity;
     }
 
     /**
-     * Mapeia um objeto RequestAppointment (documento MongoDB) para um RequestAppointmentResponseDto.
+     * [MUDANÇA] Mapeia uma Entidade SQL para o DTO de Resposta.
+     * Agora acessamos os nomes através dos relacionamentos do objeto (getMedico().getNome()).
      */
-    public RequestAppointmentResponseDto mapToDto(RequestAppointment doc) {
+    public RequestAppointmentResponseDto mapToDto(SolicitacaoConsulta entity) {
         return RequestAppointmentResponseDto.builder()
-            .id(doc.getId())
-            .sintomas(doc.getSintomas())
-            .dia(doc.getDia())
-            .horario(doc.getHorario())
-            .status(doc.getStatus())
-            .userPublicId(doc.getUserPublicId())
-            .medicoPublicId(doc.getMedicoPublicId())
-            .tipoConsultaPublicId(doc.getTipoConsultaPublicId())
-            .patientName(doc.getPatientName())
-            .doctorName(doc.getDoctorName())
-            .appointmentTypeName(doc.getAppointmentTypeName())
+            .id(entity.getId().toString()) // O ID SQL é Long, convertemos para String para o DTO
+            .sintomas(entity.getSintomas())
+            .dia(entity.getDia())
+            .horario(entity.getHorario())
+            .status(entity.getStatus())
+            
+            // IDs Públicos (Navegando pelos objetos relacionados)
+            .userPublicId(entity.getUser().getPublicId().toString())
+            .medicoPublicId(entity.getMedico().getPublicId())
+            .tipoConsultaPublicId(entity.getTipoConsulta().getPublicId())
+            
+            // Nomes (Desnormalização para o Frontend)
+            // CUIDADO: Isso exige que as entidades estejam carregadas (Session aberta/Transactional)
+            .patientName(entity.getUser().getName())
+            .doctorName(entity.getMedico().getNome())
+            .appointmentTypeName(entity.getTipoConsulta().getNome())
             .build();
     }
 }

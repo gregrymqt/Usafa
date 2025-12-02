@@ -2,7 +2,8 @@ package br.edu.fatecpg.usafa.features.auth.dtos;
 
 import java.util.List;
 
-public record ResponseDTO(
+
+public record UserResponseDTO(
     String token, 
     String publicId, 
     String name, 

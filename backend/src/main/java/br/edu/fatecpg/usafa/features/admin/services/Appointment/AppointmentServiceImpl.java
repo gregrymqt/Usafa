@@ -111,7 +111,7 @@ public Page<AppointmentResponseDto> getAllAppointments(Pageable pageable) {
             }
 
             // 4. Trava o Slot
-            slot.setStatus(StatusHorario.RESERVADO);
+            slot.setStatus(StatusHorario.AGENDADO);
             horarioSlotRepository.save(slot);
 
             // 5. Cria a Consulta
@@ -195,7 +195,7 @@ public Page<AppointmentResponseDto> getAllAppointments(Pageable pageable) {
             horarioSlotRepository.save(currentSlot);
 
             // 3.5. RESERVA o slot NOVO
-            newSlot.setStatus(StatusHorario.RESERVADO);
+            newSlot.setStatus(StatusHorario.AGENDADO);
             // newSlot.setConsulta(consulta); // Será feito ao salvar a consulta, pelo
             // Cascade ou manualmente abaixo
             horarioSlotRepository.save(newSlot);

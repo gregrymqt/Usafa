@@ -1,54 +1,120 @@
 @use '../../../../../../../styles/variables' as *;
 
+// Container principal que envolve filtros e tabela
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto; // Garante que a tabela seja rolável em telas pequenas
+}
+
+// Barra de Filtros
+.filterBar {
+  display: flex;
+  flex-direction: column; // Mobile-first: filtros empilhados
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: $bg-light;
+  border-radius: $radius-lg;
+  border: 1px solid $border-light;
+
+  // Em telas maiores, os filtros ficam lado a lado
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1; // Permite que os grupos cresçam e ocupem o espaço
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text-secondary;
+  }
+
+  .searchInput,
+  .statusSelect {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background-color: $white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+    }
+  }
+}
+
 // Estilo para os "badges" de status
 .statusBadge {
   padding: 0.25rem 0.75rem;
   border-radius: $radius-pill;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: inline-block;
+  border: 1px solid transparent;
 
-  // Cores por status usando variáveis semânticas globais
-  
-  // Pendente -> Aviso (Amarelo)
-  &.statuspendente {
+  // Status PENDING (Pendente) -> Amarelo
+  &.statuspending {
     background-color: $warning-bg;
     color: $warning-text;
     border: 1px solid $warning-border;
   }
-  
-  // Aceita -> Sucesso (Verde)
-  &.statusaceita {
+
+  // Status CONFIRMED (Aprovado) -> Verde
+  &.statusconfirmed {
     background-color: $success-bg;
     color: $success-text;
     border: 1px solid $success-border;
   }
-  
-  // Recusada -> Erro (Vermelho)
-  &.statusrecusada {
+
+  // Status CANCELLED (Recusado) -> Vermelho
+  &.statuscancelled {
     background-color: $error-bg;
     color: $error-text;
     border: 1px solid $error-border;
   }
 }
 
-// Estilos mobile-first
+// Estilos específicos para a tabela em modo responsivo
 @media (max-width: $breakpoint-md) {
-  .tableWrapper {
-    td[data-label='Ações'] {
-      text-align: right;
-    }
+  // Este seletor depende da implementação do seu componente de Tabela.
+  // Se ele usa data-attributes para os labels em mobile, este estilo funcionará.
+  td[data-label='Ações'] {
+    text-align: right;
   }
 }
 
+// Estilos para estados de feedback (Carregando, Vazio, Erro)
 .loading,
-.empty {
+.empty,
+.error {
   padding: 2rem;
   text-align: center;
   color: $text-secondary;
-  background-color: $bg-light;
+  background-color: $bg-input;
   border-radius: $radius-md;
   margin: 1rem 0;
+  border: 2px dashed $border-light;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.error {
+  background-color: $error-bg;
+  color: $error-text;
+  border-color: $error-border;
 }

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 
 import type { NewPatientData, Patient } from '../../types/patient.type';
-import styles from './PatientForm.module.scss';
+import styles from './PatientForm.module.scss'; // Importando os novos estilos
 import AuthForm from '../../../../../../components/Form/AuthForm';
 import type { FormField } from '../../../../../../components/Form/types/form.type';
 import {
@@ -180,16 +180,27 @@ export const PatientForm: React.FC<PatientFormProps> = ({
         fields={fields}
         handleSubmit={handleSubmit}
         isLoading={isLoading}
-        buttonText={initialData ? 'Atualizar Paciente' : 'Cadastrar Paciente'}
+        buttonText="" // Adicionado para satisfazer a prop obrigatória
+        // O botão de submit agora é um filho explícito, então removemos buttonText
       >
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isLoading}
-          className={styles.cancelButton}
-        >
-          Cancelar
-        </button>
+        {/* Contêiner para os botões de ação */}
+        <div className={styles.actions}>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={styles.submitButton}
+          >
+            {isLoading ? 'Salvando...' : (initialData ? 'Atualizar Paciente' : 'Cadastrar Paciente')}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className={styles.cancelButton}
+          >
+            Cancelar
+          </button>
+        </div>
       </AuthForm>
     </div>
   );

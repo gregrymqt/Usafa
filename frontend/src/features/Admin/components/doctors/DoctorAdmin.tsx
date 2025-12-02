@@ -1,9 +1,9 @@
 import React from "react";
 import styles from './DoctorAdmin.module.scss';
-import { showDeleteConfirm } from "../../utils/adminUtils";
-import type { Doctor, DoctorAdminProps } from "./types/doctor.type";
+import type {DoctorAdminProps } from "./types/doctor.type";
 import { ActionMenu } from "../../../../components/ActionMenu/ActionMenu";
 import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
+import Swal from "sweetalert2";
 
 export const DoctorAdmin: React.FC<DoctorAdminProps> = ({
   doctors = [], // Garante array vazio se vier undefined
@@ -15,11 +15,19 @@ export const DoctorAdmin: React.FC<DoctorAdminProps> = ({
   loadMoreDoctors,
 }) => {
   
-  const handleDeleteClick = async (doctor: Doctor) => {
-    const confirmed = await showDeleteConfirm(doctor.name);
-    if (confirmed) {
-      onDeleteDoctor(doctor);
+  const handleDeleteClick = (id: string) => { 
+    
+    // Debug para você ver no console o que está chegando
+    console.log("ID recebido no Handler:", id); 
+
+    if (!id) {
+        console.error("ERRO: ID inválido.");
+        Swal.fire('Erro', 'ID do médico não encontrado.', 'error');
+        return;
     }
+
+    // Chama a prop que vai pro hook
+    onDeleteDoctor(id);
   };
 
   const { lastElementRef } = useInfiniteScroll(
@@ -62,7 +70,7 @@ export const DoctorAdmin: React.FC<DoctorAdminProps> = ({
                 </div>
                 <ActionMenu
                   onUpdate={() => onEditDoctor(doctor)}
-                  onDelete={() => handleDeleteClick(doctor)}
+                  onDelete={() => handleDeleteClick(doctor.id)}
                 />
               </div>
 
@@ -72,6 +80,9 @@ export const DoctorAdmin: React.FC<DoctorAdminProps> = ({
                 </p>
                 <p>
                   <strong>Email:</strong> <span>{doctor.email}</span>
+                </p>
+                <p>
+                  <strong>Id:</strong> <span>{doctor.id}</span>
                 </p>
               </div>
             </div>

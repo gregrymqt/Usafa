@@ -23,31 +23,30 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
   const { tipos, isLoadingTypes } = useAppointmentType();
 
   const validateCrm = (crm: string): boolean => {
-    const crmRegex = /^CRM\/SP \d{5}$/;
-    return crmRegex.test(crm);
+    return crm.length > 5; 
   };
 
-  // Estados dos campos de texto
   const [name, setName] = useState(initialData?.name || "");
   const [email, setEmail] = useState(initialData?.email || "");
   const [crm, setCrm] = useState(initialData?.crm || "");
-  const [specialty, setSpecialty] = useState(initialData?.specialty || "");
-
-  // Estados de erro para validação
+  const [specialty, setSpecialty] = useState(initialData?.specialtyId || "");
+  const [imageFile, setImageFile] = useState<File | undefined>(undefined);
+  const [previewUrl, setPreviewUrl] = useState(initialData?.picture || "");
   const [emailError, setEmailError] = useState<string | undefined>();
   const [crmError, setCrmError] = useState<string | undefined>();
 
   useEffect(() => {
-    if (!initialData && !specialty && tipos.length > 0) {
+    if (initialData) {
+      setName(initialData.name);
+      setEmail(initialData.email);
+      setCrm(initialData.crm);
+      setSpecialty(initialData.specialtyId);
+      setPreviewUrl(initialData.picture || "");
+    } else if (!specialty && tipos.length > 0) {
       setSpecialty(tipos[0].publicId);
     }
-  }, [tipos, specialty, initialData]);
+  }, [initialData, tipos]);
 
-  // Estados do arquivo de imagem
-  const [imageFile, setImageFile] = useState<File | undefined>(undefined);
-  const [previewUrl, setPreviewUrl] = useState(initialData?.picture || "");
-
-  // Handler para seleção do arquivo
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -56,40 +55,25 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
     }
   };
 
-  // Handler de envio
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validação final antes do envio
     if (!validateEmail(email) || !validateCrm(crm)) {
-      console.error("Formulário com dados inválidos.");
-      return; // Impede o envio se houver erros
+      if(!validateEmail(email)) setEmailError("Email inválido");
+      if(!validateCrm(crm)) setCrmError("CRM inválido");
+      return;
     }
-
-    // Monta o objeto final combinando texto e arquivo
-    const doctorData: NewDoctorData = {
-      name,
-      email,
-      crm,
-      specialty,
-      imageFile, // O arquivo vai aqui
-    };
-
+    const doctorData: NewDoctorData = { name, email, crm, specialty, imageFile };
     try {
       await onSubmit(doctorData);
     } catch (error) {
-      console.error("Erro no formulário:", error);
+      console.error("Erro ao enviar:", error);
     }
   };
 
   const specialtyOptions = useMemo(() => {
-    return tipos.map((t) => ({
-      value: t.publicId, // Aqui enviamos o ID para o banco. Se precisar do nome, mude para t.nome
-      label: t.nome, // O que aparece para o usuário ler
-    }));
+    return tipos.map((t) => ({ value: t.publicId, label: t.nome }));
   }, [tipos]);
 
-  // Definição dos campos de texto para o AuthForm
   const fields: FormField[] = useMemo(
     () => [
       {
@@ -112,11 +96,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         onChange: (val) => {
           const newEmail = val as string;
           setEmail(newEmail);
-          if (!validateEmail(newEmail)) {
-            setEmailError("Formato de email inválido.");
-          } else {
-            setEmailError(undefined);
-          }
+          setEmailError(!validateEmail(newEmail) ? "Formato inválido" : undefined);
         },
         required: true,
         error: emailError,
@@ -131,11 +111,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
         onChange: (val) => {
           const newCrm = val as string;
           setCrm(newCrm);
-          if (!validateCrm(newCrm)) {
-            setCrmError("O CRM deve seguir o padrão: CRM/SP 123456");
-          } else {
-            setCrmError(undefined);
-          }
+          setCrmError(!validateCrm(newCrm) ? "CRM inválido" : undefined);
         },
         required: true,
         error: crmError,
@@ -143,77 +119,57 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
       {
         elementType: "select",
         name: "specialty",
-        label: "Especialidade / Tipo de Consulta",
+        label: "Especialidade",
         value: specialty,
         onChange: (val) => setSpecialty(val as string),
-        // Passamos as opções dinâmicas aqui
         options: specialtyOptions,
-        // Opcional: desabilita enquanto carrega os tipos
         disabled: isLoadingTypes,
-        className: styles.specialtySelect, // Classe para estilização
+        className: styles.specialtySelect,
       },
     ],
-    // IMPORTANTE: Adicionar specialtyOptions e isLoadingTypes nas dependências
-    [
-      name,
-      email,
-      crm,
-      specialty,
-      specialtyOptions,
-      isLoadingTypes,
-      emailError,
-      crmError,
-    ]
+    [name, email, crm, specialty, specialtyOptions, isLoadingTypes, emailError, crmError]
   );
 
   return (
-    <div className={styles.doctorFormContainer}>
+    <div 
+        className={styles.doctorFormContainer} 
+        style={{ 
+            maxHeight: '85vh', 
+            overflowY: 'auto', 
+            padding: '1rem', 
+            display: 'flex', 
+            flexDirection: 'column' 
+        }}
+    >
       <AuthForm
         fields={fields}
         handleSubmit={handleSubmit}
         isLoading={isLoading}
-        buttonText={initialData ? "Atualizar" : "Criar"}
+        // [CORREÇÃO AQUI] Passar string vazia remove o botão padrão duplicado
+        buttonText="" 
       >
-        {/* Seção de Upload de Foto */}
         <div className={styles.photoUploadSection}>
           <div className={styles.previewContainer}>
-            {previewUrl && (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className={styles.previewImage}
-              />
-            )}
-            {!previewUrl && (
-              <div className={styles.placeholder}>
-                <FaUserDoctor />
-              </div>
+            {previewUrl ? (
+              <img src={previewUrl} alt="Preview" className={styles.previewImage} />
+            ) : (
+              <div className={styles.placeholder}><FaUserDoctor /></div>
             )}
           </div>
           <div className={styles.uploadControls}>
-            <label htmlFor="doctor-photo" className={styles.sectionTitle}>
-              Foto de Perfil
-            </label>
+            <label htmlFor="doctor-photo" className={styles.sectionTitle}>Foto de Perfil</label>
             <label htmlFor="doctor-photo" className={styles.fileInputLabel}>
               {imageFile ? "Trocar imagem" : "Selecionar imagem"}
             </label>
-            <input
-              id="doctor-photo"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
+            <input id="doctor-photo" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
           </div>
         </div>
 
-        {/* Ações do formulário */}
-        <div className={styles.actions}>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isLoading}
-            className={styles.cancelButton}
-          >
+        <div className={styles.actions} style={{ marginTop: '20px', paddingBottom: '10px' }}>
+          <button type="submit" disabled={isLoading} className={styles.submitButton} style={{ marginBottom: '10px', width: '100%' }}>
+            {isLoading ? "Salvando..." : (initialData ? "Atualizar" : "Criar")}
+          </button>
+          <button type="button" onClick={onCancel} disabled={isLoading} className={styles.cancelButton} style={{ width: '100%' }}>
             Cancelar
           </button>
         </div>

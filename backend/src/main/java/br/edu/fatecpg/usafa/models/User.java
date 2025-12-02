@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.UUID;
@@ -29,7 +30,7 @@ import java.util.Set;
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_publicid", columnList = "publicId", unique = true),
-        @Index(name = "idx_user_email", columnList = "email", unique = true)
+        @Index(name = "idx_user_email", columnList = "email", unique = true),
 })
 public class User implements UserDetails {
 
@@ -81,6 +82,11 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private Set<Consulta> consultas;
+
+    // mappedBy = "user" diz que a chave estrangeira está na outra tabela (PasswordCreationToken)
+    // orphanRemoval = true garante que o token seja deletado se removido do usuário
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PasswordCreationToken passwordCreationToken;
 
     // --- MÉTODOS OBRIGATÓRIOS DO UserDetails ---
 

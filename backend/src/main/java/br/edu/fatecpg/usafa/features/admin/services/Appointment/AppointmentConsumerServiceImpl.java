@@ -1,12 +1,13 @@
 package br.edu.fatecpg.usafa.features.admin.services.Appointment;
 
-import br.edu.fatecpg.usafa.document.RequestAppointment;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.UpdateAppointmentDTO;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentConsumerService;
 import br.edu.fatecpg.usafa.features.admin.utils.appointment.AppointmentMigrationService;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
-import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaDocumentRepository;
+import br.edu.fatecpg.usafa.features.consulta.repositories.ISolicitacaoConsultaRepository;
+import br.edu.fatecpg.usafa.models.SolicitacaoConsulta;
+import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import br.edu.fatecpg.usafa.shared.exceptions.MongoConnectionException;
 import br.edu.fatecpg.usafa.shared.exceptions.NotFoundException;
@@ -18,16 +19,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-
+import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AppointmentConsumerServiceImpl implements IAppointmentConsumerService {
 
-    private final IConsultaDocumentRepository mongoRepository;
+    // [MUDANÇA] Repositório SQL substitui o Mongo
+    private final ISolicitacaoConsultaRepository sqlRepository;
     private final ICacheService cacheService;
     private final AppointmentMigrationService migrationService;
 
@@ -38,112 +41,108 @@ public class AppointmentConsumerServiceImpl implements IAppointmentConsumerServi
         boolean hasSearch = search != null && !search.trim().isEmpty();
         boolean hasStatus = status != null && !status.trim().isEmpty();
 
-        Page<RequestAppointment> pageEntities;
+        Page<SolicitacaoConsulta> pageEntities;
 
         try {
-            // 1. Busca as Entidades no Banco (MongoDB)
+            // [MUDANÇA] Lógica adaptada para JPA/SQL
+            // Assumindo que 'search' é o PublicID do usuário. Convertemos String -> UUID.
+            UUID userUuid = hasSearch ? UUID.fromString(search) : null;
+
             if (hasSearch && hasStatus) {
-                pageEntities = mongoRepository.findByUserPublicIdAndStatus(search, status, pageable);
+                pageEntities = sqlRepository.findByUser_PublicIdAndStatus(userUuid, status, pageable);
             } else if (hasSearch) {
-                pageEntities = mongoRepository.findByUserPublicId(search, pageable);
+                pageEntities = sqlRepository.findByUser_PublicId(userUuid, pageable);
             } else if (hasStatus) {
-                pageEntities = mongoRepository.findByStatus(status, pageable);
+                pageEntities = sqlRepository.findByStatus(status, pageable);
             } else {
-                pageEntities = mongoRepository.findAll(pageable);
+                pageEntities = sqlRepository.findAll(pageable);
             }
+        } catch (IllegalArgumentException e) {
+             // Caso a string de busca não seja um UUID válido
+            log.warn("Formato de ID inválido na busca: {}", search);
+            return Page.empty();
         } catch (DataAccessException e) {
-            if (e instanceof DataAccessResourceFailureException || e.getCause() instanceof MongoException) {
-                log.error("Erro de conexão com o MongoDB ao buscar solicitações de agendamento.", e);
-                throw new MongoConnectionException("Falha de comunicação com o banco de dados ao buscar solicitações.",
-                        e);
-            } else {
-                log.error("Erro de banco de dados ao buscar solicitações de agendamento: {}", e.getMessage(), e);
-                throw new DatabaseOperationException("Erro ao buscar solicitações de agendamento.", e);
-            }
+            log.error("Erro de banco de dados ao buscar solicitações: {}", e.getMessage(), e);
+            throw new DatabaseOperationException("Erro ao buscar solicitações de agendamento.", e);
         }
 
-        // 2. Converte (Mapeia) de Entidade -> DTO
+        // 2. Converte Entidade SQL -> DTO
         return pageEntities.map(this::toDto);
     }
 
     @Override
+    @Transactional
     public RequestAppointmentResponseDto updateConsultaStatus(String consultaId, UpdateAppointmentDTO dto) {
-        log.info("Processando atualização ID: {}", consultaId);
-
+        log.info("Processando atualização ID SQL: {}", consultaId);
         try {
-            RequestAppointment doc = mongoRepository.findById(consultaId)
+            // [MUDANÇA] Busca no SQL pelo ID (Convertendo String para Long se necessário)
+            Long id = Long.parseLong(consultaId);
+            
+            SolicitacaoConsulta entity = sqlRepository.findById(id)
                     .orElseThrow(() -> new NotFoundException("Solicitação não encontrada com o ID: " + consultaId));
 
             LocalDate dtoDia = LocalDate.parse(dto.dia());
             LocalTime dtoHorario = LocalTime.parse(dto.horario());
             String dtoStatus = dto.status().toUpperCase();
 
-            // Verifica idempotência (se já foi processado igual)
-            if (migrationService.isSameStatusAndDate(doc, dtoStatus, dtoDia, dtoHorario)) {
-                return toDto(doc);
+            // Verifica idempotência
+            if (migrationService.isSameStatusAndDate(entity, dtoStatus, dtoDia, dtoHorario)) {
+                return toDto(entity);
             }
 
-            RequestAppointment resultDoc;
-
-            // Lógica de decisão (Migrar ou Atualizar Rascunho)
+            SolicitacaoConsulta updatedEntity;
+            
+            // Lógica de decisão
             if ("ACEITA".equals(dtoStatus)) {
-                resultDoc = migrationService.migrarParaSql(doc, dtoDia, dtoHorario);
+                // [MUDANÇA] Promove a Solicitação SQL para uma Consulta Confirmada
+                updatedEntity = migrationService.processarAceite(entity, dtoDia, dtoHorario);
             } else {
-                resultDoc = migrationService.atualizarRascunhoMongo(doc, dtoDia, dtoHorario, dtoStatus);
+                // Apenas atualiza o rascunho na tabela de solicitações
+                updatedEntity = migrationService.atualizarSolicitacao(entity, dtoDia, dtoHorario, dtoStatus);
             }
 
             cacheService.delete(CACHE_KEY_REQUESTS);
+            return toDto(updatedEntity);
 
-            // Retorna o objeto convertido para DTO
-            return toDto(resultDoc);
-
+        } catch (NumberFormatException e) {
+             throw new BusinessRuleException("ID da solicitação inválido formatado.");
         } catch (DataAccessException e) {
-            if (e instanceof DataAccessResourceFailureException || e.getCause() instanceof MongoException) {
-                log.error("Erro de conexão com o MongoDB ao atualizar status da solicitação: {}", consultaId, e);
-                throw new MongoConnectionException(
-                        "Falha de comunicação com o banco de dados ao atualizar a solicitação.", e);
-            } else {
-                log.error("Erro de banco de dados ao atualizar status da solicitação: {}", consultaId, e);
-                throw new DatabaseOperationException("Erro ao processar a atualização da solicitação.", e);
-            }
+            log.error("Erro de banco de dados ao atualizar status: {}", consultaId, e);
+            throw new DatabaseOperationException("Erro ao processar a atualização da solicitação.", e);
         }
     }
 
-    // --- Método Auxiliar de Conversão (Mapper) ---
-    private RequestAppointmentResponseDto toDto(RequestAppointment entity) {
+    // [MUDANÇA] Delete no SQL
+    @Override
+    public void deleteConsultaRequest(String consultaId) {
+        try {
+            Long id = Long.parseLong(consultaId);
+            if (!sqlRepository.existsById(id)) {
+                throw new NotFoundException("Solicitação não encontrada para exclusão com o ID: " + consultaId);
+            }
+            sqlRepository.deleteById(id);
+            cacheService.delete(CACHE_KEY_REQUESTS);
+        } catch (DataAccessException e) {
+            log.error("Erro ao deletar solicitação SQL: {}", consultaId, e);
+            throw new DatabaseOperationException("Erro ao deletar a solicitação.", e);
+        }
+    }
+
+    // --- Mapper SQL para DTO ---
+    private RequestAppointmentResponseDto toDto(SolicitacaoConsulta entity) {
         return RequestAppointmentResponseDto.builder()
-                .id(entity.getId())
+                .id(entity.getId().toString()) // Long -> String
                 .sintomas(entity.getSintomas())
                 .dia(entity.getDia())
                 .horario(entity.getHorario())
                 .status(entity.getStatus())
-                .userPublicId(entity.getUserPublicId())
-                .medicoPublicId(entity.getMedicoPublicId())
-                .tipoConsultaPublicId(entity.getTipoConsultaPublicId())
-                .patientName(entity.getPatientName())
-                .doctorName(entity.getDoctorName())
-                .appointmentTypeName(entity.getAppointmentTypeName())
+                // Navegação via relacionamentos JPA
+                .userPublicId(entity.getUser().getPublicId().toString())
+                .medicoPublicId(entity.getMedico().getPublicId())
+                .tipoConsultaPublicId(entity.getTipoConsulta().getPublicId())
+                .patientName(entity.getUser().getName())
+                .doctorName(entity.getMedico().getNome())
+                .appointmentTypeName(entity.getTipoConsulta().getNome())
                 .build();
-    }
-
-    // Método delete mantém igual pois retorna void
-    @Override
-    public void deleteConsultaRequest(String consultaId) {
-        try {
-            if (!mongoRepository.existsById(consultaId)) {
-                throw new NotFoundException("Solicitação não encontrada para exclusão com o ID: " + consultaId);
-            }
-            mongoRepository.deleteById(consultaId);
-            cacheService.delete(CACHE_KEY_REQUESTS);
-        } catch (DataAccessException e) {
-            if (e instanceof DataAccessResourceFailureException || e.getCause() instanceof MongoException) {
-                log.error("Erro de conexão com o MongoDB ao deletar solicitação: {}", consultaId, e);
-                throw new MongoConnectionException(
-                        "Falha de comunicação com o banco de dados ao deletar a solicitação.", e);
-            } else {
-                log.error("Erro de banco de dados ao deletar solicitação: {}", consultaId, e);
-                throw new DatabaseOperationException("Erro ao deletar a solicitação.", e);
-            }
-        }
     }
 }

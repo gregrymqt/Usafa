@@ -46,6 +46,9 @@ public class Medico {
     @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<HorarioSlot> horarios;
 
+    @Column(nullable = false)
+private boolean active = true; // Novo campo
+
     @PrePersist
     public void generatePublicId() {
         if (this.publicId == null) {

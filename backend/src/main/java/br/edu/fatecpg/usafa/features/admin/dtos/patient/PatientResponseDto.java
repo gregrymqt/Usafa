@@ -19,4 +19,6 @@ public class PatientResponseDto {
 
     // AVISO: Adicione 'birthDate' (como LocalDate ou String) à sua entidade User.java [cite: 2]
     private String birthDate; // Formato ISO "1990-10-25T00:00:00Z"
+    private String cep;
+
 }

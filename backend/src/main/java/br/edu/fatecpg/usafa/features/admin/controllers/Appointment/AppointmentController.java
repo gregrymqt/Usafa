@@ -33,8 +33,10 @@ public class AppointmentController {
 
    @GetMapping
     public ResponseEntity<Page<AppointmentResponseDto>> getAllAppointments(
-            @PageableDefault(size = 10, sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
-        // Agora passamos o pageable para a service
+            // --- CORREÇÃO AQUI ---
+            // Mudamos para acessar a propriedade DENTRO do objeto relacionado
+            @PageableDefault(size = 10, sort = "horarioSlot.dataHoraInicio", direction = Sort.Direction.DESC) Pageable pageable) {
+        
         Page<AppointmentResponseDto> appointments = adminAppointmentService.getAllAppointments(pageable);
         return ResponseEntity.ok(appointments);
     }

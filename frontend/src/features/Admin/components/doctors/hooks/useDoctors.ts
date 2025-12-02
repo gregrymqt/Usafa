@@ -118,7 +118,7 @@ export const useDoctors = (initialSearchTerm = "") => {
   /**
    * Remove um médico.
    */
-  const removeDoctor = async (id: number | string) => {
+  const removeDoctor = async (id:string) => {
     try {
       await doctorService.deleteDoctor(id);
       setDoctors((prev) => prev.filter((d) => String(d.id) !== String(id)));

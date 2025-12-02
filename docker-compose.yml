@@ -15,11 +15,9 @@ services:
     - LOGGING_LEVEL_ORG_MONGODB_DRIVER=WARN
     - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=ERROR
     - SPRING_JPA_OPEN_IN_VIEW=false
-    - SPRING_DATA_MONGODB_URI=mongodb://root:secret@mongo:27017/usafa_db?authSource=admin
     depends_on:
       - db
       - cache
-      - mongo
     networks:
       - usafa-network
     working_dir: /app
@@ -77,23 +75,7 @@ services:
     networks:
       - usafa-network
     volumes:
-      - ./redis-data:/data  
-
-  mongo:
-    image: mongo:latest
-    container_name: mongo
-    restart: always
-    ports:
-      - "27017:27017"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/${MONGO_DB_NAME}?authSource=admin
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_DB_USER}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_DB_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - usafa-network
+      - ./redis-data:/data 
 
 volumes:
   pgdata:

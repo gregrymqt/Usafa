@@ -1,114 +1,58 @@
-@use '../../../../../../styles/variables' as *; // Ajuste o caminho
-@use 'sass:color';
+@use '../../../../../../styles/variables' as *;
 
-.formContainer {
-  background-color: $white;
-  padding: 1.5rem;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-card;
-  width: 100%;
-  max-width: $form-max-width;
-  margin: 0 auto;
-
-  @media (min-width: $breakpoint-md) {
-    padding: 2.5rem;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: $text-strong;
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
+.patientForm {
+  // Limita a altura e adiciona scroll para formulários longos
+  max-height: 75vh;
+  overflow-y: auto;
+  padding-right: 1rem; // Evita que a barra de scroll cubra o conteúdo
 }
 
-.inputGroup {
-  margin-bottom: 1.25rem;
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: $text-strong;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    border: 1px solid $border-color;
-    border-radius: $radius-md;
-    background-color: $bg-input;
-    color: $text-strong;
-    transition: all 0.2s;
-
-    &:focus {
-      outline: none;
-      border-color: $border-focus;
-      background-color: $white;
-      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
-    }
-
-    &::placeholder {
-      color: $text-light;
-    }
-  }
-}
-
-// Botões de Ação
-.buttonGroup {
-  margin-top: 2rem;
+.actions {
+  margin-top: 1.5rem;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; // Mobile-first: botões empilhados
   gap: 0.75rem;
+
+  // Em telas maiores, os botões ficam lado a lado
+  @media (min-width: 768px) {
+    flex-direction: row-reverse; // Inverte a ordem visual para "Salvar | Cancelar"
+  }
 }
 
-// Botão Primário (Salvar)
 .submitButton {
   width: 100%;
-  padding: 0.8rem;
-  border: none;
+  padding: 0.75rem;
   border-radius: $radius-md;
+  font-weight: 600;
   background-color: $primary-color;
   color: $white;
-  font-size: 1rem;
-  font-weight: 600;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease-in-out;
 
   &:hover:not(:disabled) {
     background-color: $primary-hover;
   }
 
   &:disabled {
-    opacity: 0.6;
-    cursor: wait;
+    background-color: $bg-disabled;
+    cursor: not-allowed;
   }
 }
 
-// Botão Cancelar (Padronizado com variáveis globais)
 .cancelButton {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid $border-color; // Borda cinza suave
+  padding: 0.75rem;
   border-radius: $radius-md;
-  background-color: $bg-secondary-btn; // Variável global cinza claro
-  color: $text-strong;
-  font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
+  background-color: transparent;
+  color: $text-secondary;
+  border: 1px solid $border-color;
   cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 
   &:hover:not(:disabled) {
-    background-color: $bg-secondary-btn-hover; // Cinza um pouco mais escuro
-    border-color: color.adjust($border-color, $lightness: -10%);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    background-color: $bg-light;
+    color: $text-strong;
   }
 }

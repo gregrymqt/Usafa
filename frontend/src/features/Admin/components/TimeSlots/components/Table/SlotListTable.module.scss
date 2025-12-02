@@ -1,0 +1,66 @@
+@use '../../../../../../styles/variables.scss' as *; // Garante o caminho correto
+
+.tableWrapper {
+  background-color: $white;
+  padding: $spacing-md; 
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  overflow-x: auto; // Essencial para Mobile-First (scroll horizontal)
+}
+
+.tableTitle {
+  color: $text-color;
+  margin-bottom: $spacing-md;
+  font-size: 1.1rem;
+  padding-left: $spacing-xs;
+  border-left: 4px solid $primary-color; 
+  font-weight: 600;
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $secondary-color;
+  background-color: $bg-secondary;
+  border-radius: $radius-md;
+  font-style: italic;
+  margin-top: $spacing-md;
+}
+
+// --- BADGES (Etiquetas de Status) ---
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: $radius-pill; // Formato de pílula
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap; // Evita quebra de linha
+}
+
+// Cores específicas por status, usando variáveis padrão
+.disponivel {
+  background-color: rgba($success-color, 0.15);
+  color: $success-color;
+}
+
+.agendado {
+  background-color: rgba($primary-color, 0.15);
+  color: $primary-color;
+}
+
+.bloqueado {
+  background-color: rgba($danger-color, 0.15);
+  color: $danger-color;
+}
+
+.finalizado {
+  background-color: rgba($secondary-color, 0.15);
+  color: $secondary-color;
+}
+
+// Garante boa aparência da ActionMenu
+:global(.reusable-table) td {
+  vertical-align: middle; 
+}

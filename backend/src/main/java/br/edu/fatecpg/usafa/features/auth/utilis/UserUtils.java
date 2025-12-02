@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import br.edu.fatecpg.usafa.features.auth.dtos.ResponseDTO;
+import br.edu.fatecpg.usafa.features.auth.dtos.UserResponseDTO;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.roles.repositories.IRoleRepository;
@@ -134,7 +134,7 @@ public class UserUtils {
     /**
      * Centraliza a criação do ResponseDTO para evitar código duplicado
      */
-    public ResponseDTO buildResponseDTO(User user, String token) {
+    public UserResponseDTO buildResponseDTO(User user, String token) {
         List<String> roles = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
@@ -143,7 +143,7 @@ public class UserUtils {
                 ? user.getBirthDate().atStartOfDay().format(DateTimeFormatter.ISO_DATE_TIME) + "Z"
                 : null;
 
-        return new ResponseDTO(
+        return new UserResponseDTO(
                 token,
                 user.getPublicId().toString(),
                 user.getName(),

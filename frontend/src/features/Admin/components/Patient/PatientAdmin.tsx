@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import styles from "./PatientAdmin.module.scss";
-import { showDeleteConfirm } from "../../utils/adminUtils";
 import type { Patient, PatientAdminProps } from "./types/patient.type";
 import { ActionMenu } from "../../../../components/ActionMenu/ActionMenu";
 import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
@@ -20,10 +19,7 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const handleDeleteClick = async (patient: Patient) => {
-    const confirmed = await showDeleteConfirm(patient.name);
-    if (confirmed) {
-      onDeletePatient(patient);
-    }
+    onDeletePatient(patient); 
   };
 
   const { lastElementRef } = useInfiniteScroll(
@@ -71,7 +67,7 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
                   <h3>{patient.name}</h3>
                   <p>CPF: {patient.cpf || "Não informado"}</p>
                   {/* Se tiver ID visível, descomente abaixo */}
-                  {/* <p style={{fontSize: '0.75rem'}}>ID: {patient.id}</p> */}
+                  {<p style={{fontSize: '0.75rem'}}>ID: {patient.id}</p> }
                 </div>
                 <ActionMenu
                   onUpdate={() => onEditPatient(patient)}
@@ -85,6 +81,9 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
                 </p>
                 <p>
                   <strong>Telefone:</strong> <span>{patient.phone}</span>
+                </p>
+                <p>
+                  <strong>cpf:</strong> <span>{patient.cpf}</span>
                 </p>
               </div>
             </div>

@@ -48,7 +48,8 @@ public class SecurityConfig {
                     "/v3/api-docs/**",   // Swagger
                     "/swagger-ui/**",    // Swagger UI
                     "/api/v1/maps/**",   // Sua API de mapas
-                    "/home/**"           // <--- CORREÇÃO: Libera toda a área da Home
+                    "/home/**",           // <--- CORREÇÃO: Libera toda a área da Home
+                    "/admin/password-tokens/validate/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

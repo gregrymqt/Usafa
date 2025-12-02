@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getUserByPublicId, createPassword } from '../../../services/auth.service';
 import type { UserSession } from '../../../types/auth.types';
 import { getPasswordValidationState } from '../../../../../shared/utils/validators.utils';
+import { passwordTokenService } from '../services/passwordToken.service';
 
 
 export const useCreatePassword = () => {
@@ -24,33 +24,39 @@ export const useCreatePassword = () => {
     hasSpecialChar: false,
   });
 
-  const publicId = searchParams.get('id');
+  const tokenUrl = searchParams.get('id');
 
   useEffect(() => {
-    if (!publicId) {
+    if (!tokenUrl) {
       setError('ID de usuário inválido ou não fornecido.');
       setIsLoading(false);
       return;
     }
 
-    const fetchUser = async () => {
-      try {
-        const userData = await getUserByPublicId(publicId);
-        if (!userData.createdByAdmin) {
-          setError('Este usuário não foi criado por um administrador e não pode usar esta página.');
-        } else {
-          setUser(userData);
+   const fetchUser = async () => {
+        try {
+            setIsLoading(true);
+            // Chama a service nova
+            const userData = await passwordTokenService.validateTokenAndGetUser(tokenUrl);
+            
+            // userData agora tem a tipagem correta (ValidateTokenResponse)
+            console.log("Usuário validado:", userData.name);
+            setUser({
+              ...userData,
+              // A resposta da validação do token não inclui 'createdByAdmin', então definimos um valor padrão.
+              createdByAdmin: true, 
+            }); 
+
+        } catch (error) {
+            console.error("Token inválido", error);
+            setError("Link expirado ou inválido");
+        } finally {
+            setIsLoading(false);
         }
-      } catch (err) {
-        console.error(err);
-        setError('Não foi possível encontrar o usuário. O link pode ter expirado.');
-      } finally {
-        setIsLoading(false);
-      }
     };
 
     fetchUser();
-  }, [publicId]);
+}, [tokenUrl]);
 
   useEffect(() => {
     setPasswordValidation(getPasswordValidationState(password));
@@ -64,11 +70,11 @@ export const useCreatePassword = () => {
       setError('As senhas não coincidem.');
       return;
     }
-    if (!publicId || !user) return;
+    if (!user || !user.publicId) return;
 
     setIsLoading(true);
     try {
-      await createPassword({ publicId,  newPassword: password });
+      await passwordTokenService.createPassword({ publicId: user.publicId,  newPassword: password });
       alert('Senha criada com sucesso! Você será redirecionado para o login.');
       navigate('/login');
     } catch (err) {

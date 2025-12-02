@@ -7,21 +7,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DoctorResponseDto {
 
-    // Usará o publicId da sua entidade Medico [cite: 45]
     private String id;
-
-    // Mapeia do 'nome' da entidade Medico 
     private String name;
-
-    // AVISO: Adicione 'email' à sua entidade Medico.java 
     private String email;
-
-    // AVISO: Adicione 'crm' à sua entidade Medico.java 
     private String crm;
+    
+    // Mantém este para exibir o NOME na tabela
+    private String specialty; 
 
-    // Mapeia de Medico.tipoConsulta.getNome() [cite: 20, 46]
-    private String specialty;
+    // ADICIONE ESTE para o formulário saber o ID
+    private String specialtyId; 
 
-    // Mapeia de Medico.picture.getUrl()
     private String picture;
 }

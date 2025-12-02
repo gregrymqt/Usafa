@@ -44,9 +44,9 @@ public class AuthController {
      * @return Um ResponseEntity com o token JWT em caso de sucesso.
      */
     @PostMapping("/login")
-    public ResponseEntity<ResponseDTO> loginUser(@RequestBody LoginRequestDTO data) {
+    public ResponseEntity<UserResponseDTO> loginUser(@RequestBody LoginRequestDTO data) {
         // A lógica foi movida para o serviço. O controller apenas delega.
-        ResponseDTO response = userAppService.processManualLogin(data);
+        UserResponseDTO response = userAppService.processManualLogin(data);
         return ResponseEntity.ok(response);
     }
 
@@ -57,9 +57,9 @@ public class AuthController {
      * @return Um ResponseEntity com uma mensagem de sucesso.
      */
     @PostMapping("/create")
-    public ResponseEntity<ResponseDTO> createUser(@RequestBody RegisterRequestDTO data) {
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody RegisterRequestDTO data) {
         // O serviço agora retorna o DTO com o token para login automático.
-        ResponseDTO response = userAppService.processManualRegistration(data);
+        UserResponseDTO response = userAppService.processManualRegistration(data);
         return ResponseEntity.ok(response);
     }
 
@@ -70,9 +70,9 @@ public class AuthController {
      * @return Um ResponseEntity com uma mensagem de sucesso.
      */
     @PutMapping("id/{id}")
-    public ResponseEntity<ResponseDTO> updateUserByPublicId(@PathVariable String id, @RequestBody UpdateUserByPublicIdDTO data) {
+    public ResponseEntity<UserResponseDTO> updateUserByPublicId(@PathVariable String id, @RequestBody UpdateUserByPublicIdDTO data) {
         // O serviço agora retorna o DTO com o token para login automático.
-        Optional<ResponseDTO> response = userAppService.updateUserByPublicId(id, data);
+        Optional<UserResponseDTO> response = userAppService.updateUserByPublicId(id, data);
         return ResponseEntity.ok(response.get());
     }
 

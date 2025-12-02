@@ -20,19 +20,19 @@ public class DoctorMapper {
         DoctorResponseDto dto = new DoctorResponseDto();
         dto.setId(medico.getPublicId());
         dto.setName(medico.getNome());
-        
-        // Assume que você adicionou 'email' e 'crm' à entidade Medico
-        dto.setEmail(medico.getEmail()); 
+        dto.setEmail(medico.getEmail());
         dto.setCrm(medico.getCrm());
 
-        // Busca o nome da especialidade a partir da entidade relacionada
-        if (medico.getTipoConsulta() != null) { 
+        if (medico.getTipoConsulta() != null) {
+            // Nome para exibição na tabela (Ex: "Cardiologista")
             dto.setSpecialty(medico.getTipoConsulta().getNome());
+            // [CORREÇÃO] ID para o formulário saber qual option selecionar
+            dto.setSpecialtyId(medico.getTipoConsulta().getPublicId()); 
         } else {
-            dto.setSpecialty(null); // Ou um valor padrão
+            dto.setSpecialty(null);
+            dto.setSpecialtyId(null);
         }
 
-        // Mapeia a URL da foto de perfil a partir da entidade Picture relacionada
         if (medico.getPicture() != null) {
             dto.setPicture(medico.getPicture().getUrl());
         } else {

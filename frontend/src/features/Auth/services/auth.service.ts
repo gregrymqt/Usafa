@@ -1,5 +1,4 @@
 import api from '../../../shared/services/api.service';
-import type { UpdateUserAndCreatePasswordData } from '../component/CreatePassword/types/createPassword.type';
 import type { LoginCredentials, UserSession, RegisterData, UpdateUserData } from '../types/auth.types';
 
 /**
@@ -56,9 +55,4 @@ export const updateUserByPublicId = async (
     : {};
 
   return api.put<UserSession>(`/auth/id/${publicId}`, userData, config); 
-};
-
-
-export const createPassword = async (data : UpdateUserAndCreatePasswordData): Promise<void> => {
-  return api.post<void>(`/auth/create-password`, data);
 };

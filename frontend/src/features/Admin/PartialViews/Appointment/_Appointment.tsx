@@ -20,6 +20,9 @@ export const AppointmentPartial: React.FC = () => {
     addAppointment,
     removeAppointment,
     editAppointment,
+    typeOptions,       // Lista de especialidades carregada no mount
+    slotOptions,       // Lista de slots (vazia no início)
+    fetchSlotsForType, // Função que busca slots no backend
   } = useAppointments();
 
   // CORREÇÃO: Valor padrão para evitar erro no map
@@ -40,9 +43,6 @@ export const AppointmentPartial: React.FC = () => {
       label: pat.name,
     }));
   }, [patients]);
-
-  const typeOptions: FormSelectOption[] = []; // Preencha se necessário
-  const slotOptions: FormSelectOption[] = []; // Preencha se necessário
 
   // --- Manipuladores ---
   const handleOpenCreateAppointmentModal = () => {
@@ -136,7 +136,7 @@ export const AppointmentPartial: React.FC = () => {
               isLoading={isLoadingAppointments}
               patientOptions={patientOptions}
               typeOptions={typeOptions}
-              onTypeChange={() => {}}
+              onTypeChange={(tipoId) => fetchSlotsForType(tipoId)}
               slotOptions={slotOptions}
             />
           </Modal>

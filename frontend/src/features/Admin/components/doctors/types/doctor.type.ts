@@ -2,12 +2,13 @@
  * Interface base para um Doutor
  */
 export interface Doctor {
-  id: number | string; // Permitindo string caso a API use UUIDs
+  id: string;
   name: string;
   email: string;
   crm: string;
-  specialty: string;
-  picture: string; // URL da foto de perfil
+  specialty: string;    // Nome (Ginecologista)
+  specialtyId: string;  // Novo campo (UUID)
+  picture?: string;
 }
 
 /**
@@ -17,8 +18,8 @@ export interface NewDoctorData {
   name: string;
   email: string;
   crm: string;
-  specialty: string;
-  imageFile?: File; // Adicionado para envio do arquivo
+  specialty: string;    // Aqui enviamos o UUID da especialidade selecionada
+  imageFile?: File;     // Arquivo opcional
 }
 
 /**
@@ -31,7 +32,7 @@ export interface DoctorAdminProps {
   isLoading: boolean;
   error: string | null;
   onEditDoctor: (doctor: Doctor) => void;
-  onDeleteDoctor: (doctor: Doctor) => void;
+  onDeleteDoctor: (id: string) => void;
   loadMoreDoctors: () => void;
   hasMore: boolean;
 }

@@ -80,7 +80,7 @@ export const DoctorPartial: React.FC = () => {
         isLoading={isLoadingDoctors}
         error={errorDoctors}
         onEditDoctor={handleOpenEditDoctorModal}
-        onDeleteDoctor={handleDeleteDoctor}
+        onDeleteDoctor={(id) => handleDeleteDoctor(doctors.find(doc => doc.id === id)!)}
         // CORREÇÃO 2: Adicionadas as props obrigatórias de paginação.
         // Como seu hook useDoctors atual não parece retornar isso, passamos valores "dummy" para compilar.
         hasMore={false}

@@ -6,8 +6,8 @@ import br.edu.fatecpg.usafa.features.auth.dtos.*;
 
 
 public interface IUserAppService {
-    ResponseDTO processManualLogin(LoginRequestDTO data);
-    ResponseDTO processManualRegistration(RegisterRequestDTO data);
+    UserResponseDTO processManualLogin(LoginRequestDTO data);
+    UserResponseDTO processManualRegistration(RegisterRequestDTO data);
     ResponseGoogleDTO processGoogleLogin(LoginGoogleRequestDTO googleUser);
-    Optional<ResponseDTO> updateUserByPublicId(String publicId, UpdateUserByPublicIdDTO data);
+    Optional<UserResponseDTO> updateUserByPublicId(String publicId, UpdateUserByPublicIdDTO data);
 }

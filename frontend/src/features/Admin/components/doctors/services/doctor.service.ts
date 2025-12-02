@@ -82,6 +82,7 @@ export const updateDoctor = async (
 /**
  * Deleta um médico.
  */
-export const deleteDoctor = async (id: number | string): Promise<void> => {
+export const deleteDoctor = async (id:string): Promise<void> => {
+  console.log("URL SENDO CHAMADA:", `${DOCTORS_ENDPOINT}/${id}`); // <--- Adicione isso
   await api.delete(`${DOCTORS_ENDPOINT}/${id}`);
 };

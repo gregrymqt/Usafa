@@ -7,9 +7,9 @@ import { usePatients } from '../../components/Patient/hooks/usePatients';
 import styles from './_PatientPartial.module.scss';
 import { Modal } from '../../../../components/Modal/Modal';
 import { PatientForm } from '../../components/Patient/components/Form/PatientForm';
-import { PatientAdmin } from '../../components/Patient/PatientAdmin';
 import { Patient, PatientFormData } from '../../components/Patient/types/patient.type';
 import { PasswordTokenManager } from '../../components/Patient/components/Token/PasswordTokenManager';
+import { PatientAdmin } from '../../components/Patient/PatientAdmin';
 
 
 export const PatientPartial: React.FC = () => {

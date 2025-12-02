@@ -28,12 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DoctorServiceImpl implements IDoctorService {
 
-    // Repositórios e Serviços principais
     private final IMedicoRepository medicoRepository;
     private final ICacheService cacheService;
     private final IPictureService pictureService;
-
-    // Classes auxiliares
     private final DoctorHelper helper;
     private final DoctorMapper mapper;
 
@@ -42,23 +39,22 @@ public class DoctorServiceImpl implements IDoctorService {
     @Override
     @Transactional(readOnly = true)
     public Page<DoctorResponseDto> getAllDoctors(Pageable pageable, String search) {
-        log.info("Buscando médicos com paginação: {}, termo de busca: '{}'", pageable, search);
-
+        log.info("Buscando médicos ativos. Paginação: {}, termo de busca: '{}'", pageable, search);
         try {
             Page<Medico> medicosPage;
 
-            // Se houver um termo de busca, filtra por nome ou CRM
+            // 1. Lógica de Busca (Apenas Ativos)
             if (search != null && !search.trim().isEmpty()) {
-                log.info("Realizando busca por '{}'", search);
-                // Você precisará criar este método no seu IMedicoRepository
-                medicosPage = medicoRepository.findByNomeContainingIgnoreCaseOrCrmContainingIgnoreCase(search, search, pageable);
+                log.info("Realizando busca por '{}' em médicos ativos", search);
+                // Precisa ter este método no Repository:
+                // @Query("SELECT m FROM Medico m WHERE m.active = true AND (LOWER(m.nome) LIKE ... OR LOWER(m.crm) LIKE ...)")
+                medicosPage = medicoRepository.searchActiveDoctors(search, pageable);
             } else {
-                // Senão, busca todos os médicos de forma paginada
-                log.info("Buscando todos os médicos paginados");
-                medicosPage = medicoRepository.findAll(pageable);
+                log.info("Listando todos os médicos ativos");
+                // Precisa ter este método no Repository: Page<Medico> findByActiveTrue(Pageable pageable);
+                medicosPage = medicoRepository.findByActiveTrue(pageable); 
             }
 
-            // Mapeia a página de entidades para uma página de DTOs
             return medicosPage.map(mapper::toDto);
 
         } catch (DataAccessException e) {
@@ -111,29 +107,37 @@ public class DoctorServiceImpl implements IDoctorService {
     @Transactional
     public DoctorResponseDto updateDoctor(String id, DoctorRequestDto doctorDto, MultipartFile file) {
         log.info("Atualizando médico ID: {}", id);
-
+        
+        // Busca o médico (mesmo se estiver inativo, pois estamos editando pelo ID)
         Medico medico = helper.findDoctorByPublicId(id);
 
+        // Validação de CRM único
         medicoRepository.findByCrm(doctorDto.getCrm()).ifPresent(existing -> {
             if (!existing.getPublicId().equals(id)) {
                 throw new BusinessRuleException("Este CRM já pertence a outro médico.");
             }
         });
 
+        // Atualiza dados básicos
         medico.setNome(doctorDto.getName());
         medico.setCrm(doctorDto.getCrm());
         medico.setEmail(doctorDto.getEmail());
 
-        // Atualiza Especialidade se mudou
+        // [LÓGICA NOVA] Reativação Automática
+        // Se o médico estava "Excluído" (active=false) e foi editado, entendemos que ele deve voltar a ser ativo.
+        if (!medico.isActive()) {
+            log.info("Reativando médico previamente inativo: {}", medico.getNome());
+            medico.setActive(true);
+        }
+
+        // Atualiza Especialidade
         if (!medico.getTipoConsulta().getPublicId().equalsIgnoreCase(doctorDto.getSpecialty())) {
             TipoConsulta novaEspec = helper.findSpecialtyByPublicId(doctorDto.getSpecialty());
             medico.setTipoConsulta(novaEspec);
         }
 
-        // Lógica de Foto
+        // Atualiza Foto
         if (file != null && !file.isEmpty()) {
-            // Se já tinha foto, pode deletar a antiga do bucket ou apenas substituir a URL
-            // Aqui assumo substituição do objeto Picture
             Picture newPicture = pictureService.uploadAndGetPicture(file, "doctor_profile");
             medico.setPicture(newPicture);
         }
@@ -142,37 +146,45 @@ public class DoctorServiceImpl implements IDoctorService {
             Medico updatedMedico = medicoRepository.save(medico);
             cacheService.delete(CACHE_KEY_ALL_DOCTORS);
             return mapper.toDto(updatedMedico);
+
         } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao atualizar médico: {}", e.getMessage());
-            if (e.getMessage().contains("ConstraintViolationException")) {
+            log.error("Erro ao atualizar médico: {}", e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("ConstraintViolationException")) {
                 throw new BusinessRuleException("Email ou CRM já cadastrado.", e);
             }
             throw new DatabaseOperationException("Erro ao atualizar médico", e);
         }
     }
 
-    @Override
+   @Override
     @Transactional
     public void deleteDoctor(String id) {
-        log.info("Deletando médico ID: {}", id);
-
-        // 1. Buscar entidade (delegado ao Helper)
+        log.info("Iniciando inativação (Soft Delete) do médico ID: {}", id);
+        
+        // 1. Buscar entidade
         Medico medico = helper.findDoctorByPublicId(id);
 
-        // 2. REGRA DE NEGÓCIO (delegado ao Helper)
+        // 2. Validações (Ex: não pode inativar se tiver consultas pendentes, se for regra de negócio)
         helper.validateDoctorHasNoAppointments(medico);
 
         try {
-            // 3. Deletar
-            medicoRepository.delete(medico);
+            // 3. "Deleta" (Inativa)
+            medico.setActive(false);
 
-            // 4. Invalidar cache
+            // 4. Limpa agenda futura (Slots livres)
+            // Isso garante que ele não apareça para agendamento, mesmo se o filtro falhar
+            if (medico.getHorarios() != null) {
+                medico.getHorarios().clear();
+            }
+
+            medicoRepository.saveAndFlush(medico);
             cacheService.delete(CACHE_KEY_ALL_DOCTORS);
-            log.info("Médico ID {} deletado e cache invalidado", id);
+            
+            log.info("Médico ID {} inativado com sucesso.", id);
 
         } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao deletar médico: {}", e.getMessage());
-            throw new DatabaseOperationException("Erro ao deletar médico", e);
+            log.error("Erro de banco ao inativar médico: {}", e.getMessage());
+            throw new DatabaseOperationException("Erro ao inativar o médico", e);
         }
     }
 }

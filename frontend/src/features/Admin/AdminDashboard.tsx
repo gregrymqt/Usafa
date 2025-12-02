@@ -5,7 +5,7 @@ import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.
 import { DoctorIcon, PatientIcon, AppointmentIcon } from './utils/AdminIcons';
 
 // Ícones
-import { FaUserCircle, FaClipboardList, FaHome } from 'react-icons/fa'; 
+import { FaUserCircle, FaClipboardList, FaHome, FaCalendarAlt } from 'react-icons/fa'; 
 
 // Views Existentes
 import { AppointmentPartial } from './PartialViews/Appointment/_Appointment';
@@ -15,6 +15,7 @@ import HomeAdmin from './components/HomeAdmin/HomeAdmin';
 import TipoConsultaManager from './components/appointmentType/AppointmentTypeAdmin';
 import { DoctorPartial } from './PartialViews/Doctor/_Doctor';
 import { PatientPartial } from './PartialViews/Patient/_Patient';
+import { SlotManagementIndex } from './components/TimeSlots/SlotManagementIndex';
 
 // Nova View (Ajuste o caminho '../Admin/TipoConsulta' se a pasta estiver em outro local)
 
@@ -31,36 +32,43 @@ const AdminDashboard: React.FC = () => {
   );
 
   // 2. Use a função para envolver seus componentes
-  const adminViews: ISidebarView[] = [
+ const adminViews: ISidebarView[] = [
     {
       name: 'Meu Perfil',
       icon: <FaUserCircle />, 
-      component: wrapContent(<ProfilePartial />), // Envolva aqui
+      component: wrapContent(<ProfilePartial />), 
     },
     {
       name: 'Gestão da Home',
       icon: <FaHome />,
-      component: wrapContent(<HomeAdmin />), // Envolva aqui
+      component: wrapContent(<HomeAdmin />), 
     },
     {
       name: 'Tipos de Consulta',
       icon: <FaClipboardList />,
-      component: wrapContent(<TipoConsultaManager />), // Envolva aqui
+      component: wrapContent(<TipoConsultaManager />), 
     },
     {
       name: 'Médicos',
       icon: <DoctorIcon />,
-      component: wrapContent(<DoctorPartial />), // Envolva aqui
+      component: wrapContent(<DoctorPartial />), 
     },
     {
       name: 'Pacientes',
       icon: <PatientIcon />,
-      component: wrapContent(<PatientPartial />), // Envolva aqui
+      component: wrapContent(<PatientPartial />), 
     },
     {
       name: 'Consultas',
       icon: <AppointmentIcon />,
-      component: wrapContent(<AppointmentPartial />), // Envolva aqui
+      component: wrapContent(<AppointmentPartial />),
+    },
+    // --- NOVO ITEM ADICIONADO AQUI ---
+    {
+      name: 'Gerenciar Agenda', // Nome que aparecerá no menu
+      icon: <FaCalendarAlt />,  // Ícone de calendário
+      // IMPORTANTE: Substitua 'ID_DO_MEDICO' pelo ID real ou lógica de seleção
+      component: wrapContent(<SlotManagementIndex />), 
     },
   ];
 

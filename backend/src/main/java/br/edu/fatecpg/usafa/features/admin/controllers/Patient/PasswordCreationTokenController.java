@@ -1,10 +1,12 @@
 package br.edu.fatecpg.usafa.features.admin.controllers.Patient;
 
-import br.edu.fatecpg.usafa.document.PasswordCreationToken;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.CreatePasswordDTO;
 import br.edu.fatecpg.usafa.features.admin.dtos.patient.PasswordCreationTokenRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.patient.PasswordCreationTokenResponseDto;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPasswordCreationTokenService;
 import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientHelper;
+import br.edu.fatecpg.usafa.features.auth.dtos.UserResponseDTO;
+import br.edu.fatecpg.usafa.models.PasswordCreationToken;
 import br.edu.fatecpg.usafa.models.User;
 import lombok.RequiredArgsConstructor;
 
@@ -46,7 +48,7 @@ public class PasswordCreationTokenController {
 
         // 3. Mapeia a entidade para o DTO de resposta
         PasswordCreationTokenResponseDto response = PasswordCreationTokenResponseDto.builder()
-                .url(token.get().getUrl())
+                .url(token.get().getFullUrl())
                 .expiryDate(token.get().getExpiryDate())
                 .build();
 
@@ -68,12 +70,33 @@ public class PasswordCreationTokenController {
         return tokenService.findTokenByUserPublicId(userPublicId)
                 .map(token -> {
                     PasswordCreationTokenResponseDto responseDto = PasswordCreationTokenResponseDto.builder()
-                            .url(token.getUrl())
+                            .url(token.getFullUrl())
                             .expiryDate(token.getExpiryDate())
                             .build();
                     return ResponseEntity.ok(responseDto);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/validate/{tokenId}")
+    @PreAuthorize("permitAll()") // Libera acesso público
+    public ResponseEntity<UserResponseDTO> validateToken(@PathVariable String tokenId) {
+        // Essa lógica já existe na sua service [cite: 18, 60]
+        UserResponseDTO userDto = tokenService.validateTokenAndGetUser(tokenId);
+        return ResponseEntity.ok(userDto);
+    }
+
+    /**
+     * [NOVO] Endpoint para efetivar a criação da senha.
+     * O Front chama isso ao clicar em "Salvar Senha".
+     */
+    @PostMapping("/complete-creation")
+    @PreAuthorize("permitAll()") // Libera acesso público
+    public ResponseEntity<Void> completePasswordCreation(@RequestBody CreatePasswordDTO request) {
+        // Chama a nova lógica que criamos na Service acima
+        tokenService.createPassword(request);
+        
+        return ResponseEntity.noContent().build();
     }
 
     /**
