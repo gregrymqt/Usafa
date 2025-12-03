@@ -1,6 +1,5 @@
 @use '../../../../styles/variables' as *;
 // Importa o estilo do botão de Doctor para reutilização
-@use '../Doctor/_DoctorPartial.module.scss' as doctorStyles;
 
 .container {
   display: flex;
@@ -59,8 +58,45 @@
 }
 
 // Reutiliza o estilo do botão de "Adicionar" para manter a consistência visual
+
 .addButton {
-  @extend doctorStyles.addButton;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm; // Usa variável para o espaçamento
+  
+  width: 100%; // Mobile: Botão full-width para toque fácil
+  padding: 0.75rem 1.5rem;
+  
+  background-color: $primary-color;
+  color: $white;
+  font-weight: 600;
+  font-size: 1rem;
+  
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: $primary-hover; // Usa a variável de hover definida
+    transform: translateY(-2px); // Efeito visual de clique
+    box-shadow: $shadow-md;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $shadow-sm; // Retorna à sombra menor ao clicar
+  }
+
+  .icon {
+    line-height: 0; // Garante alinhamento vertical do ícone
+  }
+
+  @media (min-width: $breakpoint-md) {
+    width: auto; // Desktop: Botão ocupa apenas o espaço necessário
+  }
 }
 
 /* --- Conteúdo da Aba --- */
