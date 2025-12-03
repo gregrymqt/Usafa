@@ -2,24 +2,15 @@
 import { api } from '../../../shared/services/api.service';
 import { UserProfileUpdateDTO, type UserData } from '../types/profile.type';
 
-// A função 'getAuthenticatedUserData' FOI REMOVIDA. Não é mais necessária.
-
-/**
- * Atualiza os dados do usuário.
- * Retorna os dados novos confirmados pelo backend.
- */
 export const updateUserData = async (data: UserProfileUpdateDTO): Promise<UserData> => {
   const formData = new FormData();
 
   // 1. Parte JSON ("profile")
-  // O Backend espera um @RequestPart("profile") que seja JSON
   const profileData = {
     name: data.name,
     cep: data.cep
   };
   
-  // Convertemos o objeto para string JSON e criamos um Blob com type application/json
-  // Isso garante que o Spring Boot entenda que é a parte do DTO
   const jsonBlob = new Blob([JSON.stringify(profileData)], { type: 'application/json' });
   formData.append('profile', jsonBlob);
 
@@ -29,16 +20,12 @@ export const updateUserData = async (data: UserProfileUpdateDTO): Promise<UserDa
   }
 
   try {
-    // Importante: Usar PUT (conforme sua Controller) e enviar o formData
-    // Se você tiver o método 'putFormData' que criamos antes, use-o. 
-    // Caso contrário, use api.put direto:
-    const response = await api.put<UserData>('/api/v1/profile/me', formData, {
-      headers: {
-        // Removemos o Content-Type para o browser definir o boundary automaticamente
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return response; // Axios retorna em .data
+    // --- CORREÇÃO AQUI ---
+    // Use o método helper 'putFormData' que criamos no api.service.ts
+    // Ele remove automaticamente o Content-Type para o browser setar o boundary
+    return await api.putFormData<UserData>('/api/v1/profile/me', formData);
+
+
   } catch (error) {
     console.error('Erro ao atualizar dados do usuário:', error);
     throw new Error('Não foi possível salvar as alterações.');

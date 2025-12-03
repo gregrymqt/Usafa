@@ -1,24 +1,29 @@
-@use '../../styles/variables' as *;
+@use '../../styles/variables' as *; // Ajuste o caminho para chegar no variables.scss
 
-.form {
+.formContainer {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.25rem; // Espaçamento vertical entre campos
 }
 
+// --- Estilos Gerais de Input ---
 .inputGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 
-  label {
+  .label { // Corrigido para bater com className={styles.label}
     font-weight: 600;
     color: $text-strong;
     font-size: 0.9rem;
+    display: block; // Garante que o label ocupe a linha
   }
 
-  input {
+  // Estilos compartilhados para Input, Select e Textarea
+  input:not([type="checkbox"]):not([type="file"]),
+  select,
+  textarea {
     width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid $border-color;
@@ -26,47 +31,125 @@
     font-size: 1rem;
     background-color: $bg-input;
     color: $text-strong;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease-in-out;
+    font-family: inherit; // Para textarea e input terem a mesma fonte
 
     &:focus {
       outline: none;
       border-color: $border-focus;
       background-color: $white;
-      box-shadow: 0 0 0 3px rgba($primary-color, 0.15); // Glow padrão do sistema
+      box-shadow: $shadow-focus; 
     }
 
     &:disabled {
-      background-color: $bg-light;
-      color: $text-light;
+      background-color: $bg-disabled;
+      color: $text-muted;
       cursor: not-allowed;
+      border-color: $border-light;
     }
+    
+    &::placeholder {
+      color: $text-light;
+    }
+  }
+
+  textarea {
+    min-height: 100px;
+    resize: vertical; // Permite redimensionar apenas altura
   }
 }
 
-.submitButton {
+// --- Estilos Específicos para Checkbox ---
+.checkboxGroup {
+  flex-direction: row; // Checkbox ao lado do texto
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+
+  input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+    accent-color: $primary-color; // Cor nativa do browser para checkbox
+  }
+
+  .checkboxLabel {
+    font-weight: 500;
+    color: $text-color;
+    cursor: pointer;
+    user-select: none;
+  }
+}
+
+// --- Estilos para Upload de Arquivo (File) ---
+.fileUpload {
+  border: 2px dashed $border-color;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  text-align: center;
+  cursor: pointer;
+  background-color: $bg-light;
+  transition: all 0.2s;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: $primary-color;
+    background-color: rgba($primary-color, 0.05);
+  }
+
+  .uploadPlaceholder {
+    color: $text-secondary;
+    font-size: 0.9rem;
+  }
+
+  .preview {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: $radius-sm;
+    object-fit: cover;
+    box-shadow: $shadow-sm;
+  }
+}
+
+// --- Botão de Submit (Ajustado para bater com className={styles.save}) ---
+.actions {
+  margin-top: $spacing-sm;
+}
+
+.save {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem; // Um pouco maior para facilitar o clique
   border: none;
   border-radius: $radius-md;
-  background-color: $primary-color;
+  background-color: $bg-primary-btn;
   color: $white;
   font-size: 1rem;
   font-weight: 600;
+  text-transform: uppercase; // Opcional: Estilo mais "botão de ação"
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+  box-shadow: $shadow-sm;
 
   &:hover:not(:disabled) {
-    background-color: $primary-hover;
+    background-color: $bg-primary-btn-hover;
     box-shadow: $shadow-md;
+    transform: translateY(-1px); // Pequeno efeito de elevação
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0); // Efeito de clique
+    box-shadow: $shadow-sm;
   }
 
   &:disabled {
     background-color: $bg-disabled;
     color: $text-muted;
-    cursor: not-allowed;
+    cursor: wait; // Cursor de carregamento
+    box-shadow: none;
   }
-}
-
-.submitButtonWrapper {
-  margin-top: 0.5rem;
 }

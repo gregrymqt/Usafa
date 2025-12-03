@@ -1,27 +1,48 @@
-@use '../../../../styles/variables' as *; // Ajuste o caminho conforme necessário
+@use '../../../../styles/variables' as *;
 
 .container {
   background-color: $white;
   border-radius: $radius-md;
   box-shadow: $shadow-sm;
-  overflow: hidden; // Para o conteúdo não vazar o border-radius
-  min-height: 400px; // Altura mínima visual
+  overflow: hidden; 
+  min-height: 400px;
+  max-width: $container-max-width;
+  margin: 0 auto; 
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.header {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-lg $spacing-lg 0 $spacing-lg; // Padding apenas no topo/laterais para o título
+  
+  h2 { 
+    margin-bottom: $spacing-sm; 
+    color: $text-strong; 
+    font-size: 1.5rem;
+  }
+  
+  p { 
+    color: $text-secondary; 
+    font-size: 0.95rem; 
+  }
 }
 
 // --- Cabeçalho das Abas ---
 .tabsHeader {
   display: flex;
+  gap: $spacing-sm; // Pequeno espaço entre as abas
   border-bottom: 1px solid $border-color;
-  background-color: $bg-secondary; // Fundo levemente cinza para diferenciar do conteúdo
+  background-color: $bg-secondary;
+  padding: 0 $spacing-lg; // Alinha com o conteúdo
   
-  // Mobile-First: Abas ocupam 50% cada para facilitar o toque
   @media (max-width: $breakpoint-md) {
-    justify-content: space-between;
+    padding: 0;
+    gap: 0;
   }
 }
 
 .tabButton {
-  flex: 1; // No mobile cresce igual
+  flex: 1; 
   padding: $spacing-md $spacing-lg;
   border: none;
   background: none;
@@ -31,14 +52,14 @@
   color: $text-secondary;
   transition: all 0.2s ease-in-out;
   position: relative;
-  outline: none;
+  border-radius: $radius-md $radius-md 0 0; // Arredonda topo
 
   @media (min-width: $breakpoint-md) {
-    flex: initial; // No desktop ocupa apenas o espaço do texto
-    min-width: 150px;
+    flex: initial; 
+    min-width: 160px;
   }
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: $primary-color;
     background-color: rgba($primary-color, 0.05);
   }
@@ -48,19 +69,15 @@
     color: $primary-color;
     font-weight: 700;
     background-color: $white;
-    
-    // Linha inferior colorida indicando seleção
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background-color: $primary-color;
-      border-top-left-radius: 3px;
-      border-top-right-radius: 3px;
-    }
+    border: 1px solid $border-color;
+    border-bottom: 1px solid transparent; // Remove borda de baixo para fundir com conteúdo
+    margin-bottom: -1px; // Sobrepõe a linha da tabsHeader
+  }
+
+  &:disabled {
+    color: $text-muted;
+    cursor: not-allowed;
+    opacity: 0.7;
   }
 }
 
@@ -68,30 +85,50 @@
 .contentArea {
   padding: $spacing-lg;
   background-color: $white;
+  min-height: 300px;
+}
+
+.tabContentFadeIn {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-// Pequena animação de entrada ao trocar de aba
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.headerActions {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: $spacing-md;
-}
-
-.infoTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: $text-strong;
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: $spacing-lg;
+  
+  h4 { 
+    margin: 0; 
+    color: $text-strong; 
+    font-size: 1.1rem;
+  }
 }
 
-.loadingText {
+.refreshButton {
+  padding: $spacing-xs $spacing-md;
+  font-size: 0.85rem;
+  background-color: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  color: $text-color;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover { 
+    background-color: $bg-hover; 
+    border-color: $text-secondary;
+  }
+}
+
+.loadingState {
   text-align: center;
+  padding: $spacing-xl;
   color: $text-secondary;
-  padding: $spacing-xl 0;
+  font-style: italic;
 }

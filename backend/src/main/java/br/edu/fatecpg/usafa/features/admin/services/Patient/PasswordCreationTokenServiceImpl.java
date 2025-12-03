@@ -161,11 +161,12 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
 
         // 2. Tenta Banco SQL
         log.info("Cache Miss. Buscando token no SQL para: {}", userPublicId);
-        try {
-            UUID uuid = UUID.fromString(userPublicId);
+        try {   
+            User user = userRepository.findByPublicId(UUID.fromString(userPublicId))
+                    .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + userPublicId));
 
             // Busca usando o novo método do Repositório
-            Optional<PasswordCreationToken> dbTokenOpt = tokenRepository.findByUser_PublicId(uuid);
+            Optional<PasswordCreationToken> dbTokenOpt = tokenRepository.findByUser_Id(user.getId());
 
             dbTokenOpt.ifPresent(token -> {
                 // [IMPORTANTE] Reconstruir a URL, pois o banco só tem o token hash

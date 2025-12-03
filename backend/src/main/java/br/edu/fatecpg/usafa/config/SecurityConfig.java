@@ -69,28 +69,42 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Garante que a string não venha vazia antes de dar split
-        if (allowedOrigin != null && !allowedOrigin.isEmpty()) {
-            configuration.setAllowedOrigins(List.of(allowedOrigin.split(",")));
-        } else {
-            configuration.setAllowedOrigins(List.of("*")); // Fallback seguro (ou remova se preferir erro)
-        }
-
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization", 
-            "Content-Type", 
-            "X-Auth-Token", 
-            "ngrok-skip-browser-warning"
-        ));
-        configuration.setExposedHeaders(List.of("X-Auth-Token"));
-        configuration.setAllowCredentials(true);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    
+    // CORREÇÃO CRÍTICA AQUI:
+    // Se você tem credenciais (setAllowCredentials(true)), não pode usar setAllowedOrigins("*").
+    // O Spring trata setAllowedOriginPatterns("*") de forma inteligente, refletindo a origem da requisição.
+    
+    if (allowedOrigin != null && !allowedOrigin.isEmpty()) {
+        configuration.setAllowedOrigins(List.of(allowedOrigin.split(",")));
+    } else {
+        // Fallback seguro para desenvolvimento que funciona com Credenciais
+        configuration.setAllowedOriginPatterns(List.of("*")); 
     }
+
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    
+    // Adicionando headers essenciais para o preflight
+    configuration.setAllowedHeaders(Arrays.asList(
+        "Authorization", 
+        "Content-Type", 
+        "X-Auth-Token", 
+        "ngrok-skip-browser-warning",
+        "Origin", 
+        "Accept", 
+        "X-Requested-With",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers"
+    ));
+    
+    configuration.setExposedHeaders(List.of("X-Auth-Token", "Authorization"));
+    
+    // Isso exige que a origem NÃO seja estritamente "*" (por isso usamos patterns acima)
+    configuration.setAllowCredentials(true);
+    
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
 }

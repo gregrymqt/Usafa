@@ -19,7 +19,7 @@ public interface IPasswordCreationTokenRepository extends JpaRepository<Password
     Optional<PasswordCreationToken> findByUserAndExpiryDateAfter(User user, LocalDateTime now);
 
     // [CORREÇÃO] Método necessário para buscar pelo UUID do usuário (Join)
-    Optional<PasswordCreationToken> findByUser_PublicId(UUID publicId);
+    Optional<PasswordCreationToken> findByUser_Id(long publicId);
 
     // [CORREÇÃO] Método para deletar token antigo
     void deleteByUser(User user);

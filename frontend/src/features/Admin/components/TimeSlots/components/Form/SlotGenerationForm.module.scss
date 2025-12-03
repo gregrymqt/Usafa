@@ -1,125 +1,29 @@
-@use '../../../../../../styles/variables' as *; // Garante o caminho correto
+@use '../../../../../../styles/variables' as *;
 
-.formContainer {
-  background-color: $white;
-  padding: $spacing-lg;
-  border-radius: $radius-md;
-  box-shadow: $shadow-sm;
-  margin-bottom: $spacing-xl;
-  border: 1px solid $border-light; // Adiciona uma borda suave
+.slotFormContainer {
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.title {
-  color: $primary-color;
-  margin-bottom: $spacing-xs;
-  font-size: 1.25rem;
+.formTitle {
+  margin-bottom: 20px;
+  color: $text-strong;
 }
 
-.subtitle {
-  color: $text-color;
-  opacity: 0.7;
-  margin-bottom: $spacing-lg;
-  font-size: 0.9rem;
-}
-
-.formGrid {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-
-  // Mobile-First: No Desktop vira Grid 
-  @media (min-width: $breakpoint-md) {
-    display: grid;
-    // 4 campos (Início, Fim, Duração, Valor) e o botão abaixo
-    grid-template-columns: repeat(4, 1fr); 
-    align-items: end; // Alinha o botão com a altura dos inputs
-  }
-}
-
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-  
-  // No desktop, o botão precisa de um espaço em branco para alinhar
-  &:last-of-type {
-    @media (min-width: $breakpoint-md) {
-      grid-column: 5 / 5; // Não deve existir, a ação está separada
-    }
-  }
-
-  label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: $text-color;
-  }
-}
-
-.input, .select {
-  padding: 10px;
-  border: 1px solid $border-color;
-  border-radius: $radius-sm;
-  font-size: 1rem;
-  background-color: $bg-input; // Fundo leve para inputs
-  transition: border-color 0.2s, box-shadow 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: $border-focus;
-    box-shadow: $shadow-focus;
-  }
-}
-
-.actions {
-  grid-column: 1 / -1; // Ocupa toda a largura da grid no desktop
-  display: flex;
-  justify-content: flex-end;
-  margin-top: $spacing-md;
-
-  @media (max-width: $breakpoint-md - 1px) {
-    margin-top: $spacing-md; // Remove margem no mobile para juntar ao último input
-  }
-}
-
-.submitButton {
-  background-color: $bg-primary-btn;
-  color: $white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: $radius-md;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  width: 100%; // Botão grande no mobile para melhor toque
-
-  @media (min-width: $breakpoint-md) {
-    width: auto; // Botão de largura automática no desktop
-  }
-
-  &:hover {
-    background-color: $bg-primary-btn-hover;
-  }
-
-  &:disabled {
-    background-color: $bg-disabled;
-    color: $text-color;
-    cursor: not-allowed;
-  }
-}
-
+// Estilo para o alerta de erro, usando variáveis globais
 .errorAlert {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: $spacing-md;
   margin-bottom: $spacing-md;
   border-radius: $radius-sm;
   background-color: $error-bg;
   color: $error-text;
   border: 1px solid $error-border;
-  font-weight: 500;
 }
 
+// Botão para fechar o alerta de erro
 .closeButton {
   background: none;
   border: none;
@@ -129,7 +33,7 @@
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s;
-
+ 
   &:hover {
     opacity: 1;
   }

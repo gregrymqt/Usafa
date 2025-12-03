@@ -4,10 +4,10 @@ import Swal from 'sweetalert2';
 import { useSlotManagement } from '../../hooks/useSlotManagement';
 import AuthForm from '../../../../../../components/Form/AuthForm';
 import { FormField } from '../../../../../../components/Form/types/form.type';
-import { FormSelectOption } from '../../../appointment/types/appointment.type';
+
 
 interface SlotGenerationFormProps {
-  onSuccess: (medicoId: string) => void;
+  onSuccess: (medicoId: string) => void; // Callback para avisar o pai que acabou
 }
 
 interface FormDataState {
@@ -24,19 +24,18 @@ export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSucces
     medicoId: '',
     inicio: '',
     fim: '',
-    duracao: '30'
+    duracao: '30' // Valor padrão
   });
 
-  // Helper para atualizar o estado. 
-  // O AuthForm retorna o valor direto, então não precisamos de e.target
+  // Função auxiliar para atualizar o estado vindo do AuthForm
   const updateField = useCallback((name: keyof FormDataState, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [name]: String(value) }));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // O AuthForm passa o evento, então prevenimos o reload
+    e.preventDefault(); 
     
-    // Validação
+    // Validações Básicas
     if (!formData.medicoId) {
       Swal.fire('Atenção', 'Informe o ID do médico.', 'warning');
       return;
@@ -46,44 +45,46 @@ export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSucces
       return;
     }
 
+    // Chama o hook de geração
     const success = await generateAgenda({
       medicoId: formData.medicoId,
-      inicio: formData.inicio,
+      inicio: formData.inicio, // Input datetime-local já envia no formato ISO correto
       fim: formData.fim,
       duracaoMinutos: Number(formData.duracao),
     });
 
     if (success) {
       Swal.fire('Sucesso', 'Agenda gerada com sucesso!', 'success');
-      onSuccess(formData.medicoId);
+      onSuccess(formData.medicoId); // Avisa a página pai e envia o ID do médico
     }
   };
 
-  // Opções para o Select de Duração
-  const durationOptions: FormSelectOption[] = useMemo(() => [
+  // Opções do Select
+  const durationOptions = useMemo(() => [
     { value: '15', label: '15 min' },
     { value: '30', label: '30 min' },
     { value: '45', label: '45 min' },
     { value: '60', label: '60 min' },
   ], []);
 
-  // Definição dos campos para o AuthForm
+  // Definição dos campos para o AuthForm Genérico
   const fields: FormField[] = useMemo(() => [
     {
       elementType: 'input',
       type: 'text',
       name: 'medicoId',
       label: 'ID do Médico',
-      placeholder: 'Digite o ID do médico',
+      placeholder: 'Digite ou cole o ID',
       value: formData.medicoId,
       required: true,
-      onChange: (val) => updateField('medicoId', val), // AuthForm retorna string direto
+      onChange: (val) => updateField('medicoId', val),
     },
     {
       elementType: 'input',
-      type: 'datetime-local', // Input nativo de data/hora
+      // O segredo para aparecer data E hora é este type
+      type: 'datetime-local', 
       name: 'inicio',
-      label: 'Início',
+      label: 'Início da Agenda',
       placeholder: '',
       value: formData.inicio,
       required: true,
@@ -93,7 +94,7 @@ export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSucces
       elementType: 'input',
       type: 'datetime-local',
       name: 'fim',
-      label: 'Fim',
+      label: 'Fim da Agenda',
       placeholder: '',
       value: formData.fim,
       required: true,
@@ -102,7 +103,7 @@ export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSucces
     {
       elementType: 'select',
       name: 'duracao',
-      label: 'Duração (min)',
+      label: 'Duração da Consulta',
       value: formData.duracao,
       options: durationOptions,
       required: true,
@@ -111,10 +112,9 @@ export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSucces
   ], [formData, durationOptions, updateField]);
 
   return (
-    <div className={styles.formContainer}>
-      <h3 className={styles.title}>Gerar Disponibilidade (Lote)</h3>
+    <div className={styles.slotFormContainer}>
+      <h3 className={styles.formTitle}>Configurar Lote de Horários</h3>
       
-      {/* Exibição de Erro externa ao Form */}
       {error && (
         <div className={styles.errorAlert}>
           {error}
@@ -122,7 +122,6 @@ export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSucces
         </div>
       )}
 
-      {/* Componente Genérico substituindo o form HTML manual */}
       <AuthForm
         fields={fields}
         handleSubmit={handleSubmit}

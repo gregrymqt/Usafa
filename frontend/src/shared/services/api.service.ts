@@ -73,7 +73,8 @@ const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise
 
   const url = `${API_BASE_URL}${endpoint}`;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); 
+
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
     const response = await fetch(url, {
