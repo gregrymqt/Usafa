@@ -13,7 +13,6 @@ interface SlotData {
   dataHoraFim: string; // Ex: "2025-12-05T08:30:00"
   status: 'DISPONIVEL' | 'AGENDADO' | 'BLOQUEADO' | 'FINALIZADO';
   valor?: number;
-  // Campos do médico podem ser incluídos aqui se necessário
 }
 
 interface SlotListTableProps {
@@ -25,7 +24,7 @@ export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }
   const { removeSlot, editSlot } = useSlotManagement();
 
   const handleUpdateStatus = async (slotId: number, status: 'BLOQUEADO' | 'DISPONIVEL') => {
-    const success = await editSlot(slotId, { novoStatus: status });
+    const success = await editSlot(slotId, { status: status });
     if (success) {
       Swal.fire('Sucesso', `Status alterado para ${status}.`, 'success');
       onRefresh();
@@ -93,7 +92,7 @@ export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }
   }, [slots, onRefresh]);
 
   // Definição das colunas
-  const columns: ColumnType<any>[] = [
+  const columns: ColumnType<typeof data[0]>[] = [
     { header: 'Data', accessor: 'data' },
     { header: 'Horário', accessor: 'hora' },
     { header: 'Valor', accessor: 'valor' },

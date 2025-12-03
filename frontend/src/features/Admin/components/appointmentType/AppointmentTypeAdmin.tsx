@@ -85,13 +85,7 @@ const TipoConsultaManager: React.FC = () => {
             isLoading={isLoadingTypes}
             buttonText={editingItem ? "Atualizar" : "Cadastrar"}
           >
-            <div
-              style={{
-                marginBottom: "1rem",
-                color: "#666",
-                fontSize: "0.9rem",
-              }}
-            >
+            <div className={styles.formDescription}>
               {editingItem
                 ? `Editando: ${editingItem.nome}`
                 : "Preencha os dados abaixo para criar uma nova especialidade."}

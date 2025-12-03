@@ -2,20 +2,25 @@
 
 .consultaListSection {
   width: 100%;
-  
+
   h2 {
     font-size: 1.5rem;
     font-weight: 600;
-    color: $text-color;
-    margin-bottom: 1rem;
+    color: $text-strong;
+    margin-bottom: 1.5rem;
   }
 }
 
-.loading, .empty {
+.loading,
+.empty {
   padding: 2rem;
   text-align: center;
   font-size: 1.1rem;
   color: $text-secondary;
-  background-color: $bg-input; // Fundo leve
+  background-color: $bg-light;
   border-radius: $radius-md;
+}
+
+.infiniteScrollSentinel {
+  height: 1px;
 }

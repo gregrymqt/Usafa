@@ -1,116 +1,92 @@
-// hooks/useConsulta.ts
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useDebounce } from '../../../shared/utils/forPages.utils'; // [cite: 3]
-import { connectWebSocket, subscribe, unsubscribe } from '../../../shared/services/websocket.service'; // [cite: 2]
-import type { NotificationEnvelope, ConsultaSummary, ConsultaRequest } from '../types/consulta.types';
-
-// Import dos Partials
-import { useConsultasConfirmadas } from './partials/useConsultasConfirmadas';
-import { useSolicitacoes } from './partials/useSolicitacoes';
+import { useState, useEffect, useCallback } from 'react';
+import { useDebounce } from '../../../shared/utils/forPages.utils'; 
+import { connectWebSocket, subscribe, unsubscribe } from '../../../shared/services/websocket.service'; 
+import type { NotificationEnvelope, ConsultaSummary } from '../types/consulta.types';
 import { useConsultaForm } from './partials/useConsultaForm';
+import { useConsultaList } from './partials/useConsultasConfirmadas';
+
+// Imports dos Hooks Filhos
+
 
 export const useConsulta = (userId: string) => {
-  // 1. Estados de Busca Global
+  // 1. Estados de Controle da Página
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 500); // [cite: 9]
-  const searchTermRef = useRef(debouncedSearchTerm);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
-
-  // 2. Uso dos Hooks Parciais
-  const sql = useConsultasConfirmadas(userId);
-  const mongo = useSolicitacoes(userId);
+  
+  // 2. Instancia os Hooks Filhos
   const form = useConsultaForm(userId);
+  const list = useConsultaList(userId);
 
-  // 3. Efeitos de Busca
+  // Extraímos as funções dos hooks filhos para podermos envolvê-las com useCallback.
+  const { fetchConsultas, fetchSolicitacoes, refreshAll: refreshAllLists } = list;
+  const { loadInitialOptions } = form;
+
+  // 3. Atualização Inicial e Busca
   useEffect(() => {
-    searchTermRef.current = debouncedSearchTerm; // [cite: 11]
-  }, [debouncedSearchTerm]);
-
+    fetchConsultas(debouncedSearchTerm, 0);
+    fetchSolicitacoes(0);
+  }, [debouncedSearchTerm, fetchConsultas, fetchSolicitacoes]);
+  
+  // Carrega opções do form ao montar
   useEffect(() => {
-    if (userId) {
-      // Busca SQL (filtra pelo termo)
-      sql.fetchConsultas(debouncedSearchTerm, 0, true);
-      // Busca Mongo (sem filtro de texto complexo por enquanto)
-      mongo.fetchSolicitacoes(0, true);
-    }
-  }, [debouncedSearchTerm, userId]);
+    loadInitialOptions();
+  }, [loadInitialOptions]);
 
-  // 4. Lógica WebSocket (Real-time)
-  const setupWebSocketListener = useCallback(() => {
-    console.log("Iniciando WebSocket...");
-    connectWebSocket(); // 
-    
+  // 4. WebSocket (Atualização em Tempo Real)
+  // Usamos useCallback para garantir que a função de refresh não seja recriada a cada renderização.
+  const refreshAll = useCallback(() => refreshAllLists(), [refreshAllLists]);
+  useEffect(() => {
+    if (!userId) return;
+    connectWebSocket();
     const topic = `/user/${userId}/queue/consultas`;
     
-    subscribe<NotificationEnvelope<ConsultaSummary>>(topic, (envelope) => {
-      console.log("Notificação recebida:", envelope.message); // [cite: 21]
+    const sub = subscribe<NotificationEnvelope<ConsultaSummary>>(topic, (envelope) => {
+      console.log("Notificação Recebida:", envelope);
       setConfirmedConsulta(envelope.data);
-      
-      // Atualiza ambas as listas quando chega novidade
-      sql.fetchConsultas(searchTermRef.current, 0, true); // [cite: 22]
-      mongo.fetchSolicitacoes(0, true); // Atualiza também as solicitações (status mudou)
+      refreshAll(); // Atualiza as listas automaticamente
     });
-  }, [userId, sql, mongo]);
 
-  // 5. Submit Integrado (Socket + Form)
-  const handleSubmitConsulta = async (data: Partial<ConsultaRequest>) => {
-    try {
-      // A) Inicia escuta ANTES de enviar
-      setupWebSocketListener();
+    return () => {
+        if (sub !== undefined) unsubscribe(topic);
+    };
+  }, [userId, refreshAll]);
 
-      // B) Envia formulário. O useConsultaForm já lida com o Swal.fire em caso de erro.
-      const success = await form.submitRequest(data);
-
-      // C) Se deu certo, atualiza a lista de Solicitações imediatamente (feedback visual "Pendente")
-      if (success) {
-        mongo.fetchSolicitacoes(0, true);
-      }
-    } catch (error) {
-      // Apenas logamos o erro aqui, pois o hook filho (useConsultaForm) já exibiu o alerta.
-      console.error("Erro capturado no hook principal useConsulta:", error);
+  // 5. Submit Integrado (Form -> Lista)
+  const handleSubmitIntegrated = async () => {
+    const success = await form.submitRequest();
+    if (success) {
+        refreshAll(); // Recarrega a fila de solicitações
     }
-  };
-
-  const closeConfirmationModal = () => {
-    setConfirmedConsulta(null);
-    unsubscribe(`/user/${userId}/queue/consultas`); // [cite: 33]
   };
 
   // 6. Retorno Unificado
   return {
-    // Dados SQL
-    consultas: sql.consultas,
-    isLoadingConsultas: sql.isLoading,
-    hasMoreConsultas: sql.hasMore,
-    loadMoreConsultas: () => sql.loadMore(debouncedSearchTerm),
+    // --- Dados de Lista ---
+    consultas: list.consultas,
+    solicitacoes: list.solicitacoes,
+    isLoadingConsultas: list.isLoadingConsultas,
+    refreshLists: refreshAll,
 
-    // Dados Mongo (Novo)
-    solicitacoes: mongo.solicitacoes,
-    isLoadingSolicitacoes: mongo.isLoading,
-    hasMoreSolicitacoes: mongo.hasMore,
-    loadMoreSolicitacoes: mongo.loadMore,
-
-    // Formulário
-    formOptions: form.formOptions,
-    opcoesHorarios: form.opcoesHorarios,
+    // --- Dados do Formulário ---
+    tiposOptions: form.tiposOptions,
+    horariosOptions: form.horariosOptions,
     isLoadingHorarios: form.isLoadingHorarios,
     isSubmitting: form.isSubmitting,
-    error: form.error,
-    buscarHorarios: form.buscarHorarios,
-    handleSubmitConsulta, // Versão integrada
-
-    // Feedback Real-time
-    confirmedConsulta,
-    closeConfirmationModal,
-
-    // Busca
-    searchTerm,
-    setSearchTerm,
     
-    // Útil para botão de refresh manual
-    refetchAll: () => {
-      sql.fetchConsultas(debouncedSearchTerm, 0, true);
-      mongo.fetchSolicitacoes(0, true);
-    }
+    // --- Controles do Formulário ---
+    selectedTipo: form.selectedTipo,
+    selectedSlot: form.selectedSlot,
+    sintomas: form.sintomas,
+    setSintomas: form.setSintomas,
+    handleTipoChange: form.handleTipoChange,
+    handleSlotChange: form.handleSlotChange,
+    handleSubmit: handleSubmitIntegrated, 
+
+    // --- Controles Gerais ---
+    confirmedConsulta,
+    closeModal: () => setConfirmedConsulta(null),
+    searchTerm,
+    setSearchTerm
   };
 };

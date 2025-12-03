@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 // Ajuste o caminho
-import './_MinhasConsultas.scss';
+import styles from './_MinhasConsultasPartial.module.scss';
 import { Consulta } from '../../types/profile.type';
 import { ColumnType } from '../../../../components/Tables/types';
 import { getConsultas } from '../../../Consulta/services/consulta.service';
@@ -68,7 +68,7 @@ export const MinhasConsultasPartial: React.FC<Props> = ({ userId }) => {
       ...item,
       status: (
         // Adiciona verificação para status nulo/undefined
-        <span className={`status-badge ${item.status ? item.status.toLowerCase() : 'desconhecido'}`}>
+        <span className={`${styles.statusBadge} ${styles[item.status ? item.status.toLowerCase() : 'desconhecido']}`}>
           {item.status || 'N/A'}
         </span>
       )
@@ -85,20 +85,20 @@ export const MinhasConsultasPartial: React.FC<Props> = ({ userId }) => {
   ];
 
   return (
-    <div className="minhas-consultas-container">
+    <div className={styles.container}>
       <header>
         <h2>Histórico de Consultas</h2>
       </header>
 
-      {error && <div className="error-state">{error}</div>}
+      {error && <div className={styles.errorState}>{error}</div>}
 
       {loading ? (
-        <div className="empty-state">Carregando suas consultas...</div>
+        <div className={styles.emptyState}>Carregando suas consultas...</div>
       ) : tableData.length === 0 && !error ? (
-        <div className="empty-state">Nenhuma consulta encontrada.</div>
+        <div className={styles.emptyState}>Nenhuma consulta encontrada.</div>
       ) : (
         <>
-          <div className="table-wrapper">
+          <div className={styles.tableWrapper}>
             <Table<ConsultaTableData> 
               colunas={columns} 
               dados={tableData} 
@@ -106,7 +106,7 @@ export const MinhasConsultasPartial: React.FC<Props> = ({ userId }) => {
           </div>
 
           {/* Controles de Paginação UI */}
-          <div className="pagination-controls">
+          <div className={styles.paginationControls}>
             <button 
               onClick={() => setPage((p) => Math.max(0, p - 1))} 
               disabled={page === 0}

@@ -1,6 +1,15 @@
 import type { Patient } from "../../Patient/types/patient.type";
 import type { Doctor } from "../../doctors/types/doctor.type";
 
+export interface Page<T> {
+  content: T[];
+  last: boolean;
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
 export type AppointmentStatus =
   | "Agendada"
   | "Concluída"
@@ -18,7 +27,7 @@ export interface Appointment {
   status: AppointmentStatus;
   specialty?: string; // Opcional, para exibição
   // --- Campos adicionados para permitir a edição ---
-  horarioSlotId: number;
+  horarioSlotId: string;
   tipoConsultaId: string;
   sintomas?: string;
   time: string; // Hora extraída do slot
@@ -30,12 +39,20 @@ export interface Appointment {
  */
 export interface AppointmentFormData {
   patientId: string; // Admin seleciona o paciente
-  horarioSlotId: number; // ID do Slot (Substitui data/hora/medico)
+  horarioSlotId: string; // ID do Slot (Substitui data/hora/medico)
   tipoConsultaId: string; // ID da Especialidade
   status: AppointmentStatus;
   sintomas?: string;
   date: string; // Mantido para compatibilidade, mas não usado no form
   time: string; // Mantido para compatibilidade, mas não usado no form
+}
+
+// No Java: ConsultaFormOptionsDTO
+export interface ConsultaFormOptionsResponse {
+  medicos: FormSelectOption[];
+  tipos: FormSelectOption[];    // Essa é a lista de Especialidades
+  dias: FormSelectOption[];     // Pode vir vazio inicialmente
+  horarios: FormSelectOption[]; // Pode vir vazio inicialmente
 }
 
 /**
@@ -44,26 +61,4 @@ export interface AppointmentFormData {
 export interface FormSelectOption {
   value: string | number;
   label: string;
-}
-
-export interface AppointmentFormProps {
-  onSubmit: (data: AppointmentFormData) => Promise<void>;
-  onCancel: () => void;
-  initialData?: AppointmentFormData | null;
-  isLoading: boolean;
-  // Opções necessárias para o Admin preencher o form
-  patientOptions: FormSelectOption[];
-  typeOptions: FormSelectOption[]; // Tipos de consulta
-  slotOptions: FormSelectOption[]; // Lista de horários (ID do Slot)
-}
-
-
-export interface AppointmentAdminProps {
-  appointments: Appointment[];
-  isLoading: boolean;
-  error: string | null;
-  hasMore: boolean;
-  onEditAppointment: (id: string, data: AppointmentFormData) => Promise<void>;
-  onDeleteAppointment: (id: string) => Promise<void>;
-  loadMoreAppointments: () => void;
 }

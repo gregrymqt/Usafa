@@ -1,28 +1,26 @@
 @use '../../../../styles/variables' as *; 
 @use 'sass:color';
 
-// Ajuste o caminho acima conforme a localização real do seu arquivo de variáveis
-// Supondo variáveis: $bg-body, $primary-color, $white, $radius-md, $shadow-sm, $breakpoint-md
-
 .doctorContainer {
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
-  background-color: $bg-body; // Fundo cinza claro para destacar os cards
+  background-color: $bg-body;
 
   // Mobile First: Padding menor para aproveitar a tela
-  padding: 1rem; 
+  // Usa variáveis de espaçamento para consistência
+  padding: $spacing-md; 
 
   @media (min-width: $breakpoint-md) {
-    padding: 2rem; // Desktop: Mais respiro
+    padding: $spacing-xl;
   }
 }
 
 .header {
   display: flex;
   flex-direction: column; // Mobile: Itens empilhados
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: $spacing-md; // Usa variável para consistência
+  margin-bottom: $spacing-lg;
 
   @media (min-width: $breakpoint-md) {
     flex-direction: row; // Desktop: Lado a lado
@@ -35,7 +33,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: $spacing-sm; // Usa variável para o espaçamento
   
   width: 100%; // Mobile: Botão full-width para toque fácil
   padding: 0.75rem 1.5rem;
@@ -52,13 +50,18 @@
   transition: all 0.2s ease-in-out;
 
   &:hover {
-    background-color: color.adjust($primary-color, $lightness: -10%); // Escurece levemente no hover
+    background-color: $primary-hover; // Usa a variável de hover definida
     transform: translateY(-2px); // Efeito visual de clique
     box-shadow: $shadow-md;
   }
 
   &:active {
     transform: translateY(0);
+    box-shadow: $shadow-sm; // Retorna à sombra menor ao clicar
+  }
+
+  .icon {
+    line-height: 0; // Garante alinhamento vertical do ícone
   }
 
   @media (min-width: $breakpoint-md) {

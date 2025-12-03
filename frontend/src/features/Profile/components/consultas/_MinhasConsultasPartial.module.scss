@@ -1,0 +1,114 @@
+@use '../../../../styles/variables' as *; // Ajuste o caminho conforme necessário
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1rem 0;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  h2 {
+    font-size: 1.5rem;
+    color: $text-color;
+    margin: 0;
+  }
+}
+
+// Container responsivo
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: $white;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+}
+
+// Estilização dos Status (Badges) usando Variáveis Globais
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: $radius-pill;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+
+  &.pendente { 
+    background-color: $warning-bg; 
+    color: $warning-text; 
+  }
+  &.confirmada { 
+    background-color: $success-bg; 
+    color: $success-text; 
+  }
+  &.realizada { 
+    background-color: $info-bg; 
+    color: $info-text; 
+  }
+  &.agendada { 
+    background-color: $neutral-bg; 
+    color: $neutral-text; 
+  }
+  &.cancelada { 
+    background-color: $error-bg; 
+    color: $error-text; 
+  }
+}
+
+// Controles de Paginação
+.paginationControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+
+  @media (min-width: $breakpoint-md) {
+    justify-content: flex-end;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    border: 1px solid $border-strong;
+    background: $white;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: $text-color;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover {
+      background-color: $bg-hover;
+      border-color: $border-color;
+    }
+  }
+
+  span {
+    font-size: 0.9rem;
+    color: $text-secondary;
+  }
+}
+
+// Feedback visual
+.emptyState, .errorState {
+  text-align: center;
+  padding: 2rem;
+  background: $bg-input;
+  border-radius: $radius-md;
+  color: $text-secondary;
+}
+
+.errorState { 
+  color: $error-text; 
+  background: $error-bg; 
+}

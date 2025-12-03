@@ -9,6 +9,7 @@ $text-secondary: #6b7280;      // Texto secundário
 $text-light: #9ca3af;          // Placeholders
 $white: #ffffff;
 $text-muted: #6c757d;        // Texto desativado ou menos importante
+$secondary-color: #6c757d;    // Cinza padrão
 
 // --- Cores Específicas de Autenticação ---
 $google-blue: #4285F4;         // Cor oficial do Google
@@ -39,6 +40,8 @@ $bg-light: #f8f9fa;
 $bg-body: #f7fafc;             // Fundo da página [NOVO]
 $bg-hover: #f4f4f4;
 $bg-input: #f9fafb;
+$bg-primary-btn: $primary-color; // Botão principal
+$bg-primary-btn-hover: #0056b3;
 $bg-secondary-btn: #e2e8f0;    // Botão cinza/cancelar [NOVO]
 $bg-secondary-btn-hover: #cbd5e0; 
 $bg-dropdown: #f0f0f0;
@@ -80,3 +83,10 @@ $z-index-navbar: 999;
 $z-index-dropdown: 1000;
 $z-index-toast: 2000;          // Para o alerta de sucesso [NOVO]
 $z-index-mobile-menu: 1;
+
+
+$spacing-lg: 24px;
+$spacing-md: 16px;
+$spacing-sm: 8px;
+$spacing-xs: 4px;
+$spacing-xl: 32px;

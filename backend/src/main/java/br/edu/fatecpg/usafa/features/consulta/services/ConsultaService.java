@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,41 +44,39 @@ public class ConsultaService implements IConsultaService {
     private final ConsultaHelper helper;
     private final IHorarioSlotRepository horarioSlotRepository;
 
-    
     @Override
     @Transactional(readOnly = true)
-    public List<ConsultaDTO> findConsultasByUser(User user) {
-        final String cacheKey = helper.getConsultasCacheKey(user.getPublicId().toString());
+    public Page<ConsultaDTO> findConsultasByUser(User user, Pageable pageable) {
+
+        // 1. O Cache Key precisa incluir a página e o tamanho para não misturar dados
+        final String cacheKey = helper.getConsultasCacheKey(
+                user.getPublicId().toString() + ":" + pageable.getPageNumber() + ":" + pageable.getPageSize());
 
         try {
+            // Tenta pegar do cache (Note que o cast muda para Page)
             @SuppressWarnings("unchecked")
-            List<ConsultaDTO> cachedConsultas = (List<ConsultaDTO>) cacheService.get(cacheKey, List.class);
-            if (cachedConsultas != null) {
-                log.info("Cache HIT para consultas do usuário: {}", user.getPublicId());
-                return cachedConsultas;
+            Page<ConsultaDTO> cachedPage = (Page<ConsultaDTO>) cacheService.get(cacheKey, Page.class);
+            if (cachedPage != null) {
+                return cachedPage;
             }
         } catch (Exception e) {
-            log.warn("Falha ao ler cache de consultas. Buscando no DB. Erro: {}", e.getMessage());
+            log.warn("Falha no cache. Buscando no DB.");
         }
 
         try {
-            log.info("Cache MISS para consultas do usuário: {}", user.getPublicId());
+            // 2. Busca no repositório com paginação
+            Page<Consulta> consultasPage = consultaRepository.findByUser(user, pageable);
 
-            // <<< 2. CORREÇÃO DA ORDENAÇÃO
-            // Você precisa criar este método no IConsultaRepository
-            // O campo 'dia' não existe mais, então ordenamos pelo 'dataHoraInicio' do slot.
-            List<Consulta> consultas = consultaRepository.findByUserOrderByHorarioSlotDataHoraInicioDesc(user);
+            // 3. Converte Page<Entity> para Page<DTO> usando o map do Spring
+            Page<ConsultaDTO> dtoPage = consultasPage.map(mapper::toDTO);
 
-            List<ConsultaDTO> dtos = consultas.stream()
-                    .map(mapper::toDTO)
-                    .collect(Collectors.toList());
+            // 4. Salva no cache
+            cacheService.saveWithTtl(cacheKey, dtoPage, 5, TimeUnit.MINUTES);
 
-            cacheService.saveWithTtl(cacheKey, dtos, 5, TimeUnit.MINUTES);
-            return dtos;
+            return dtoPage;
 
         } catch (DataAccessException e) {
-            log.error("Erro de banco ao buscar consultas para o usuário: {}", user.getPublicId(), e);
-            throw new DatabaseOperationException("Erro ao consultar seu histórico de consultas.", e);
+            throw new DatabaseOperationException("Erro ao buscar histórico paginado.", e);
         }
     }
 

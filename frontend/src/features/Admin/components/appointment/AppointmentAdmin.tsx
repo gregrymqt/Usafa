@@ -3,11 +3,20 @@
 import React from 'react';
 import styles from './AppointmentAdmin.module.scss';
 import { ActionMenu } from '../../../../components/ActionMenu/ActionMenu';
-import type { AppointmentAdminProps, AppointmentFormData } from './types/appointment.type';
+import type { Appointment, AppointmentFormData } from './types/appointment.type';
 import { useInfiniteScroll } from '../../../../shared/utils/forPages.utils';
 
 // --- Componente da Aba de Consultas ---
 
+export interface AppointmentAdminProps {
+  appointments: Appointment[];
+  isLoading: boolean;
+  error: string | null;
+  hasMore: boolean;
+  onEditAppointment: (id: string, data: AppointmentFormData) => Promise<void>;
+  onDeleteAppointment: (id: string) => Promise<void>;
+  loadMoreAppointments: () => void;
+}
 export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
   appointments = [], // <--- CORREÇÃO AQUI: Garante que nunca seja undefined
   isLoading,
@@ -84,7 +93,7 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
                     };
                     onEditAppointment(appt.id, formData);
                   }}
-                  onDelete={() => onDeleteAppointment(String(appt.id))}
+                  onDelete={() => onDeleteAppointment(appt.id)}
                 />
               </div>
               <div className={styles.cardBody}>

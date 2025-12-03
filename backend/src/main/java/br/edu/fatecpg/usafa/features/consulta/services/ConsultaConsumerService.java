@@ -29,7 +29,6 @@ import br.edu.fatecpg.usafa.features.consulta.repositories.ISolicitacaoConsultaR
 import java.util.UUID;
 
 import org.springframework.dao.DataAccessException;
-import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaService;
 
 @Service
 @RequiredArgsConstructor

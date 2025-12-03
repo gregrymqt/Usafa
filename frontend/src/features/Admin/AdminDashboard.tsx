@@ -16,8 +16,18 @@ import TipoConsultaManager from './components/appointmentType/AppointmentTypeAdm
 import { DoctorPartial } from './PartialViews/Doctor/_Doctor';
 import { PatientPartial } from './PartialViews/Patient/_Patient';
 import { SlotManagementIndex } from './components/TimeSlots/SlotManagementIndex';
+import { Appointment, AppointmentFormData } from './components/appointment/types/appointment.type';
 
 // Nova View (Ajuste o caminho '../Admin/TipoConsulta' se a pasta estiver em outro local)
+export interface AppointmentAdminProps {
+  appointments: Appointment[];
+  isLoading: boolean;
+  error: string | null;
+  hasMore: boolean;
+  onEditAppointment: (id: string, data: AppointmentFormData) => Promise<void>;
+  onDeleteAppointment: (id: string) => Promise<void>;
+  loadMoreAppointments: () => void;
+}
 
 const AdminLogo = () => (
   <span style={{ fontWeight: 700 }}>Painel Admin</span>

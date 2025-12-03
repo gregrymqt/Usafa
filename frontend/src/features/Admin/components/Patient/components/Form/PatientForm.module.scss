@@ -14,7 +14,7 @@
   gap: 0.75rem;
 
   // Em telas maiores, os botões ficam lado a lado
-  @media (min-width: 768px) {
+  @media (min-width: $breakpoint-md) {
     flex-direction: row-reverse; // Inverte a ordem visual para "Salvar | Cancelar"
   }
 }

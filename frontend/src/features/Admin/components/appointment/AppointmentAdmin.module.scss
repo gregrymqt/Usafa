@@ -4,7 +4,7 @@
 // Container da Grade (Grid)
 .adminContent {
   width: 100%;
-  padding-top: 1rem; // Pequeno respiro do topo
+  padding-top: $spacing-md; // Pequeno respiro do topo
 }
 
 .appointmentList {
@@ -17,7 +17,7 @@
   // Tablet: 2 Colunas
   @media (min-width: $breakpoint-md) {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    gap: $spacing-lg;
   }
 
   // Desktop Grande: 3 Colunas
@@ -47,9 +47,9 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  background-color: #fafafa; // Fundo sutil para o header
+  padding: $spacing-md;
+  border-bottom: 1px solid $border-light;
+  background-color: $bg-light; // Fundo sutil para o header
   border-radius: $radius-md $radius-md 0 0;
 }
 
@@ -64,16 +64,16 @@
   p {
     font-size: 0.85rem;
     color: $text-secondary;
-    margin-top: 0.25rem;
+    margin-top: $spacing-xs;
   }
 }
 
 .cardBody {
-  padding: 1rem;
+  padding: $spacing-md;
   flex-grow: 1; // Empurra o rodapé para baixo se o conteúdo variar
   
   p {
-    margin: 0.5rem 0;
+    margin: $spacing-sm 0;
     font-size: 0.9rem;
     color: $text-color;
     display: flex;
@@ -86,7 +86,7 @@
 }
 
 .cardFooter {
-  padding: 0.75rem 1rem;
+  padding: $spacing-sm $spacing-md;
   border-top: 1px solid $border-light;
   display: flex;
   align-items: center;
@@ -96,37 +96,39 @@
 // Badges de Status (Mantendo suas cores semânticas)
 .statusBadge {
   padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 99px; // Pill shape perfeito
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: $radius-pill; // Pill shape perfeito
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border: 1px solid transparent;
   
-  // Exemplo de fallback caso as variáveis não carreguem
-  background-color: #e0e0e0; 
-  color: #333;
-
+  // Status Agendada -> Azul (Info)
   &.statusAgendada {
-    background-color: rgba($info-bg, 0.2); // Transparência para modernizar
-    color: color.adjust($info-text, $lightness: 10%);
-    border: 1px solid transparent; 
+    background-color: $info-bg;
+    color: $info-text;
+    border-color: $info-border;
   }
   
+  // Status Concluída -> Verde (Success)
   &.statusConcluída, &.statusConcluida {
-    background-color: rgba($success-bg, 0.2);
-    color: color.adjust($success-text, $lightness: 10%);
+    background-color: $success-bg;
+    color: $success-text;
+    border-color: $success-border;
   }
   
+  // Status Cancelada -> Vermelho (Error)
   &.statusCancelada {
-    background-color: rgba($error-bg, 0.2);
-    color: color.adjust($error-text, $lightness: 10%);
+    background-color: $error-bg;
+    color: $error-text;
+    border-color: $error-border;
   }
 }
 
 // Estados de Feedback
 .loading, .error, .empty {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: $spacing-xl * 1.5 $spacing-md;
   color: $text-secondary;
   background-color: rgba(255,255,255,0.5);
   border-radius: $radius-md;

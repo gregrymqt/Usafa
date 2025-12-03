@@ -2,23 +2,23 @@
 
 .servicesContainer {
   width: 100%;
-  padding: 3rem 1rem;
+  padding: ($spacing-xl + $spacing-md) $spacing-md; // 48px 16px
   background-color: $bg-light; // Fundo claro padrão (#f8f9fa)
   overflow: hidden;
 
   h2 {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: $spacing-xl; // 32px
     font-size: 2rem;
     color: $text-strong; // Texto escuro forte
     font-weight: 700;
   }
   
   @media (min-width: $breakpoint-md) {
-    padding: 4rem 2rem;
+    padding: ($spacing-xl * 2) $spacing-lg; // 64px 24px
     
     h2 {
-      margin-bottom: 3rem;
+      margin-bottom: ($spacing-xl + $spacing-md); // 48px
     }
   }
 }
@@ -29,10 +29,10 @@
   margin: 0 auto;
   display: block;
   position: relative;
-  padding: 0 1rem; 
+  padding: 0 $spacing-md; 
 
   @media (min-width: $breakpoint-md) {
-    padding: 0 20px;
+    padding: 0 $spacing-lg;
   }
 }
 
@@ -46,4 +46,28 @@
 
 :global(.swiper-pagination-bullet-active) {
   background-color: $primary-color !important;
+}
+
+// Wrapper para cada slide para garantir que a sombra do card não seja cortada
+.cardSlide {
+  padding: $spacing-sm; // Adiciona um respiro para a sombra
+  box-sizing: border-box;
+}
+
+// Estilo para o botão dentro do card
+.cardButton {
+  width: 100%;
+  margin-top: auto; // Empurra o botão para o final do card
+  padding: $spacing-sm $spacing-md;
+  font-weight: 600;
+  color: $text-strong;
+  background-color: $bg-secondary-btn;
+  border: 1px solid transparent;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: $bg-secondary-btn-hover;
+  }
 }

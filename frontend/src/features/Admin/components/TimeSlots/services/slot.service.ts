@@ -1,5 +1,6 @@
 import api from '../../../../../shared/services/api.service';
-import type { GerarAgendaData, AtualizarSlotData } from '../types/slot.types';
+// Importamos SlotResponse para garantir que o retorno da API seja conhecido
+import type { GerarAgendaData, Slot, SlotResponse } from '../types/slot.types';
 
 const ENDPOINT = '/admin/slots';
 
@@ -10,15 +11,15 @@ export const slotService = {
    * Rota: POST /admin/slots/gerar
    */
   gerarAgenda: async (data: GerarAgendaData): Promise<void> => {
-    // O api.post já stringifica o JSON e adiciona o token
     await api.post<void>(`${ENDPOINT}/gerar`, data);
   },
 
   /**
    * Atualiza um slot individual (Bloquear ou Mudar Preço).
    * Rota: PUT /admin/slots/{id}
+   * Usamos Partial<Slot> pois podemos enviar apenas o status ou apenas o valor.
    */
-  atualizarSlot: async (idSlot: number, data: AtualizarSlotData): Promise<void> => {
+  atualizarSlot: async (idSlot: number, data: Partial<Slot>): Promise<void> => {
     await api.put<void>(`${ENDPOINT}/${idSlot}`, data);
   },
 
@@ -31,12 +32,17 @@ export const slotService = {
   },
   
   /**
-   * (Opcional) Busca slots de um médico para exibir na tabela de gerenciamento.
-   * Assumindo que você criará um GET no controller para listar por dia/médico.
+   * Busca slots de um médico para exibir na tabela.
+   * Rota: GET /admin/slots?medicoId=...&data=...
+   * * MUDANÇA: Retorna Promise<SlotResponse[]> em vez de any[]
    */
-  listarSlotsPorMedico: async (medicoId: string, dataIso: string) => {
-      // Exemplo de URL: /admin/slots?medicoId=...&data=2025-12-05
-      // Ajuste conforme seu endpoint de listagem real
-      return api.get<any[]>(`${ENDPOINT}?medicoId=${medicoId}&data=${dataIso}`);
+  listarSlotsPorMedico: async (medicoId: string, dataIso: string): Promise<SlotResponse[]> => {
+      const params = new URLSearchParams({
+        medicoId: medicoId,
+        data: dataIso
+      });
+      
+      // Tipamos o retorno do get para SlotResponse[]
+      return api.get<SlotResponse[]>(`${ENDPOINT}?${params.toString()}`);
   }
 };

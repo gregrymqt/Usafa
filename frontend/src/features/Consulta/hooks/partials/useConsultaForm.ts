@@ -1,89 +1,90 @@
-// hooks/partials/useConsultaForm.ts
-import { useState, useEffect, useCallback } from 'react';
-import Swal from 'sweetalert2';
-import { getFormOptions, getHorariosPorTipo, requestConsulta } from '../../services/consulta.service';
-import { ConsultaFormOptions, FormSelectOption, ConsultaRequest } from '../../types/consulta.types';
-import { ApiError } from '../../../../shared';
+import { useState, useCallback } from "react";
+import Swal from "sweetalert2";
+import { consultaService } from "../../services/consulta.service";
+import { FormSelectOption, ConsultaRequest } from "../../types/consulta.types";
 
 export const useConsultaForm = (userId: string) => {
-  const [formOptions, setFormOptions] = useState<ConsultaFormOptions | null>(null);
-  const [opcoesHorarios, setOpcoesHorarios] = useState<FormSelectOption[]>([]);
-  const [isLoadingHorarios, setIsLoadingHorarios] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Carrega opções iniciais
-  useEffect(() => {
-    if (userId) {
-      getFormOptions()
-        .then(setFormOptions)
-        .catch((error: unknown) => {
-          console.error(error);
-          const mensagemDoBackend =
-            error instanceof ApiError ? error.message : "Falha ao carregar opções do formulário.";
-          Swal.fire("Erro", mensagemDoBackend, "error");
-        });
-    }
-  }, [userId]);
+  const [tiposOptions, setTiposOptions] = useState<FormSelectOption[]>([]);
+  const [horariosOptions, setHorariosOptions] = useState<FormSelectOption[]>(
+    []
+  );
 
-  // Busca horários quando o tipo muda
-  const buscarHorarios = useCallback(async (tipoId: string) => {
-    if (!tipoId) {
-      setOpcoesHorarios([]);
-      return;
-    }
-    setIsLoadingHorarios(true);
+  const [isLoadingHorarios, setIsLoadingHorarios] = useState(false);
+
+  const [selectedTipo, setSelectedTipo] = useState<string>("");
+  const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [sintomas, setSintomas] = useState("");
+
+  // [CORREÇÃO IMAGEM 484d88] - Filtra opções vazias para evitar duplicidade no select
+  const loadInitialOptions = useCallback(async () => {
     try {
-      const horarios = await getHorariosPorTipo(tipoId);
-      setOpcoesHorarios(horarios);
-    } catch (error: unknown) {
+      setIsLoadingHorarios(true);
+      const data = await consultaService.getFormOptions();
+      const tiposValidos = (data.tipos || []).filter((t) => t.value && t.label);
+      setTiposOptions(tiposValidos);
+    } catch (error) {
       console.error(error);
-      const mensagemDoBackend =
-        error instanceof ApiError ? error.message : "Falha ao buscar horários disponíveis.";
-      Swal.fire("Erro", mensagemDoBackend, "error");
     } finally {
       setIsLoadingHorarios(false);
     }
   }, []);
 
-  const submitRequest = async (partialRequest: Partial<ConsultaRequest>) => {
+  const handleTipoChange = useCallback(async (tipoId: string) => {
+    setSelectedTipo(tipoId);
+    setSelectedSlot("");
+    setHorariosOptions([]);
+
+    if (tipoId) {
+      const slots = await consultaService.getHorariosPorTipo(tipoId);
+      setHorariosOptions(slots);
+    }
+  }, []);
+
+  const submitRequest = async (): Promise<boolean> => {
+    // [CORREÇÃO IMAGEM 4746bd] - Valida string
+    if (!selectedSlot) {
+      Swal.fire("Atenção", "Selecione um Horário/Médico.", "warning");
+      return false;
+    }
+
     setIsSubmitting(true);
-    setError(null);
     try {
-      const fullRequest: ConsultaRequest = {
+      const payload: ConsultaRequest = {
         patientId: userId,
-        tipoConsultaId: partialRequest.tipoConsultaId!,
-        horarioSlotId: Number(partialRequest.horarioSlotId!),
-        sintomas: partialRequest.sintomas || ''
+        tipoConsultaId: selectedTipo,
+        horarioSlotId: selectedSlot, // [IMPORTANTE] Envia string direto (UUID)
+        sintomas: sintomas,
       };
 
-      await requestConsulta(fullRequest);
+      await consultaService.requestConsulta(payload);
+      Swal.fire("Sucesso", "Solicitação enviada!", "success");
 
-      Swal.fire('Sucesso!', 'Sua solicitação de consulta foi enviada.', 'success');
-
-      // Atualiza opções para remover horário usado
-      getFormOptions().then(setFormOptions);
-
-      return true; // Sucesso
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof ApiError ? error.message : 'Erro ao realizar agendamento.';
-      setError(errorMessage);
-      Swal.fire('Erro', errorMessage, 'error');
+      setSelectedSlot("");
+      setSintomas("");
+      return true;
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Erro", "Não foi possível agendar.", "error");
       return false;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return { 
-    formOptions, 
-    opcoesHorarios, 
-    isLoadingHorarios, 
-    isSubmitting, 
-    error, 
-    buscarHorarios, 
+  return {
+    isSubmitting,
+    tiposOptions,
+    horariosOptions,
+    selectedTipo,
+    selectedSlot,
+    sintomas,
+    isLoadingHorarios,
+    setSintomas,
+    loadInitialOptions,
+    handleTipoChange,
+    handleSlotChange: setSelectedSlot,
     submitRequest,
-    setError // Exportado para limpar erro externamente se precisar
   };
 };

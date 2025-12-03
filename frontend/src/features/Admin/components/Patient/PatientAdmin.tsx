@@ -66,8 +66,8 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
                 <div className={styles.cardInfo}>
                   <h3>{patient.name}</h3>
                   <p>CPF: {patient.cpf || "Não informado"}</p>
-                  {/* Se tiver ID visível, descomente abaixo */}
-                  {<p style={{fontSize: '0.75rem'}}>ID: {patient.id}</p> }
+                  {/* ID do paciente */}
+                  {<p className={styles.idText}>ID: {patient.id}</p>}
                 </div>
                 <ActionMenu
                   onUpdate={() => onEditPatient(patient)}
@@ -133,12 +133,12 @@ export const PatientAdmin: React.FC<PatientAdminProps> = ({
 
       {/* Loaders e Mensagens de Fim */}
       {isLoading && patients.length > 0 && (
-        <p className={styles.loading} style={{ border: 'none', background: 'transparent' }}>
+        <p className={styles.loaderText}>
           Carregando mais...
         </p>
       )}
       {!isLoading && !hasMore && patients.length > 0 && (
-        <p className={styles.empty} style={{ border: 'none', background: 'transparent', padding: '1rem' }}>
+        <p className={styles.endOfResultsText}>
           Fim dos resultados.
         </p>
       )}

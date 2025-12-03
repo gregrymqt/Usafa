@@ -1,73 +1,64 @@
-import api from '../../../../../shared/services/api.service';
-import type { Page } from '../../../../../shared/utils/forPages.utils';
-import type {
-  Appointment,
-  AppointmentFormData,
-  FormSelectOption // Certifique-se de exportar isso no seu arquivo de tipos
-} from '../types/appointment.type';
+import { api } from "../../../../../shared"; // Ajuste seu import conforme projeto
+import { 
+  Appointment, 
+  AppointmentFormData, 
+  ConsultaFormOptionsResponse, 
+  FormSelectOption,
+  Page // Importe a nova interface
+} from "../types/appointment.type";
 
-interface GetAppointmentsParams {
-  page: number;
-  size: number;
-  search: string;
-}
+const ENDPOINT_BASE = '/consultas';
+const ENDPOINT_ADMIN = '/admin/appointments'; 
 
-const APPOINTMENTS_ENDPOINT = '/admin/appointments';
+export const appointmentService = {
 
-/**
- * Busca a lista de consultas com suporte para paginação e busca.
- */
-export const getAppointments = async (params: GetAppointmentsParams): Promise<Page<Appointment>> => {
-  const queryParams = new URLSearchParams({
-    page: params.page.toString(),
-    size: params.size.toString(),
-  });
+  // --- CORREÇÃO 1: Adicionando o método que faltava ---
+  getAppointments: async (params: { page: number; size: number; search: string }): Promise<Page<Appointment>> => {
+    const queryParams = new URLSearchParams({
+      page: params.page.toString(),
+      size: params.size.toString(),
+    });
 
-  if (params.search) {
-    queryParams.append('search', params.search);
+    // Garante que o parâmetro de busca seja enviado apenas se não for uma string vazia.
+    if (params.search && params.search.trim() !== '') {
+      queryParams.append('search', params.search);
+    }
+
+    const data = await api.get<Page<Appointment>>(`${ENDPOINT_ADMIN}?${queryParams.toString()}`);
+    return data; // Assumindo que api.get retorna o corpo da resposta diretamente
+  },
+
+  // ... (getFormOptions e getSlotsByType mantêm-se iguais) ...
+  getFormOptions: async (): Promise<ConsultaFormOptionsResponse> => {
+    const  data  = await api.get<ConsultaFormOptionsResponse>(`${ENDPOINT_BASE}/options`);
+    return data;
+  },
+
+  getSlotsByType: async (tipoId: string): Promise<FormSelectOption[]> => {
+    if (!tipoId) return [];
+    const  data  = await api.get<FormSelectOption[]>(`${ENDPOINT_BASE}/horarios-disponiveis/${tipoId}`);
+    return data;
+  },
+
+  // --- CORREÇÃO 2: Tipagem explícita para resolver o erro do 'unknown' no Hook ---
+  
+  createAppointment: async (appointmentData: AppointmentFormData): Promise<Appointment> => {
+    // Tipamos o .post<Appointment> para o TS saber que volta um Agendamento completo
+    const  data = await api.post<Appointment>(ENDPOINT_ADMIN, appointmentData);
+    return data;
+  },
+
+  updateAppointment: async (id: string | number, appointmentData: AppointmentFormData): Promise<Appointment> => {
+    const  data  = await api.put<Appointment>(`${ENDPOINT_ADMIN}/${id}`, appointmentData);
+    return data;
+  },
+  
+  deleteAppointment: async (id: string | number): Promise<void> => {
+    // Apenas executamos a chamada. O wrapper da 'api' pode tentar dar um .json()
+    // em uma resposta vazia (204 No Content), causando o erro.
+    // Ao não usar 'await' no retorno de api.delete, evitamos esse processamento.
+    api.delete(`${ENDPOINT_ADMIN}/${id}`);
   }
-  return await api.get<Page<Appointment>>(`${APPOINTMENTS_ENDPOINT}?${queryParams.toString()}`);
 };
 
-/**
- * Cria uma nova consulta.
- */
-export const createAppointment = async (
-  appointmentData: AppointmentFormData
-): Promise<Appointment> => {
-  return await api.post<Appointment>(APPOINTMENTS_ENDPOINT, appointmentData);
-};
-
-/**
- * Atualiza uma consulta existente.
- */
-export const updateAppointment = async (
-  id: number | string,
-  appointmentData: AppointmentFormData
-): Promise<Appointment> => {
-  return await api.put<Appointment>(`${APPOINTMENTS_ENDPOINT}/${id}`, appointmentData);
-};
-
-/**
- * Deleta uma consulta.
- */
-export const deleteAppointment = async (id: number | string): Promise<void> => {
-  await api.delete(`${APPOINTMENTS_ENDPOINT}/${id}`);
-};
-
-// --- MÉTODOS AUXILIARES PARA O FORMULÁRIO ---
-
-/**
- * Busca a lista de Tipos de Consulta (Especialidades)
- */
-export const getTypeOptions = async (): Promise<FormSelectOption[]> => {
-  // Ajuste a rota '/tipos-consulta/options' conforme seu controller Java
-  return await api.get<FormSelectOption[]>('/tipos-consulta');
-};
-
-/**
- * Busca Horários (Slots) filtrados pelo Tipo
- */
-export const getSlotsByType = async (tipoId: string): Promise<FormSelectOption[]> => {
-  return await api.get<FormSelectOption[]>(`/consultas/horarios-disponiveis/${tipoId}`);
-};
+export { Appointment };

@@ -1,16 +1,30 @@
-// src/types/slot.types.ts
+// types/slot.types.ts
 
-export type SlotStatus = 'DISPONIVEL' | 'AGENDADO' | 'BLOQUEADO' | 'FINALIZADO' | 'CANCELADO';
+export type SlotStatus = 'DISPONIVEL' | 'AGENDADO' | 'BLOQUEADO' | 'FINALIZADO';
 
-// Dados para gerar a agenda (Loop)
-export interface GerarAgendaData {
-  medicoId: string;       // PublicID do médico
-  inicio: string;         // Data ISO: "2025-12-05T08:00:00"
-  fim: string;            // Data ISO: "2025-12-05T18:00:00"
-  duracaoMinutos: number; // Ex: 30
+// 1. Interface que representa EXATAMENTE o que vem da API (JSON)
+export interface SlotResponse {
+  id: number;
+  medicoId?: string; // Pode vir nulo ou undefined da API
+  dataHoraInicio: string;
+  dataHoraFim: string;
+  status: string; // Na API é string genérica
+  valor?: number;
 }
 
-// Dados para alterar um slot específico
-export interface AtualizarSlotData {
-  novoStatus?: SlotStatus;
+// 2. Interface que usamos no Front (Tipada e segura)
+export interface Slot {
+  id: number;
+  medicoId: string;
+  dataHoraInicio: string;
+  dataHoraFim: string;
+  status: SlotStatus; // Aqui travamos nas opções permitidas
+  valor?: number;
+}
+
+export interface GerarAgendaData {
+  medicoId: string;
+  inicio: string;
+  fim: string;
+  duracaoMinutos: number;
 }

@@ -1,4 +1,5 @@
 @use '../../styles/variables' as *;
+@use 'sass:color';
 
 .homeContainer {
   width: 100%;
@@ -16,46 +17,90 @@
   }
 }
 
+.carouselItemWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .mainCarouselImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.infiniteScrollSection {
-  padding: 2rem 1rem;
-  max-width: $gallery-max-width;
-  margin: 0 auto;
+.bannerCaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $spacing-lg $spacing-md;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  color: $white;
 
   h2 {
-    text-align: center;
-    margin-bottom: 2rem;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
   }
+
+  @media (min-width: $breakpoint-md) {
+    padding: $spacing-xl;
+    h2 {
+      font-size: 2.5rem;
+    }
+  }
+}
+
+.gallerySection {
+  padding: ($spacing-xl * 1.5) $spacing-md;
+  max-width: $container-max-width;
+  margin: 0 auto;
+  background-color: $bg-body;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: $text-strong;
+  margin-bottom: $spacing-xl;
 }
 
 .galleryGrid {
   display: grid;
-  // Mobile: 2 colunas
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: $spacing-md;
 
-  // Tablet: 3 colunas
   @media (min-width: $breakpoint-md) {
     grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-lg;
   }
 
-  // Desktop: 4 colunas
   @media (min-width: $breakpoint-xl) {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
-.galleryItem img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 8px;
+.galleryItem {
+  overflow: hidden;
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-lg;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+  }
 }
 
 .loader, .endMessage {
@@ -63,4 +108,11 @@
   padding: 2rem;
   font-size: 1.2rem;
   color: $text-muted;
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $bg-body;
 }
+
+// Removido .infiniteScrollSection pois foi substituído por .gallerySection

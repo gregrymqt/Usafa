@@ -9,10 +9,9 @@ interface AboutSectionProps {
 const AboutSection: React.FC<AboutSectionProps> = ({ data }) => {
   return (
     <section className={styles.aboutSection}>
-      <div className={styles.container}>
+      <div className={styles.container}>        
         <div className={styles.textContent}>
             <h2>{data.title}</h2>
-            {/* Dica: Se a descrição vier com quebras de linha do banco, use white-space: pre-line no CSS */}
             <p className={styles.description}>{data.description}</p>
         </div>
         

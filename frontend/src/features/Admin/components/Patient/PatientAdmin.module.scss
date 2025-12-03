@@ -51,7 +51,7 @@
 .searchButton {
   background-color: $primary-color;
   &:hover:not(:disabled) {
-    background-color: color.adjust($primary-color, $lightness: 10%);
+    background-color: $primary-hover;
     transform: translateY(-1px);
   }
 }
@@ -59,7 +59,7 @@
 .clearSearchButton {
   background-color: $text-secondary;
   &:hover:not(:disabled) {
-    background-color: color.adjust($text-secondary, $lightness: 10%);
+    background-color: color.adjust($text-secondary, $lightness: -10%);
   }
 }
 
@@ -166,4 +166,23 @@
       color: $text-secondary;
     }
   }
+}
+
+.idText {
+  font-size: 0.75rem;
+  color: $text-light;
+  margin: 0.25rem 0 0 0;
+}
+
+.loaderText {
+  @extend .loading; // Herda estilos de .loading
+  border: none;
+  background: transparent;
+}
+
+.endOfResultsText {
+  @extend .empty; // Herda estilos de .empty
+  border: none;
+  background: transparent;
+  padding: 1rem;
 }

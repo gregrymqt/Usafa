@@ -1,8 +1,6 @@
 package br.edu.fatecpg.usafa.features.admin.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import br.edu.fatecpg.usafa.models.PasswordCreationToken;
@@ -25,4 +23,6 @@ public interface IPasswordCreationTokenRepository extends JpaRepository<Password
 
     // [CORREÇÃO] Método para deletar token antigo
     void deleteByUser(User user);
+
+    boolean existsByUser(User user);
 }

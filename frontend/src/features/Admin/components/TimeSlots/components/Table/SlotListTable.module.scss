@@ -41,8 +41,8 @@
 
 // Cores específicas por status, usando variáveis padrão
 .disponivel {
-  background-color: rgba($success-color, 0.15);
-  color: $success-color;
+  background-color: rgba($success-text, 0.15);
+  color: $success-text;
 }
 
 .agendado {
@@ -51,8 +51,8 @@
 }
 
 .bloqueado {
-  background-color: rgba($danger-color, 0.15);
-  color: $danger-color;
+  background-color: rgba($warning-text, 0.15);
+  color: $warning-text;
 }
 
 .finalizado {

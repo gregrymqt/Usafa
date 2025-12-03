@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder; 
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -38,7 +38,6 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
     private final UserUtils userUtils;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
-
 
     @Value("${app.frontend.create-password-url}")
     private String createPasswordBaseUrl;
@@ -59,7 +58,8 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
         final String userPublicId = user.getPublicId().toString();
 
         // 1. Verifica se já existe um token válido no banco SQL
-        Optional<PasswordCreationToken> existingTokenOpt = tokenRepository.findByUserAndExpiryDateAfter(user, LocalDateTime.now());
+        Optional<PasswordCreationToken> existingTokenOpt = tokenRepository.findByUserAndExpiryDateAfter(user,
+                LocalDateTime.now());
 
         if (existingTokenOpt.isPresent()) {
             log.info("Token válido já existe na tabela para: {}. Reutilizando.", userPublicId);
@@ -75,16 +75,16 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(TOKEN_EXPIRATION_HOURS);
 
         try {
-            // 2. Remove token antigo (se houver) para manter relação 1:1 limpa
-            // Isso substitui a lógica antiga de setar null
-            tokenRepository.deleteByUser(user);
-            tokenRepository.flush(); // Garante que o delete ocorra antes do insert
+            if (tokenRepository.existsByUser(user)) {
+                tokenRepository.deleteByUser(user);
+                tokenRepository.flush();
+            }
 
             // 3. Cria e Salva o novo
             PasswordCreationToken newToken = new PasswordCreationToken(newTokenString, fullUrl);
             newToken.setUser(user);
             newToken.setExpiryDate(expiryDate);
-            
+
             PasswordCreationToken savedToken = tokenRepository.save(newToken);
 
             // 4. Salva no Cache
@@ -102,38 +102,37 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
     /**
      * [NOVA LÓGICA] Define a senha do usuário e inativa o token utilizado.
      */
-        @Transactional
-        public void createPassword(CreatePasswordDTO createPasswordDto) {
-            // 1. Busca o token no banco
-            PasswordCreationToken token = tokenRepository.findByToken(createPasswordDto.token())
-                    .orElseThrow(() -> new BusinessRuleException("Token inválido ou não encontrado."));
+    @Transactional
+    public void createPassword(CreatePasswordDTO createPasswordDto) {
+        // 1. Busca o token no banco
+        PasswordCreationToken token = tokenRepository.findByToken(createPasswordDto.token())
+                .orElseThrow(() -> new BusinessRuleException("Token inválido ou não encontrado."));
 
-            // 2. Validações de Segurança
-            if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
-                throw new BusinessRuleException("Este link expirou.");
-            }
-            if (!token.isActive()) { // [LÓGICA PEDIDA] Verifica se já foi usado (está false)
-                throw new BusinessRuleException("Este link já foi utilizado.");
-            }
-
-            // 3. Define a nova senha no Usuário
-            User user = token.getUser();
-            user.setPassword(passwordEncoder.encode(createPasswordDto.password())); // Criptografa antes de salvar
-            userRepository.save(user);
-
-            // 4. Inativa o Token (active = false)
-            token.setActive(false); // [LÓGICA PEDIDA] Muda de true para false
-            tokenRepository.save(token);
-
-            log.info("Senha criada com sucesso para o usuário ID: {}", user.getId());
+        // 2. Validações de Segurança
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new BusinessRuleException("Este link expirou.");
+        }
+        if (!token.isActive()) { // [LÓGICA PEDIDA] Verifica se já foi usado (está false)
+            throw new BusinessRuleException("Este link já foi utilizado.");
         }
 
+        // 3. Define a nova senha no Usuário
+        User user = token.getUser();
+        user.setPassword(passwordEncoder.encode(createPasswordDto.password())); // Criptografa antes de salvar
+        userRepository.save(user);
 
-        public UserResponseDTO validateTokenAndGetUser(String tokenId) {
-        
+        // 4. Inativa o Token (active = false)
+        token.setActive(false); // [LÓGICA PEDIDA] Muda de true para false
+        tokenRepository.save(token);
+
+        log.info("Senha criada com sucesso para o usuário ID: {}", user.getId());
+    }
+
+    public UserResponseDTO validateTokenAndGetUser(String tokenId) {
+
         // 1. Busca o Token pelo ID da tabela de tokens
         PasswordCreationToken token = tokenRepository.findByToken(tokenId)
-            .orElseThrow(() -> new BusinessRuleException("Link inválido ou expirado."));
+                .orElseThrow(() -> new BusinessRuleException("Link inválido ou expirado."));
 
         // 2. Verifica se expirou
         if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
@@ -145,7 +144,7 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
         String tokenJwt = jwtUtils.generateToken(user);
 
         // 4. Retorna os dados que o Front precisa (Nome, Email, etc.)
-        return  userUtils.buildResponseDTO(user, tokenJwt);
+        return userUtils.buildResponseDTO(user, tokenJwt);
     }
 
     /**
@@ -164,7 +163,7 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
         log.info("Cache Miss. Buscando token no SQL para: {}", userPublicId);
         try {
             UUID uuid = UUID.fromString(userPublicId);
-            
+
             // Busca usando o novo método do Repositório
             Optional<PasswordCreationToken> dbTokenOpt = tokenRepository.findByUser_PublicId(uuid);
 
@@ -204,11 +203,11 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
 
             // [CORREÇÃO] Deleta a linha da tabela de tokens, em vez de setar null no User
             tokenRepository.deleteByUser(user);
-            
+
             log.info("Token deletado do SQL para: {}", userPublicId);
 
         } catch (IllegalArgumentException e) {
-             throw new BusinessRuleException("ID inválido.");
+            throw new BusinessRuleException("ID inválido.");
         } catch (DataAccessException e) {
             log.error("Erro ao deletar token SQL: {}", userPublicId, e);
             throw new DatabaseOperationException("Falha ao deletar o token.", e);

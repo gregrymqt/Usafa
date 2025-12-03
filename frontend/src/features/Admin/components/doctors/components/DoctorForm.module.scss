@@ -2,15 +2,19 @@
 @use "sass:color";
 
 .doctorFormContainer {
-  // Estilos para o contêiner, se necessário
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: $spacing-md;
+  display: flex;
+  flex-direction: column;
 }
 
 .photoUploadSection {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-lg;
   border-bottom: 1px solid $border-light;
 }
 
@@ -44,7 +48,7 @@
   .sectionTitle {
     font-weight: 600;
     color: $text-strong;
-    margin-bottom: 0.25rem;
+    margin-bottom: $spacing-xs;
   }
 
   .fileInputLabel {
@@ -60,11 +64,21 @@
   }
 }
 
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 .actions {
-  margin-top: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: $spacing-md;
 }
 
 .submitButton {

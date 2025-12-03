@@ -45,9 +45,7 @@ export const BuscaUsafa: React.FC<BuscaUsafaProps> = ({ cep }) => {
     return (
       <div className={styles.successState}>
         <h3>USAFA de Referência</h3>
-        <p className={styles.usafaName}>
-          <strong>{maisProxima.nome}</strong>
-        </p>
+        <p><strong>{maisProxima.nome}</strong></p>
         <p>{maisProxima.endereco}</p>
         <p>
           Aproximadamente <strong>{distancia.toFixed(2)} km</strong> de distância. 

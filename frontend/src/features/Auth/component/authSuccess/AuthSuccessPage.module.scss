@@ -1,5 +1,6 @@
 @use "sass:color";
 @use '../../../../styles/variables' as *; // Ajuste o caminho
+@use '../../../Admin/PartialViews/Doctor/_DoctorPartial.module.scss' as doctorStyles; // Para estender o botão
 
 .authSuccessPage {
   display: flex;
@@ -9,7 +10,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   background-color: $bg-body;
-  padding: 1rem;
+  padding: $spacing-md;
   box-sizing: border-box;
 }
 
@@ -20,7 +21,7 @@
   justify-content: center;
   background-color: $white;
   border-radius: $radius-lg;
-  padding: 2rem 1.5rem;
+  padding: $spacing-xl $spacing-lg;
   width: 100%;
   max-width: $form-max-width;
   box-shadow: $shadow-card;
@@ -31,7 +32,7 @@
 // Responsividade
 @media (min-width: $breakpoint-md) {
   .container {
-    padding: 3rem 2.5rem;
+    padding: 3rem 2.5rem; // Mantido por não ter variáveis exatas. Pode ser ($spacing-xl * 1.5) ($spacing-xl + $spacing-sm)
   }
 }
 
@@ -39,14 +40,14 @@
   font-size: 1.75rem;
   font-weight: 600;
   color: $text-color;
-  margin: 1.25rem 0 0.5rem 0;
+  margin: 1.25rem 0 $spacing-sm 0; // 1.25rem = 20px (entre $spacing-md e $spacing-lg)
 }
 
 .subtitle {
   font-size: 1rem;
   color: $text-secondary;
   margin: 0;
-  margin-bottom: 2rem;
+  margin-bottom: $spacing-xl;
   line-height: 1.5;
 }
 
@@ -54,12 +55,12 @@
 .inputGroup {
   width: 100%;
   text-align: left;
-  margin-bottom: 1rem; // Espaçamento abaixo do campo
+  margin-bottom: $spacing-md; // Espaçamento abaixo do campo
 
   label {
     display: block;
     font-weight: 500;
-    margin-bottom: 0.5rem;
+    margin-bottom: $spacing-sm;
     color: $text-strong;
     font-size: 0.9rem; // Alinha com o label do AuthForm
   }
@@ -67,7 +68,7 @@
   input {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 1px solid $border-color;
+    border: 1px solid $border-light;
     border-radius: $radius-md;
     font-size: 1rem;
     background-color: $bg-input;
@@ -100,26 +101,17 @@
 .formError {
   color: $error-text;
   font-size: 0.9rem;
-  margin-top: 0.625rem;
+  margin-top: $spacing-sm;
   width: 100%;
   text-align: center;
 }
 
 // Botão de Voltar (para erros)
 .backButton {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: $radius-md;
-  background-color: $primary-color;
-  color: $white;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  @extend doctorStyles.addButton;
 
   &:hover {
-    background-color: color.adjust($primary-color, $lightness: -10%);
+    background-color: $primary-hover;
   }
 }
 
@@ -127,7 +119,7 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f0f0f0;
+  border: 4px solid $neutral-bg;
   border-top: 4px solid $primary-color;
   border-radius: 50%;
   animation: spin 1s linear infinite;

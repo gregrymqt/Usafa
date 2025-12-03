@@ -9,10 +9,10 @@
 // Barra de Filtros
 .filterBar {
   display: flex;
-  flex-direction: column; // Mobile-first: filtros empilhados
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  flex-direction: column;
+  gap: $spacing-md; // 16px
+  margin-bottom: $spacing-lg; // 24px
+  padding: $spacing-md;
   background-color: $bg-light;
   border-radius: $radius-lg;
   border: 1px solid $border-light;
@@ -21,15 +21,15 @@
   @media (min-width: $breakpoint-md) {
     flex-direction: row;
     align-items: flex-end;
-    gap: 1.5rem;
-    padding: 1.5rem;
+    gap: $spacing-lg;
+    padding: $spacing-lg;
   }
 }
 
 .filterGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $spacing-sm; // 8px
   flex-grow: 1; // Permite que os grupos cresçam e ocupem o espaço
 
   label {
@@ -50,8 +50,8 @@
 
     &:focus {
       outline: none;
-      border-color: $primary-color;
-      box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+      border-color: $border-focus;
+      box-shadow: $shadow-focus; // Usando a variável de foco
     }
   }
 }
@@ -102,12 +102,12 @@
 .loading,
 .empty,
 .error {
-  padding: 2rem;
+  padding: $spacing-xl; // 32px
   text-align: center;
   color: $text-secondary;
   background-color: $bg-input;
   border-radius: $radius-md;
-  margin: 1rem 0;
+  margin: $spacing-md 0;
   border: 2px dashed $border-light;
   font-size: 1rem;
   font-weight: 500;

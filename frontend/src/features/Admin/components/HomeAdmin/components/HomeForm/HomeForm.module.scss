@@ -68,6 +68,12 @@
       box-shadow: $shadow-md;
     }
   }
+  
+  .uploadPlaceholder {
+    color: $text-light;
+    margin: 0; // Reseta a margem padrão do <p>
+  }
+
 
   .actions {
     display: flex;
@@ -94,6 +100,18 @@
         color: $text-secondary;
         &:hover { background-color: $bg-secondary-btn-hover; }
       }
+    }
+  }
+
+  // Modificador para grupos de input em linha (ex: checkbox)
+  .inputGroup--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: $spacing-sm;
+
+    // Remove a margem padrão do label nesse contexto
+    label {
+      margin-bottom: 0;
     }
   }
 }

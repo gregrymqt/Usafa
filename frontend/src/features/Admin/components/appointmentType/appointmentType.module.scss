@@ -8,17 +8,17 @@
   background-color: $bg-body;
   
   // Mobile First: Padding confortável mas compacto
-  padding: 1rem;
+  padding: $spacing-md;
 
   // Desktop: Mais respiro
   @media (min-width: $breakpoint-md) {
-    padding: 2rem;
+    padding: $spacing-xl;
   }
 
   h2 {
     color: $text-strong;
     font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: $spacing-lg;
     
     // Mobile: Centralizado / Desktop: Esquerda
     text-align: center; 
@@ -31,8 +31,8 @@
 // 2. Sistema de Abas (Tabs)
 .tabs {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
   border-bottom: 2px solid $border-light;
   
   // Mobile: Permite scroll horizontal se tiver muitas abas
@@ -85,16 +85,23 @@
   box-shadow: $shadow-card;
   
   // Mobile: Padding interno menor
-  padding: 1rem; 
+  padding: $spacing-md; 
 
   @media (min-width: $breakpoint-md) {
-    padding: 2rem; // Desktop: Padding interno maior
+    padding: $spacing-xl; // Desktop: Padding interno maior
   }
 
   animation: fadeIn 0.3s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
+  from { opacity: 0; transform: translateY($spacing-xs); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+// 4. Estilos Adicionais do Componente
+.formDescription {
+  margin-bottom: $spacing-md;
+  color: $text-secondary;
+  font-size: 0.9rem;
 }

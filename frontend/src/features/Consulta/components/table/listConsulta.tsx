@@ -2,12 +2,12 @@ import React from 'react';
 import styles from './ConsultaList.module.scss'; // SCSS Módulo
 import Table from '../../../../components/Tables/Tables';
 import type { ColumnType } from '../../../../components/Tables/types';
-import type { Consulta } from '../../types/consulta.types';
 import type { ConsultaListProps } from './types/ConsultaList.types';
 import { useInfiniteScroll } from '../../../../shared/utils/forPages.utils';
+import { ConsultaSummary } from '../../types/consulta.types';
 
 // Define as colunas para o seu componente de Tabela
-const colunas: ColumnType<Consulta>[] = [
+const colunas: ColumnType<ConsultaSummary>[] = [
   { header: 'Médico', accessor: 'medico' },
   { header: 'Tipo', accessor: 'tipo' },
   { header: 'Data', accessor: 'dia' },
@@ -49,7 +49,7 @@ export const ConsultaList: React.FC<ConsultaListProps> = ({
 
       {/* Elemento sentinela para o scroll infinito */}
       {/* Esta div invisível ficará no final. Quando ela entrar na tela, o `lastElementRef` chamará o `loadMore`. */}
-      <div ref={lastElementRef} style={{ height: '1px' }} />
+      <div ref={lastElementRef} className={styles.infiniteScrollSentinel} />
 
       {/* Indicador de carregamento para as páginas seguintes */}
       {isLoading && consultas.length > 0 && (

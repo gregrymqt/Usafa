@@ -1,60 +1,167 @@
 @use '../../styles/variables' as *;
 
-.consulta-page {
+/* --- Container Principal da Página --- */
+.pageContainer {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 1.5rem;
-  max-width: $gallery-max-width;
+  gap: $spacing-lg;
+  padding: $spacing-md;
+  max-width: $container-max-width;
   margin: 0 auto;
   min-height: 100vh;
-  background-color: $bg-body; // Fundo levemente cinza
+  background-color: $bg-body;
 }
 
-// Layout para desktop
-@media (min-width: $breakpoint-xl) {
-  .consulta-page {
-    flex-direction: row;
-    padding: 2rem;
-    
-    // O formulário (Sticky)
-    > :last-child {
-      flex: 0 0 400px;
-      align-self: flex-start;
-      position: sticky;
-      top: 2rem;
-    }
+/* --- Cabeçalho da Página --- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $border-light;
 
-    // A tabela de listagem
-    > :first-child {
-      flex: 1;
-    }
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $text-strong;
   }
 }
 
-// Mensagem de sucesso (Toast)
-.success-toast {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: $success-text; // Verde escuro para fundo do toast
+/* --- Botão de Ação Primário (Ex: 'Nova Consulta') --- */
+.btnToggleForm {
+  padding: $spacing-sm $spacing-md;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background-color: $primary-color;
   color: $white;
-  padding: 1rem 1.5rem;
+  border: none;
   border-radius: $radius-md;
-  box-shadow: $shadow-lg;
-  z-index: $z-index-toast;
-  font-weight: 500;
-  animation: slideIn 0.3s ease-out;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 20px);
+/* --- Banners de Feedback (Erro e Sucesso) --- */
+.errorBanner, .successToast {
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-md;
+  font-weight: 500;
+  margin-bottom: $spacing-md;
+  border: 1px solid;
+}
+
+.errorBanner {
+  background-color: $error-bg;
+  color: $error-text;
+  border-color: $error-border;
+}
+
+.successToast {
+  background-color: $success-bg;
+  color: $success-text;
+  border-color: $success-border;
+}
+
+/* --- Seção do Formulário (Mobile-first: escondido por padrão) --- */
+.formSection {
+  display: none; // Escondido por padrão no mobile
+  background-color: $white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $spacing-lg;
+  
+  &.open {
+    display: block; // Mostra quando a classe .open é aplicada
   }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
+}
+
+/* --- Seção da Lista de Consultas --- */
+.listSection {
+  background-color: $white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $spacing-lg;
+}
+
+/* --- Modal de Confirmação (Overlay e Conteúdo) --- */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-index-dropdown;
+  backdrop-filter: blur(4px);
+  padding: $spacing-md;
+}
+
+.modalContent {
+  background-color: $white;
+  padding: $spacing-xl;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-lg;
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.btnCloseModal {
+  @extend .btnToggleForm; // Reutiliza o estilo do botão primário
+  background-color: $bg-secondary-btn;
+  color: $text-strong;
+
+  &:hover {
+    background-color: $bg-secondary-btn-hover;
+  }
+}
+
+/* =========================================
+ * Layout para Desktop
+ * =========================================
+ */
+@media (min-width: $breakpoint-xl) {
+  .pageContainer {
+    flex-direction: row;
+    align-items: flex-start; // Alinha os itens no topo
+    padding: $spacing-xl;
+    gap: $spacing-xl;
+  }
+
+  .header {
+    display: none; // Oculta o cabeçalho móvel com o botão
+  }
+
+  .mainContent {
+    flex: 1; // Ocupa o espaço restante
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  .formSection {
+    display: block; // Sempre visível no desktop
+    flex: 0 0 420px; // Largura fixa para o formulário
+    order: 2; // Coloca o formulário na direita
+    
+    // Efeito "Sticky"
+    align-self: flex-start;
+    position: sticky;
+    top: $spacing-xl;
+  }
+
+  .listSection {
+    order: 1; // Coloca a lista na esquerda
+    flex: 1;
   }
 }

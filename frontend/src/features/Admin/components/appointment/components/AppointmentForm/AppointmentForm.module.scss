@@ -1,11 +1,22 @@
-@use '../../../../../../styles/variables' as *; // Ajuste o caminho
+@use '../../../../../../styles/variables' as *;
 @use 'sass:color';
 
-// Estilos para o formulário de consulta
-// Se precisar estender o estilo do botão de submit global:
+.appointmentForm {
+  width: 100%;
+  max-width: 500px; // Um pouco mais de espaço para o formulário
+  margin: 0 auto;
+  padding: $spacing-lg $spacing-xl; // 24px 32px
+  background-color: $white;
+  border-radius: $radius-lg; // 16px
+  border: 1px solid $border-light;
+  box-shadow: $shadow-card;
+}
+
+// Estilo global para o botão de submit que vem do componente AuthForm
+// Garante que ele ocupe 100% da largura e tenha uma margem inferior.
 :global(.authFormSubmitButton) {
   width: 100%;
-  margin-bottom: 0.5rem;
+  margin-bottom: $spacing-sm; // 8px
 }
 
 .cancelButton {
@@ -16,22 +27,25 @@
   text-align: center;
   font-size: 1rem;
   
-  // Cores padronizadas
+  // --- Estilização com Variáveis ---
+  // Fundo cinza claro, com borda sutil e texto forte
+  background-color: $bg-secondary-btn;
   border: 1px solid $border-color;
-  background-color: $bg-secondary-btn; // Cinza claro padrão
-  color: $text-strong; // Texto escuro
+  color: $text-strong;
   
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 0.5rem;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 
+  // Efeito de hover para o botão
   &:hover:not(:disabled) {
-    background-color: $bg-secondary-btn-hover; // Hover padronizado
+    background-color: $bg-secondary-btn-hover;
     border-color: color.adjust($border-color, $lightness: -10%);
   }
 
+  // Estilo para quando o botão estiver desativado
   &:disabled {
-    opacity: 0.5;
+    background-color: $bg-disabled;
+    opacity: 0.7;
     cursor: not-allowed;
   }
 }

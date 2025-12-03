@@ -1,14 +1,14 @@
 @use '../../../../styles/variables' as *;
 
 /* --- Container Principal da Tela de Agendamentos --- */
-// Adicione esta classe no início do arquivo
 .appointmentContainer {
   width: 100%;
-  min-height: 100vh; // Ocupa altura total
+  min-height: 100vh;
   box-sizing: border-box;
   background-color: $bg-body;
   
-  // Espaçamento interno (descola da sidebar e do topo)
+  // Espaçamento interno para descolar da sidebar e do topo
+  // Usa as variáveis de espaçamento para consistência
   padding: 1rem; 
 
   @media (min-width: $breakpoint-md) {
@@ -20,7 +20,7 @@
 .tabContainer {
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: $spacing-xl; // Usa variável de espaçamento
   width: 100%;
 }
 
@@ -34,7 +34,7 @@
 }
 
 .tabButton {
-  padding: 0.625rem 1.25rem;
+  padding: 0.75rem 1.5rem; // Aumenta o padding para melhor toque
   font-size: 0.95rem;
   font-weight: 600;
   color: $text-secondary;
@@ -62,8 +62,8 @@
 .adminHeader {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
 
   @media (min-width: $breakpoint-md) {
     flex-direction: row;
@@ -73,7 +73,7 @@
 }
 
 .addButton {
-  padding: 0.625rem 1.25rem;
+  padding: 0.75rem 1.5rem; // Padroniza o padding
   background-color: $primary-color;
   color: $white;
   font-weight: 600;

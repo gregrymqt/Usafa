@@ -1,99 +1,115 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './SlotManagement.module.scss';
-
-// Import dos Components Filhos
-
-// Import do Service para buscar os dados
 import Swal from 'sweetalert2';
+
 import { SlotGenerationForm } from './components/Form/SlotGenerationForm';
 import { SlotListTable } from './components/Table/SlotListTable';
 import { slotService } from './services/slot.service';
-
-interface SlotManagementIndexProps {
-  medicoId: string; // Precisamos saber de qual médico estamos cuidando
-}
+// Importamos as duas interfaces
+import type { Slot, SlotResponse, SlotStatus } from './types/slot.types';
 
 type TabType = 'list' | 'form';
 
-export const SlotManagementIndex: React.FC<SlotManagementIndexProps> = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('list'); // Começa listando
-  const [slots, setSlots] = useState<any[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+// Helper para validar se a string é um status válido
+function parseSlotStatus(statusRaw: string): SlotStatus {
+  const upperStatus = statusRaw?.toUpperCase();
+  const validStatuses: SlotStatus[] = ['DISPONIVEL', 'AGENDADO', 'BLOQUEADO', 'FINALIZADO'];
+  
+  // Se for válido retorna ele mesmo (como SlotStatus), senão retorna padrão
+  if (validStatuses.includes(upperStatus as SlotStatus)) {
+    return upperStatus as SlotStatus;
+  }
+  return 'DISPONIVEL';
+}
 
-  // --- Função para buscar dados da API ---
+export const SlotManagementIndex: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('form');
+  const [slots, setSlots] = useState<Slot[]>([]); // Estado tipado corretamente
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [currentMedicoId, setCurrentMedicoId] = useState<string>('');
+
   const fetchSlots = useCallback(async () => {
+    if (!currentMedicoId) return;
+
     setIsLoadingData(true);
     try {
-      // Aqui assumimos que você quer ver a agenda de HOJE ou futura. 
-      // Em um cenário real, você poderia ter um filtro de data na tela.
-      const hoje = new Date().toISOString().split('T')[0]; 
+      const hoje = new Date().toISOString().split('T')[0];
       
-      const data = await slotService.listarSlotsPorMedico(medicoId, hoje);
-      setSlots(data || []);
+      // Chamada do serviço
+      const response = await slotService.listarSlotsPorMedico(currentMedicoId, hoje);
+      
+      // 1. Asserção segura: Dizemos que a resposta é desconhecida (unknown) 
+      // e depois afirmamos que é um array de SlotResponse.
+      // Isso satisfaz o linter sem usar 'any'.
+      const rawData = response as unknown as SlotResponse[];
+
+      // 2. Mapeamento seguro
+      const data: Slot[] = rawData.map((item) => ({
+        id: item.id,
+        // Se medicoId vier nulo, usa o do estado
+        medicoId: item.medicoId ?? currentMedicoId,
+        dataHoraInicio: item.dataHoraInicio,
+        dataHoraFim: item.dataHoraFim,
+        // Usamos a função auxiliar para garantir o tipo sem 'as any'
+        status: parseSlotStatus(item.status),
+        valor: item.valor
+      }));
+
+      setSlots(data);
+      // setActiveTab('form'); // REMOVIDO: Esta linha estava causando o problema de navegação.
     } catch (error) {
       console.error("Erro ao buscar slots", error);
       Swal.fire('Erro', 'Não foi possível carregar a agenda.', 'error');
     } finally {
       setIsLoadingData(false);
     }
-  }, [medicoId]);
+  }, [currentMedicoId]);
 
-  // Carrega dados ao abrir a tela
   useEffect(() => {
-    if (activeTab === 'list') {
+    if (activeTab === 'list' && currentMedicoId) {
       fetchSlots();
     }
-  }, [fetchSlots, activeTab]);
+  }, [fetchSlots, activeTab, currentMedicoId]);
 
-  // --- Handler: Quando o formulário termina de gerar ---
-  const handleGenerationSuccess = () => {
-    // 1. Muda para a aba de lista automaticamente
+  const handleGenerationSuccess = (medicoIdUtilizado: string) => {
+    setCurrentMedicoId(medicoIdUtilizado);
     setActiveTab('list');
-    // 2. Recarrega os dados para mostrar os novos slots
-    fetchSlots();
   };
 
   return (
     <div className={styles.container}>
-      {/* 1. Cabeçalho de Abas */}
       <div className={styles.tabsHeader}>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'list' ? styles.active : ''}`}
-          onClick={() => setActiveTab('list')}
-        >
-          Visualizar Agenda
-        </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'form' ? styles.active : ''}`}
           onClick={() => setActiveTab('form')}
         >
           Gerar Horários
         </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'list' ? styles.active : ''}`}
+          onClick={() => setActiveTab('list')}
+          disabled={!currentMedicoId}
+          title={!currentMedicoId ? "Gere uma agenda primeiro para visualizar" : ""}
+        >
+          Visualizar Agenda
+        </button>
       </div>
 
-      {/* 2. Área de Conteúdo Dinâmico */}
       <div className={styles.contentArea}>
-        
         {activeTab === 'list' && (
           <>
+            <h4 className={styles.infoTitle}>Agenda do Médico ID: {currentMedicoId}</h4>
             {isLoadingData ? (
-              <p style={{ textAlign: 'center', color: '#666' }}>Carregando agenda...</p>
+              <p className={styles.loadingText}>Carregando agenda...</p>
             ) : (
-              <SlotListTable 
-                slots={slots} 
-                onRefresh={fetchSlots} 
-              />
+              <SlotListTable slots={slots} onRefresh={fetchSlots} />
             )}
           </>
         )}
 
         {activeTab === 'form' && (
-          <SlotGenerationForm 
-            medicoId={medicoId} 
-            onSuccess={handleGenerationSuccess} 
-          />
+          <SlotGenerationForm onSuccess={handleGenerationSuccess} />
         )}
-
       </div>
     </div>
   );

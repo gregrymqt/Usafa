@@ -41,12 +41,13 @@ public class PatientServiceImpl implements IPatientService {
 
     /**
      * Busca paginada com filtro opcional por texto.
-     * Não utiliza cache devido à dinamicidade dos parâmetros (página, tamanho, busca).
+     * Não utiliza cache devido à dinamicidade dos parâmetros (página, tamanho,
+     * busca).
      */
     @Override
     @Transactional(readOnly = true)
     public Page<PatientResponseDto> getAllPatients(String search, Pageable pageable) {
-        log.info("Buscando pacientes paginados. Page: {}, Size: {}, Search: '{}'", 
+        log.info("Buscando pacientes paginados. Page: {}, Size: {}, Search: '{}'",
                 pageable.getPageNumber(), pageable.getPageSize(), search);
 
         Page<User> userPage;
@@ -132,10 +133,12 @@ public class PatientServiceImpl implements IPatientService {
 
             return mapper.toDto(savedUser);
         } catch (DataAccessException e) {
-            if (e.getMessage() != null && e.getMessage().contains("ConstraintViolationException")) {
-                throw new BusinessRuleException("Email ou CPF já cadastrado.", e);
+            // Verifica se é erro de integridade (duplicidade) independente da mensagem
+            // exata
+            if (e instanceof org.springframework.dao.DataIntegrityViolationException) {
+                throw new BusinessRuleException("Erro: Email ou CPF já podem estar cadastrados.", e);
             }
-            throw new DatabaseOperationException("Erro ao salvar paciente", e);
+            throw new DatabaseOperationException("Erro técnico ao salvar paciente", e);
         }
     }
 

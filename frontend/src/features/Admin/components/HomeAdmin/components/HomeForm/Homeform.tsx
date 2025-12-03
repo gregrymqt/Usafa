@@ -59,9 +59,7 @@ const HomeForm: React.FC<HomeFormProps> = ({
           {previewUrl ? (
             <img src={previewUrl} alt="Preview" className={styles.preview} />
           ) : (
-            <p style={{ color: "#9ca3af" }}>
-              Clique para fazer upload da imagem
-            </p>
+            <p className={styles.uploadPlaceholder}>Clique para fazer upload da imagem</p>
           )}
         </div>
       </div>
@@ -90,10 +88,7 @@ const HomeForm: React.FC<HomeFormProps> = ({
         />
       </div>
 
-      <div
-        className={styles.inputGroup}
-        style={{ flexDirection: "row", alignItems: "center", gap: "10px" }}
-      >
+      <div className={`${styles.inputGroup} ${styles['inputGroup--inline']}`}>
         <input
           type="checkbox"
           name="isActive"
@@ -102,9 +97,7 @@ const HomeForm: React.FC<HomeFormProps> = ({
           disabled={isLoading}
           id="activeCheck"
         />
-        <label htmlFor="activeCheck" style={{ marginBottom: 0 }}>
-          Visível no Site?
-        </label>
+        <label htmlFor="activeCheck">Visível no Site?</label>
       </div>
 
       <div className={styles.actions}>

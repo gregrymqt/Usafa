@@ -1,43 +1,74 @@
-@use '../../../../styles/variables' as *; // Ajuste o caminho
+@use '../../../../styles/variables' as *;
 
 .aboutSection {
-  padding: 3rem 1rem;
-  // Usando a cor primária para manter a identidade. 
-  // Se quiser mais escuro, use $primary-hover
-  background-color: $primary-color; 
-  color: $white;
-  text-align: center;
+  padding: $spacing-xl $spacing-md;
+  background-color: $bg-secondary; // Fundo secundário para seções
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.content {
+.container {
   width: 100%;
-  max-width: 800px; // Largura de leitura ideal
+  max-width: $container-max-width;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column; // Layout mobile: imagem em cima, texto embaixo
+  align-items: center;
+  gap: $spacing-xl;
+}
 
+.textContent {
+  text-align: center;
+  max-width: 700px; // Largura de leitura confortável
+  
   h2 {
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 1rem;
-    color: $white; // Garante contraste
+    color: $text-strong;
+    margin-bottom: $spacing-md;
   }
 
-  p {
+  .description {
     font-size: 1.1rem;
     line-height: 1.6;
-    color: rgba($white, 0.9); // Branco com leve transparência para suavizar leitura
+    color: $text-secondary;
+    white-space: pre-line; // Respeita quebras de linha do CMS/banco
   }
 }
 
-// Responsividade
-@media (min-width: $breakpoint-md) {
-  .aboutSection {
-    padding: 4rem 2rem;
-  }
+.imageWrapper {
+  width: 100%;
+  max-width: 450px;
   
-  .content h2 {
-    font-size: 2.25rem;
+  img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+  }
+}
+
+/* --- Layout para Desktop --- */
+@media (min-width: $breakpoint-lg) {
+  .aboutSection {
+    padding: ($spacing-xl * 2) $spacing-lg;
+  }
+
+  .container {
+    flex-direction: row; // Layout desktop: lado a lado
+    justify-content: space-between;
+    gap: ($spacing-xl * 2);
+  }
+
+  .textContent {
+    text-align: left; // Alinha o texto à esquerda no desktop
+    flex: 1; // Permite que o texto ocupe o espaço disponível
+  }
+
+  .imageWrapper {
+    flex-shrink: 0; // Impede que a imagem encolha
+    order: 2; // Garante que a imagem fique à direita
   }
 }

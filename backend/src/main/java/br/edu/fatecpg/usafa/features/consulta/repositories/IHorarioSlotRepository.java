@@ -18,15 +18,14 @@ public interface IHorarioSlotRepository extends JpaRepository<HorarioSlot, Long>
     @Query("SELECT h FROM HorarioSlot h WHERE h.medico.publicId = :medicoPublicId AND h.dataHoraInicio = :dataHora")
         Optional<HorarioSlot> findByMedicoPublicIdAndDataHoraInicio(String medicoPublicId, LocalDateTime dataHora);
 
-        // --- NOVA QUERY ---
-    // Busca slots DISPONÍVEIS onde o médico pertence ao TipoConsulta solicitado
-    // Estamos assumindo que HorarioSlot -> tem um Medico -> que tem um TipoConsulta (ou Especialidade)
-    @Query("SELECT h FROM HorarioSlot h " +
-           "JOIN h.medico m " +
-           "JOIN m.tipoConsulta t " +
-           "WHERE h.status = 'DISPONIVEL' " +
-           "AND t.publicId = :tipoPublicId " +
-           "ORDER BY h.dataHoraInicio ASC")
-    List<HorarioSlot> findDisponiveisPorTipoConsulta(@Param("tipoPublicId") String tipoPublicId);
+        // HorarioSlotRepository.java
+@Query("SELECT h FROM HorarioSlot h " +
+       "WHERE h.medico.tipoConsulta.publicId = :tipoId " + // O join mágico
+       "AND h.status = 'DISPONIVEL' " +
+       "AND h.dataHoraInicio > CURRENT_TIMESTAMP " + // Só horários futuros
+       "ORDER BY h.dataHoraInicio ASC")
+List<HorarioSlot> findDisponiveisPorTipoConsulta(@Param("tipoId") String tipoId);
+
+    Optional<HorarioSlot> findByPublicId(String publicId);
 }
 

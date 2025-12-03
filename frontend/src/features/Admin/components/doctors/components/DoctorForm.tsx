@@ -131,16 +131,7 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
   );
 
   return (
-    <div 
-        className={styles.doctorFormContainer} 
-        style={{ 
-            maxHeight: '85vh', 
-            overflowY: 'auto', 
-            padding: '1rem', 
-            display: 'flex', 
-            flexDirection: 'column' 
-        }}
-    >
+    <div className={styles.doctorFormContainer}>
       <AuthForm
         fields={fields}
         handleSubmit={handleSubmit}
@@ -161,15 +152,15 @@ export const DoctorForm: React.FC<DoctorFormProps> = ({
             <label htmlFor="doctor-photo" className={styles.fileInputLabel}>
               {imageFile ? "Trocar imagem" : "Selecionar imagem"}
             </label>
-            <input id="doctor-photo" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+            <input id="doctor-photo" type="file" accept="image/*" onChange={handleFileChange} className={styles.hiddenInput} />
           </div>
         </div>
 
-        <div className={styles.actions} style={{ marginTop: '20px', paddingBottom: '10px' }}>
-          <button type="submit" disabled={isLoading} className={styles.submitButton} style={{ marginBottom: '10px', width: '100%' }}>
+        <div className={styles.actions}>
+          <button type="submit" disabled={isLoading} className={styles.submitButton}>
             {isLoading ? "Salvando..." : (initialData ? "Atualizar" : "Criar")}
           </button>
-          <button type="button" onClick={onCancel} disabled={isLoading} className={styles.cancelButton} style={{ width: '100%' }}>
+          <button type="button" onClick={onCancel} disabled={isLoading} className={styles.cancelButton}>
             Cancelar
           </button>
         </div>

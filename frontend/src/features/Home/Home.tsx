@@ -64,7 +64,7 @@ const Home: React.FC = () => {
       {/* 4. GALERIA */}
       {galleryItems.length > 0 && (
         <section className={styles.gallerySection}>
-          <h2>Galeria</h2>
+          <h2 className={styles.sectionTitle}>Galeria</h2>
           <div className={styles.galleryGrid}>
             {galleryItems.map(item => (
               <div key={item.id} className={styles.galleryItem}>

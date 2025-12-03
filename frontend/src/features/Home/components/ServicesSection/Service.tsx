@@ -33,7 +33,7 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ items }) => {
         <Carousel
           items={items}
           renderItem={(card) => (
-            <div style={{ padding: '10px' }}> {/* Padding para sombra do card não cortar */}
+            <div className={styles.cardSlide}> {/* Padding para sombra do card não cortar */}
               <Card
                 title={card.title}
                 description={card.description}

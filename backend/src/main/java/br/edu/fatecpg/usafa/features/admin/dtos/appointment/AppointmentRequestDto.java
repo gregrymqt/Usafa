@@ -22,7 +22,7 @@ public class AppointmentRequestDto {
     // O "quando" e o "com quem" (Médico) agora são resolvidos por um único ID.
     // O slot amarra: Data + Hora + Médico.
     @NotNull(message = "O horário selecionado é obrigatório")
-    private Long horarioSlotId; // O ID do HorarioSlot [cite: 69, 76]
+    private String horarioSlotId; // O ID do HorarioSlot [cite: 69, 76]
 
     // O "o quê" (Especialidade/Tipo).
     // Necessário pois a entidade Consulta exige um relacionamento com TipoConsulta.

@@ -12,7 +12,7 @@ import type { ConsultaSummaryProps } from './types/modal.types';
 const formatConsultaAsText = (summary: ConsultaSummary): string => {
   return `
 SOLICITAÇÃO DE CONSULTA
-Protocolo: ${summary.protocolo}
+Protocolo: ${summary.tipo}
 ------------------------------------
 Médico:     ${summary.medico}
 Tipo:       ${summary.tipo}
@@ -30,7 +30,7 @@ export const ConsultaSummarys: React.FC<ConsultaSummaryProps> = ({ summary }) =>
   const handleDownload = () => {
     // 1. Formata os dados específicos da consulta
     const textContent = formatConsultaAsText(summary);
-    const filename = `consulta-${summary.protocolo}.txt`;
+    const filename = `consulta-${summary.tipo}.txt`;
     
     // 2. Chama a função genérica
     downloadAsTxt(textContent, filename);
@@ -42,7 +42,7 @@ export const ConsultaSummarys: React.FC<ConsultaSummaryProps> = ({ summary }) =>
   const handleShare = () => { 
     const shareData: ShareData = {
       title: 'Confirmação de Consulta', // <- Texto atualizado
-      text: `Minha consulta (Protocolo: ${summary.protocolo}) com ${summary.medico} foi confirmada.`, // <- Texto atualizado
+      text: `Minha consulta (Protocolo: ${summary.tipo}) com ${summary.medico} foi confirmada.`, // <- Texto atualizado
     };
     shareContent(shareData); 
   };
@@ -55,7 +55,7 @@ export const ConsultaSummarys: React.FC<ConsultaSummaryProps> = ({ summary }) =>
             Sua solicitação foi processada com sucesso.
           </p>
           
-          <p className={styles.protocol}>Protocolo: <strong>{summary.protocolo}</strong></p> 
+          <p className={styles.protocol}>Protocolo: <strong>{summary.tipo}</strong></p> 
           
           <div className={styles.summaryDetails}> 
             <p><strong>Médico:</strong> {summary.medico}</p>

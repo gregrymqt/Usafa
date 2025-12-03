@@ -15,7 +15,7 @@
   background-color: $bg-secondary; // Fundo levemente cinza para diferenciar do conteúdo
   
   // Mobile-First: Abas ocupam 50% cada para facilitar o toque
-  @media (max-width: $tablet) {
+  @media (max-width: $breakpoint-md) {
     justify-content: space-between;
   }
 }
@@ -33,7 +33,7 @@
   position: relative;
   outline: none;
 
-  @media (min-width: $tablet) {
+  @media (min-width: $breakpoint-md) {
     flex: initial; // No desktop ocupa apenas o espaço do texto
     min-width: 150px;
   }
@@ -81,4 +81,17 @@
     display: flex;
     justify-content: flex-end;
     margin-bottom: $spacing-md;
+}
+
+.infoTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $text-strong;
+  margin-bottom: $spacing-lg;
+}
+
+.loadingText {
+  text-align: center;
+  color: $text-secondary;
+  padding: $spacing-xl 0;
 }

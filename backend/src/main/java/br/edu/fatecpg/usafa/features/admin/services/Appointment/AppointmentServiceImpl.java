@@ -95,7 +95,7 @@ public Page<AppointmentResponseDto> getAllAppointments(Pageable pageable) {
             }
 
             // 2. Busca e Valida o Slot
-            HorarioSlot slot = horarioSlotRepository.findById(requestDTO.getHorarioSlotId())
+            HorarioSlot slot = horarioSlotRepository.findByPublicId(requestDTO.getHorarioSlotId())
                     .orElseThrow(() -> new BusinessRuleException("O horário selecionado não foi encontrado."));
 
             if (slot.getStatus() != StatusHorario.DISPONIVEL) {
@@ -168,14 +168,14 @@ public Page<AppointmentResponseDto> getAllAppointments(Pageable pageable) {
         // --- 3. LÓGICA DE TROCA DE HORÁRIO (O CORAÇÃO DO UPDATE) ---
 
         HorarioSlot currentSlot = consulta.getHorarioSlot();
-        Long newSlotId = requestDTO.getHorarioSlotId();
+        String newSlotId = requestDTO.getHorarioSlotId();
 
         // Verificamos se houve mudança de horário/médico comparando os IDs dos slots
-        if (!currentSlot.getId().equals(newSlotId)) {
+        if (!currentSlot.getPublicId().equals(newSlotId)) {
             log.info("Detectada alteração de agendamento. Realizando troca de slots...");
 
             // 3.1. Busca o NOVO slot pelo ID (A "Verdade Absoluta")
-            HorarioSlot newSlot = horarioSlotRepository.findById(newSlotId)
+            HorarioSlot newSlot = horarioSlotRepository.findByPublicId(newSlotId)
                     .orElseThrow(() -> new BusinessRuleException("O novo horário selecionado não foi encontrado."));
 
             // 3.2. Validação: O novo slot está livre?

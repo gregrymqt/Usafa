@@ -5,6 +5,9 @@ package br.edu.fatecpg.usafa.features.consulta.interfaces;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
@@ -23,7 +26,7 @@ public interface IConsultaService {
      * @param user O usuário autenticado.
      * @return Uma lista de ConsultaDTO.
      */
-    List<ConsultaDTO> findConsultasByUser(User user);
+    Page<ConsultaDTO> findConsultasByUser(User user, Pageable pageable);
 
     /**
      * Busca as opções para preencher os selects do formulário.

@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
 import { slotService } from '../services/slot.service';
-import type { GerarAgendaData, AtualizarSlotData } from '../types/slot.types';
+import type { GerarAgendaData, Slot } from '../types/slot.types';
 import { ApiError } from '../../../../../shared/exceptions/ApiError';
 
 interface UseSlotManagementReturn {
   isLoading: boolean;
   error: string | null;
   generateAgenda: (data: GerarAgendaData) => Promise<boolean>;
-  editSlot: (idSlot: number, data: AtualizarSlotData) => Promise<boolean>;
+  editSlot: (idSlot: number, data: Partial<Slot>) => Promise<boolean>;
   removeSlot: (idSlot: number) => Promise<boolean>;
   clearError: () => void;
 }
@@ -51,7 +51,7 @@ export const useSlotManagement = (): UseSlotManagementReturn => {
   /**
    * 2. Editar Slot (Bloquear ou mudar valor)
    */
-  const editSlot = useCallback(async (idSlot: number, data: AtualizarSlotData): Promise<boolean> => {
+  const editSlot = useCallback(async (idSlot: number, data: Partial<Slot>): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     try {

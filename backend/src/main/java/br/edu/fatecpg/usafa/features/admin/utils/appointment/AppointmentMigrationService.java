@@ -52,7 +52,7 @@ public class AppointmentMigrationService {
             // Usamos os dados da própria entidade Solicitacao carregada
             AppointmentRequestDto sqlRequest = new AppointmentRequestDto();
             sqlRequest.setPatientId(solicitacao.getUser().getPublicId().toString());
-            sqlRequest.setHorarioSlotId(slot.getId());
+            sqlRequest.setHorarioSlotId(slot.getPublicId().toString());
             sqlRequest.setTipoConsultaId(solicitacao.getTipoConsulta().getPublicId());
             sqlRequest.setSintomas(solicitacao.getSintomas());
 

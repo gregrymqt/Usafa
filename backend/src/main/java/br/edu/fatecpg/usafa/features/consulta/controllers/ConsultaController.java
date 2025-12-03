@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,17 +41,19 @@ public class ConsultaController {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String CONSULTA_QUEUE_NAME = "fila:consultas:request";
     private final IConsultaConsumerService consultaConsumerService;
+
     /**
      * Endpoint para buscar o histórico de consultas.
      * Use hasAnyRole se Admin também puder ver.
      */
     @GetMapping("/user/{userId}")
-    // CORREÇÃO: Aceita USER ou ADMIN. O permitAll() deixava aberto para não logados.
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')") 
-    public ResponseEntity<List<ConsultaDTO>> getConsultasPorUsuario(
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Page<ConsultaDTO>> getConsultasPorUsuario(
             @PathVariable String userId,
-            Authentication authentication
-    ) {
+            // Recebe os parâmetros da URL (Front manda ?page=0&size=10)
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
         Optional<User> userOptional = userUtils.getUserFromAuthentication(authentication);
 
         if (userOptional.isEmpty()) {
@@ -59,16 +62,21 @@ public class ConsultaController {
 
         User user = userOptional.get();
 
-        // Sua lógica de segurança manual (Excelente para garantir que USER X não veja dados de USER Y)
-        // Dica: Se for ADMIN, talvez você queira pular essa verificação no futuro
+        // Verificação de segurança (Mantida do seu código)
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isAdmin && !user.getPublicId().toString().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        
-        List<ConsultaDTO> consultas = consultaService.findConsultasByUser(user);
+
+        // 1. Monta o Pageable com a ordenação que você queria (DataHoraInicio
+        // Descrescente)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("horarioSlot.dataHoraInicio").descending());
+
+        // 2. Chama o service paginado
+        Page<ConsultaDTO> consultas = consultaService.findConsultasByUser(user, pageable);
+
         return ResponseEntity.ok(consultas);
     }
 
@@ -91,22 +99,21 @@ public class ConsultaController {
      * Criar solicitação de consulta.
      */
     @PostMapping
-    // CORREÇÃO: Apenas USER deve agendar para si mesmo (geralmente Admin tem outra rota ou usa essa com cuidado)
-    @PreAuthorize("hasRole('USER')") 
+    // CORREÇÃO: Apenas USER deve agendar para si mesmo (geralmente Admin tem outra
+    // rota ou usa essa com cuidado)
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> criarConsulta(
-            @Validated @RequestBody AppointmentRequestDto requestDTO, 
-            Authentication authentication
-    ) {
+            @Validated @RequestBody AppointmentRequestDto requestDTO,
+            Authentication authentication) {
         User user = userUtils.getUserFromAuthentication(authentication)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
         requestDTO.setPatientId(user.getPublicId().toString());
 
         try {
-            redisTemplate.convertAndSend( 
-                CONSULTA_QUEUE_NAME,
-                requestDTO
-            );
+            redisTemplate.convertAndSend(
+                    CONSULTA_QUEUE_NAME,
+                    requestDTO);
 
             log.info("Solicitação enviada para o Redis. Usuário: {}", user.getPublicId());
 
@@ -126,13 +133,13 @@ public class ConsultaController {
             @PathVariable String userId,
             @RequestParam(required = false) String status, // Filtro opcional (?status=PENDENTE)
             @PageableDefault(sort = "dia", direction = Sort.Direction.DESC) Pageable pageable,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         // 1. Segurança: Verifica se o usuário existe
         User user = userUtils.getUserFromAuthentication(authentication)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        // 2. Segurança: Garante que o usuário só veja os SEUS pedidos (a menos que seja Admin)
+        // 2. Segurança: Garante que o usuário só veja os SEUS pedidos (a menos que seja
+        // Admin)
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 

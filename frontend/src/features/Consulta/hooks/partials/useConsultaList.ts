@@ -5,16 +5,18 @@ import { ConsultaSummary } from '../../types/consulta.types';
 
 
 export const useConsultaList = (userId: string) => {
-  // --- Estado: Consultas Confirmadas (SQL) ---
+  // [CORREÇÃO] O estado agora usa o tipo correto que vem da API (ConsultaSummary)
   const [consultas, setConsultas] = useState<ConsultaSummary[]>([]);
   const [isLoadingConsultas, setIsLoadingConsultas] = useState(false);
-  
-  // --- Estado: Solicitações (Mongo/Redis) ---
+  const [hasMoreConsultas, setHasMoreConsultas] = useState(true);
+
+  // [CORREÇÃO] O estado agora usa o tipo correto
   const [solicitacoes, setSolicitacoes] = useState<ConsultaSummary[]>([]);
   const [isLoadingSolicitacoes, setIsLoadingSolicitacoes] = useState(false);
+  const [hasMoreSolicitacoes, setHasMoreSolicitacoes] = useState(true);
 
-  // 1. Buscar Consultas Confirmadas
-  const fetchConsultas = useCallback(async (search = '', page = 0) => {
+  // 1. Buscar Consultas (SQL)
+  const fetchConsultas = useCallback(async (search = '', page = 0, isNewSearch = false) => {
     if (!userId) return;
     setIsLoadingConsultas(true);
     try {
@@ -23,8 +25,10 @@ export const useConsultaList = (userId: string) => {
         size: 10, 
         search 
       });
-      // Lógica simplificada: sobrescreve a lista (se quiser infinito, usar spread)
-      setConsultas(data.content); 
+      
+      // Agora os tipos batem: prev é ConsultaSummary[] e data.content também
+      setConsultas(prev => isNewSearch ? data.content : [...prev, ...data.content]);
+      setHasMoreConsultas(!data.last);
     } catch (error) {
       console.error(error);
       Swal.fire('Erro', 'Falha ao carregar histórico.', 'error');
@@ -33,13 +37,15 @@ export const useConsultaList = (userId: string) => {
     }
   }, [userId]);
 
-  // 2. Buscar Solicitações Pendentes
-  const fetchSolicitacoes = useCallback(async (page = 0) => {
+  // 2. Buscar Solicitações (Mongo)
+  const fetchSolicitacoes = useCallback(async (page = 0, isNewSearch = false) => {
     if (!userId) return;
     setIsLoadingSolicitacoes(true);
     try {
       const data = await consultaService.getSolicitacoesPendentes(userId, page);
-      setSolicitacoes(data.content);
+      
+      setSolicitacoes(prev => isNewSearch ? data.content : [...prev, ...data.content]);
+      setHasMoreSolicitacoes(!data.last);
     } catch (error) {
       console.error(error);
     } finally {
@@ -47,19 +53,20 @@ export const useConsultaList = (userId: string) => {
     }
   }, [userId]);
 
-  // Refresh Unificado
   const refreshAll = useCallback(() => {
-    fetchConsultas();
-    fetchSolicitacoes();
+    fetchConsultas('', 0, true);
+    fetchSolicitacoes(0, true);
   }, [fetchConsultas, fetchSolicitacoes]);
 
   return {
     consultas,
     isLoadingConsultas,
+    hasMoreConsultas,
     fetchConsultas,
     
     solicitacoes,
     isLoadingSolicitacoes,
+    hasMoreSolicitacoes,
     fetchSolicitacoes,
 
     refreshAll

@@ -48,11 +48,14 @@ const AuthForm: React.FC<AuthFormProps> = ({
             {labelJsx}
             <select
               {...commonProps}
-              value={field.value} // OK: value é string|number
+              value={field.value} 
               onChange={(e) => field.onChange(e.target.value)}
             >
-              {field.options.map((option) => (
-                <option key={option.value} value={option.value}>
+              {field.options.map((option, index) => (
+                <option 
+                    key={`${field.name}-${option.value}-${index}`} 
+                    value={option.value}
+                >
                   {option.label}
                 </option>
               ))}

@@ -1,17 +1,18 @@
 @use '../../styles/variables' as *; // Ajuste o caminho se necessário
+@use './PartialViews/Doctor/_DoctorPartial.module.scss' as doctorStyles; // Para estender o botão
 
 .adminPage {
   width: 100%;
   min-height: 100vh;
   background-color: $bg-body;
   box-sizing: border-box; // Garante que o padding não estoure a largura
-  
+
   // Padding Mobile
-  padding: 1rem; 
+  padding: $spacing-md;
 
   // Padding Desktop (quando a tela for maior que 768px)
   @media (min-width: $breakpoint-md) {
-    padding: 2rem;
+    padding: $spacing-xl;
   }
 }
 
@@ -19,8 +20,8 @@
 .adminHeader {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
 
   @media (min-width: $breakpoint-md) {
     flex-direction: row;
@@ -36,29 +37,17 @@
   line-height: 1.2;
 }
 
+// Reutiliza o estilo de botão principal para consistência
 .addButton {
-  padding: 0.625rem 1.25rem;
-  background-color: $primary-color;
-  color: $white;
-  font-weight: 600;
-  border-radius: $radius-md;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s;
-  box-shadow: $shadow-sm;
-
-  &:hover {
-    background-color: $primary-hover;
-    box-shadow: $shadow-md;
-  }
+  @extend doctorStyles.addButton;
 }
 
 /* Sistema de Abas (Tabs) */
 .tabNav {
   display: flex;
-  gap: 0.5rem;
+  gap: $spacing-sm;
   border-bottom: 2px solid $border-light; // Borda suave
-  margin-bottom: 1.5rem;
+  margin-bottom: $spacing-lg;
 }
 
 .tabButton {

@@ -1,4 +1,3 @@
-import type { SlotOption } from "../../../../../../../components/Form/types/form.type";
 import type { AppointmentFormData, FormSelectOption } from "../../../types/appointment.type";
 
 export interface AppointmentFormProps {
@@ -6,11 +5,10 @@ export interface AppointmentFormProps {
   onCancel: () => void;
   initialData?: AppointmentFormData | null;
   isLoading: boolean;
-  patientOptions: FormSelectOption[];
   
-  // --- ADICIONE ESTA LINHA ---
-  typeOptions: FormSelectOption[]; 
-  // ---------------------------
-
-  slotOptions: SlotOption[]; 
+  // REMOVI patientOptions (não precisamos mais carregar lista de pacientes)
+  patientOptions: FormSelectOption[];
+  typeOptions: FormSelectOption[]; // Lista de especialidades
+  slotOptions: FormSelectOption[]; // Lista de horários filtrados
+  onTypeChange: (tipoId: string) => void; // Função para buscar os slots (vinda do hook)
 }

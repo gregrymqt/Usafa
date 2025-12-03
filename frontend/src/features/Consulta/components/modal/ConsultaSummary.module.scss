@@ -1,29 +1,53 @@
 @use '../../../../styles/variables' as *;
 
+/* --- Título e Subtítulo --- */
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $text-strong;
+  text-align: center;
+  margin-bottom: $spacing-sm;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: $text-secondary;
+  text-align: center;
+  margin-bottom: $spacing-lg;
+}
+
+/* --- Bloco do Protocolo --- */
 .protocol {
   text-align: center;
   font-size: 1rem;
   color: $text-secondary;
-  background-color: $bg-hover;
-  padding: 0.5rem;
-  border-radius: 6px;
+  background-color: $bg-light; // Usando variável para fundo claro
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
   margin-bottom: 1.5rem;
+
+  strong {
+    color: $text-strong;
+  }
 }
 
+/* --- Detalhes do Resumo --- */
 .summaryDetails {
-  font-size: 1.1rem;
-  color: $text-color;
+  font-size: 1rem; // Ajustado para consistência
+  color: $text-secondary;
   
   p {
     margin-bottom: 0.75rem;
-    line-height: 1.5;
+    line-height: 1.6;
     
     strong {
       color: $text-strong;
+      font-weight: 600;
     }
   }
 }
 
+/* --- Container dos Botões --- */
 .actions {
   margin-top: 2rem;
   display: flex;
@@ -31,16 +55,17 @@
   gap: 0.75rem;
 }
 
+/* --- Botões de Ação --- */
 .actionButton {
   padding: 0.8rem 1rem;
   font-size: 1rem;
   font-weight: 600;
-  border: none;
+  border: 1px solid transparent;
   border-radius: $radius-md;
   cursor: pointer;
   transition: all 0.2s ease;
 
-  // Botão Primário (Confirmar)
+  // Botão Primário (Baixar)
   &:first-of-type {
     background-color: $primary-color;
     color: $white;
@@ -49,7 +74,7 @@
     }
   }
 
-  // Botão Secundário (Cancelar/Voltar)
+  // Botão Secundário (Compartilhar)
   &:last-of-type {
     background-color: $bg-secondary-btn;
     color: $text-strong;
@@ -59,8 +84,10 @@
   }
 }
 
+/* --- Responsividade para Desktop --- */
 @media (min-width: $breakpoint-md) {
   .actions {
     flex-direction: row;
+    justify-content: center; // Centraliza os botões em telas maiores
   }
 }

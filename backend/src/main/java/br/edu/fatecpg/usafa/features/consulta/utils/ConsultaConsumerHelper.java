@@ -28,8 +28,8 @@ public class ConsultaConsumerHelper {
                 .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado: " + publicId));
     }
 
-    public HorarioSlot findSlotOrThrow(Long slotId) {
-        return horarioSlotRepository.findById(slotId)
+    public HorarioSlot findSlotOrThrow(String slotPublicId) {
+        return horarioSlotRepository.findByPublicId(slotPublicId)
                 .orElseThrow(() -> new BusinessRuleException("Horário selecionado não encontrado ou inválido."));
     }
 

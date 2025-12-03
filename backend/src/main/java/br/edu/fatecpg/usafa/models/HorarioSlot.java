@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import br.edu.fatecpg.usafa.models.enums.StatusHorario;
 
@@ -23,6 +24,8 @@ public class HorarioSlot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String publicId = UUID.randomUUID().toString();
 
     // Muitos slots pertencem a UM médico
     @ManyToOne(fetch = FetchType.LAZY)

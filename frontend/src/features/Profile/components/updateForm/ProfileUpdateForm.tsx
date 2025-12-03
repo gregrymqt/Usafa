@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 
 import styles from "./ProfileUpdateForm.module.scss"; // Se tiver estilos
 import AuthForm from "../../../../components/Form/AuthForm";
-import { FormField } from "../../../../components/Form/types/form.type"; import { ProfileUpdateFormProps } from "../../types/profile.type";
+import { FormField } from "../../../../components/Form/types/form.type";
+ import { ProfileUpdateFormProps } from "../../types/profile.type";
 
 export const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
   user,
@@ -71,38 +72,36 @@ export const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
   );
 
   return (
-    <div className={styles.formWrapper}>
-      {updateError && <p className={styles.updateError}>{updateError}</p>}
+    <div className={styles.container}>
+      {updateError && <div className={styles.errorMessage}>{updateError}</div>}
 
       <AuthForm
         fields={formFields}
         handleSubmit={handleSubmit}
         isLoading={isUpdating}
         buttonText="Salvar Alterações"
+        actionsClassName={styles.actions}
       >
-        {/* Inserimos o Upload de Imagem como filho do AuthForm */}
-        <div className={styles.pictureUploadSection}>
-          <label className={styles.sectionLabel}>Foto de Perfil</label>
-
-          <div className={styles.pictureInputContainer}>
-            {/* Preview Circular */}
-            <div className={styles.picturePreview}>
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className={styles.previewImage}
-                />
-              ) : (
-                <div className={styles.previewPlaceholder}>👤</div>
-              )}
-            </div>
-
+        {/* Seção de Upload de Foto, agora seguindo a estrutura do SCSS */}
+        <div className={styles.photoUploadSection}>
+          <div className={styles.previewContainer}>
+            {previewUrl ? (
+              <img src={previewUrl} alt="Preview" className={styles.previewImage} />
+            ) : (
+              <div className={styles.placeholder}>👤</div>
+            )}
+          </div>
+          <div className={styles.uploadControls}>
+            <label>Sua Foto</label>
+            <label htmlFor="file-upload" className={styles.fileLabelBtn}>
+              Trocar foto
+            </label>
             <input
+              id="file-upload"
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className={styles.fileInput}
+              // O input real fica escondido, a interação é via label
             />
           </div>
         </div>
