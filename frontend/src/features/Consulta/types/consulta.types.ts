@@ -36,3 +36,9 @@ export interface ConsultaFormOptionsResponse {
   tipos: FormSelectOption[];
   horarios: FormSelectOption[];
 }
+
+export interface NotificationEnvelope<T> {
+  type: string;    // Ex: "SOLICITACAO_RECEBIDA"
+  message: string; // Ex: "Recebemos seu pedido..."
+  data: T;         // O objeto principal (ConsultaSummary, etc)
+}

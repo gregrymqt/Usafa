@@ -1,6 +1,5 @@
 package br.edu.fatecpg.usafa.features.consulta.services;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.consulta.utils.ConsultaConsumerHelper;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
@@ -21,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IConsultaConsumerService;
 import br.edu.fatecpg.usafa.features.consulta.repositories.ISolicitacaoConsultaRepository;

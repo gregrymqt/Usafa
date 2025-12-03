@@ -8,13 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentService;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.admin.utils.appointment.AppointmentHelper;
 import br.edu.fatecpg.usafa.features.admin.utils.appointment.AppointmentMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
+import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
 import br.edu.fatecpg.usafa.models.Consulta;

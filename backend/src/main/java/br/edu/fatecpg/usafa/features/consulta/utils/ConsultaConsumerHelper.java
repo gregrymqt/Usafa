@@ -1,8 +1,8 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class ConsultaConsumerHelper {
@@ -53,9 +54,10 @@ public class ConsultaConsumerHelper {
      * [MUDANÇA] Cria a Entidade SQL (SolicitacaoConsulta).
      * Preenche os dados usando setters ou construtor.
      */
-    public SolicitacaoConsulta createEntityFromSlot(AppointmentRequestDto request, User user, HorarioSlot slot, TipoConsulta tipo) {
+    public SolicitacaoConsulta createEntityFromSlot(AppointmentRequestDto request, User user, HorarioSlot slot,
+            TipoConsulta tipo) {
         SolicitacaoConsulta entity = new SolicitacaoConsulta();
-        
+
         // Dados da Requisição
         entity.setSintomas(request.getSintomas());
         entity.setStatus("PENDENTE");
@@ -74,26 +76,28 @@ public class ConsultaConsumerHelper {
 
     /**
      * [MUDANÇA] Mapeia uma Entidade SQL para o DTO de Resposta.
-     * Agora acessamos os nomes através dos relacionamentos do objeto (getMedico().getNome()).
+     * Agora acessamos os nomes através dos relacionamentos do objeto
+     * (getMedico().getNome()).
      */
     public RequestAppointmentResponseDto mapToDto(SolicitacaoConsulta entity) {
         return RequestAppointmentResponseDto.builder()
-            .id(entity.getId().toString()) // O ID SQL é Long, convertemos para String para o DTO
-            .sintomas(entity.getSintomas())
-            .dia(entity.getDia())
-            .horario(entity.getHorario())
-            .status(entity.getStatus())
-            
-            // IDs Públicos (Navegando pelos objetos relacionados)
-            .userPublicId(entity.getUser().getPublicId().toString())
-            .medicoPublicId(entity.getMedico().getPublicId())
-            .tipoConsultaPublicId(entity.getTipoConsulta().getPublicId())
-            
-            // Nomes (Desnormalização para o Frontend)
-            // CUIDADO: Isso exige que as entidades estejam carregadas (Session aberta/Transactional)
-            .patientName(entity.getUser().getName())
-            .doctorName(entity.getMedico().getNome())
-            .appointmentTypeName(entity.getTipoConsulta().getNome())
-            .build();
+                .id(entity.getId().toString()) // O ID SQL é Long, convertemos para String para o DTO
+                .sintomas(entity.getSintomas())
+                .dia(entity.getDia())
+                .horario(entity.getHorario())
+                .status(entity.getStatus())
+
+                // IDs Públicos (Navegando pelos objetos relacionados)
+                .userPublicId(entity.getUser().getPublicId().toString())
+                .medicoPublicId(entity.getMedico().getPublicId())
+                .tipoConsultaPublicId(entity.getTipoConsulta().getPublicId())
+
+                // Nomes (Desnormalização para o Frontend)
+                // CUIDADO: Isso exige que as entidades estejam carregadas (Session
+                // aberta/Transactional)
+                .patientName(entity.getUser().getName())
+                .doctorName(entity.getMedico().getNome())
+                .appointmentTypeName(entity.getTipoConsulta().getNome())
+                .build();
     }
 }

@@ -3,8 +3,8 @@ package br.edu.fatecpg.usafa.features.admin.interfaces.Appointment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.models.User;
 
 /**

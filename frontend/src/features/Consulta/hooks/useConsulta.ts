@@ -1,41 +1,35 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useDebounce } from '../../../shared/utils/forPages.utils'; 
 import { connectWebSocket, subscribe, unsubscribe } from '../../../shared/services/websocket.service'; 
 import type { NotificationEnvelope, ConsultaSummary } from '../types/consulta.types';
+
+// Imports dos Hooks Parciais
 import { useConsultaForm } from './partials/useConsultaForm';
-import { useConsultaList } from './partials/useConsultasConfirmadas';
-
-// Imports dos Hooks Filhos
-
+import { useConsultaList } from './partials/useConsultaList'; // Importe o arquivo acima
 
 export const useConsulta = (userId: string) => {
-  // 1. Estados de Controle da Página
+  // 1. Estados Locais
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
+  const [error, setError] = useState<string | null>(null); // Adicionei estado de erro pois a página pede
   
   // 2. Instancia os Hooks Filhos
   const form = useConsultaForm(userId);
   const list = useConsultaList(userId);
 
-  // Extraímos as funções dos hooks filhos para podermos envolvê-las com useCallback.
-  const { fetchConsultas, fetchSolicitacoes, refreshAll: refreshAllLists } = list;
-  const { loadInitialOptions } = form;
-
-  // 3. Atualização Inicial e Busca
+  // 3. Inicialização
   useEffect(() => {
-    fetchConsultas(debouncedSearchTerm, 0);
-    fetchSolicitacoes(0);
-  }, [debouncedSearchTerm, fetchConsultas, fetchSolicitacoes]);
+    // Busca inicial
+    list.fetchConsultas(debouncedSearchTerm, 0, true);
+    list.fetchSolicitacoes(0, true);
+  }, [debouncedSearchTerm]); // Removemos list.fetch... das dependências para evitar loop, ou use useCallback nos filhos
   
-  // Carrega opções do form ao montar
   useEffect(() => {
-    loadInitialOptions();
-  }, [loadInitialOptions]);
+    form.loadInitialOptions();
+  }, []);
 
-  // 4. WebSocket (Atualização em Tempo Real)
-  // Usamos useCallback para garantir que a função de refresh não seja recriada a cada renderização.
-  const refreshAll = useCallback(() => refreshAllLists(), [refreshAllLists]);
+  // 4. WebSocket
   useEffect(() => {
     if (!userId) return;
     connectWebSocket();
@@ -44,49 +38,51 @@ export const useConsulta = (userId: string) => {
     const sub = subscribe<NotificationEnvelope<ConsultaSummary>>(topic, (envelope) => {
       console.log("Notificação Recebida:", envelope);
       setConfirmedConsulta(envelope.data);
-      refreshAll(); // Atualiza as listas automaticamente
+      list.refreshAll(); 
     });
 
-    return () => {
-        if (sub !== undefined) unsubscribe(topic);
-    };
-  }, [userId, refreshAll]);
+    return () => { if (sub) unsubscribe(topic); };
+  }, [userId]);
 
-  // 5. Submit Integrado (Form -> Lista)
-  const handleSubmitIntegrated = async () => {
-    const success = await form.submitRequest();
-    if (success) {
-        refreshAll(); // Recarrega a fila de solicitações
+  // 5. Submit Integrado
+  const handleSubmitIntegrated = async (data: any) => {
+    // Se o seu form hook já gerencia os dados internamente, o parametro 'data' pode ser ignorado 
+    // ou usado dependendo de como AgendarConsultaPartial envia.
+    try {
+      await form.submitRequest();
+      // Se a requisição for bem-sucedida, atualiza as listas.
+      list.refreshAll();
+    } catch (e) {
+      // Se submitRequest() lançar um erro, ele será capturado aqui.
+      // Você pode, opcionalmente, tratar o erro (ex: setError()).
+      console.error("Falha ao submeter a consulta:", e);
     }
   };
 
-  // 6. Retorno Unificado
+  // 6. RETORNO COMPATÍVEL COM ConsultaPage.tsx
   return {
-    // --- Dados de Lista ---
+    // --- Listas e Paginação (Mapeamento Exato) ---
     consultas: list.consultas,
-    solicitacoes: list.solicitacoes,
     isLoadingConsultas: list.isLoadingConsultas,
-    refreshLists: refreshAll,
+    hasMoreConsultas: list.hasMoreConsultas, // [CORRIGIDO] Agora existe
+    loadMoreConsultas: list.loadMoreConsultas, // [CORRIGIDO] Agora existe
 
-    // --- Dados do Formulário ---
-    tiposOptions: form.tiposOptions,
-    horariosOptions: form.horariosOptions,
+    solicitacoes: list.solicitacoes,
+    isLoadingSolicitacoes: list.isLoadingSolicitacoes,
+    hasMoreSolicitacoes: list.hasMoreSolicitacoes, // [CORRIGIDO]
+    loadMoreSolicitacoes: list.loadMoreSolicitacoes, // [CORRIGIDO]
+
+    // --- Formulário (Renomeando para bater com a Página) ---
+    formOptions: form.tiposOptions,    // A página chama de formOptions, o hook chama de tiposOptions
+    opcoesHorarios: form.horariosOptions, // A página chama de opcoesHorarios
     isLoadingHorarios: form.isLoadingHorarios,
+    buscarHorarios: form.handleTipoChange, // A página chama de buscarHorarios
+    handleSubmitConsulta: handleSubmitIntegrated, // A página chama de handleSubmitConsulta
     isSubmitting: form.isSubmitting,
-    
-    // --- Controles do Formulário ---
-    selectedTipo: form.selectedTipo,
-    selectedSlot: form.selectedSlot,
-    sintomas: form.sintomas,
-    setSintomas: form.setSintomas,
-    handleTipoChange: form.handleTipoChange,
-    handleSlotChange: form.handleSlotChange,
-    handleSubmit: handleSubmitIntegrated, 
 
-    // --- Controles Gerais ---
+    // --- Feedback ---
     confirmedConsulta,
-    closeModal: () => setConfirmedConsulta(null),
-    searchTerm,
-    setSearchTerm
+    closeConfirmationModal: () => setConfirmedConsulta(null),
+    error
   };
 };

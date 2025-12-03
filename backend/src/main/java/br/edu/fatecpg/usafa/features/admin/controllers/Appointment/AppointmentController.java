@@ -12,9 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentService;
+import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
 
 
 /**

@@ -42,15 +42,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   // 2. Função de Envio que conecta o Hook
   const handleSubmitWrapper = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Aqui chamamos o submit do Hook.
-    // NOTA: Se o hook usa o userId fixo, ele vai usar o que foi passado no hook.
-    // Se você precisa que o ID digitado sobrescreva, precisamos passar ele pro hook.
-    const success = await submitRequest(); 
+    // Passa o valor digitado (localPatientId) para o hook
+    const success = await submitRequest(localPatientId); 
     if (success) {
       onSuccess();
     }
-  };
+};
 
   // 3. Definição dos Campos (HTML Lógico)
   const fields: FormField[] = useMemo(() => [

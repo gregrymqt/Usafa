@@ -17,8 +17,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
+import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;

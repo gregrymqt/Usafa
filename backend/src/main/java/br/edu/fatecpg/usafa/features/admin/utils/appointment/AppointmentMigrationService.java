@@ -8,10 +8,10 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Appointment.IAppointmentService;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.consulta.repositories.ISolicitacaoConsultaRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;

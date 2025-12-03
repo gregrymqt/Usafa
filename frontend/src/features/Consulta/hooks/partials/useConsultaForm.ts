@@ -42,8 +42,7 @@ export const useConsultaForm = (userId: string) => {
     }
   }, []);
 
-  const submitRequest = async (): Promise<boolean> => {
-    // [CORREÇÃO IMAGEM 4746bd] - Valida string
+  const submitRequest = async (currentPatientId?: string): Promise<boolean> => {
     if (!selectedSlot) {
       Swal.fire("Atenção", "Selecione um Horário/Médico.", "warning");
       return false;
@@ -52,9 +51,10 @@ export const useConsultaForm = (userId: string) => {
     setIsSubmitting(true);
     try {
       const payload: ConsultaRequest = {
-        patientId: userId,
+        // Garante que usa o ID que está no Input visual, não o inicial
+        patientId: currentPatientId || userId, 
         tipoConsultaId: selectedTipo,
-        horarioSlotId: selectedSlot, // [IMPORTANTE] Envia string direto (UUID)
+        horarioSlotId: selectedSlot, 
         sintomas: sintomas,
       };
 
