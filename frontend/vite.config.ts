@@ -1,18 +1,15 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path'; // Importante para resolver caminhos no Windows/Linux
+import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // 1. Define o caminho absoluto para a pasta raiz (onde está o .env)
-  // __dirname é a pasta atual (frontend). '..' sobe um nível.
   const envDir = path.resolve(__dirname, '..');
 
-  // 2. Carrega as variáveis manualmente para testar se funcionou
+  // 2. Carrega as variáveis manualmente para logar no terminal (Debug)
   const env = loadEnv(mode, envDir, '');
 
-  // --- DEBUG ---
-  // Olhe no seu terminal (onde roda o npm run dev) se estas mensagens aparecem
   console.log('--------------------------------------------------');
   console.log('🔍 Vite procurando .env em:', envDir);
   console.log('✅ VITE_GENERAL_URL carregada:', env.VITE_GENERAL_URL);
@@ -21,7 +18,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     
-    // 3. Diz ao Vite oficialmente: "Sua pasta de envs é a raiz do projeto"
+    // Diz ao Vite onde buscar o .env oficialmente
     envDir: envDir,
 
     server: {
@@ -33,9 +30,26 @@ export default defineConfig(({ mode }) => {
       port: 5173,
     },
     
-    // 4. Garante que o código React receba a variável
+    // Garante a injeção da variável (Fallback de segurança)
     define: {
       'import.meta.env.VITE_GENERAL_URL': JSON.stringify(env.VITE_GENERAL_URL),
-    }
+    },
+
+    // --- CORREÇÃO DO AVISO DE CHUNK SIZE ---
+    build: {
+      // Aumenta o limite do aviso para 1000kb (1MB) para não poluir o terminal
+      chunkSizeWarningLimit: 1000, 
+      
+      rollupOptions: {
+        output: {
+          // Separa bibliotecas (node_modules) do seu código principal
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          },
+        },
+      },
+    },
   };
 });

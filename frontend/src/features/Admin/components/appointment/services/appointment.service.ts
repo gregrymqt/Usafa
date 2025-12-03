@@ -60,5 +60,3 @@ export const appointmentService = {
     api.delete(`${ENDPOINT_ADMIN}/${id}`);
   }
 };
-
-export { Appointment };

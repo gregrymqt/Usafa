@@ -1,7 +1,7 @@
-import type { ConsultaFormOptions, ConsultaRequest } from "../../../types/consulta.types";
+import type { ConsultaFormOptionsResponse, ConsultaRequest } from "../../../types/consulta.types";
 
 export interface ConsultaFormProps {
-  options: ConsultaFormOptions;
+  options: ConsultaFormOptionsResponse;
   isSubmitting: boolean;
   onSubmit: (request: ConsultaRequest) => Promise<void>;
 }
