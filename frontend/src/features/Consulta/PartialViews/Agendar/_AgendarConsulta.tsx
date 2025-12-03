@@ -1,50 +1,65 @@
 import React from 'react';
-import { ConsultaForm } from '../../components/form/formConsulta'; 
+import { AppointmentForm } from '../../components/form/formConsulta';
 import styles from './_AgendarConsulta.module.scss';
-import type { ConsultaFormOptions, ConsultaRequest, FormSelectOption } from '../../types/consulta.types';
+import { useConsultaForm } from '../../hooks/partials/useConsultaForm'; // O Hook vem AQUI agora
+import { ConsultaRequest } from '../../types/consulta.types';
 
 interface AgendarConsultaProps {
-  formOptions: ConsultaFormOptions | null;
-  isSubmitting: boolean;
-  handleSubmit: (request: Partial<ConsultaRequest>) => Promise<void>;
-  
-  // Novas Props que virão da Page
-  opcoesHorarios: FormSelectOption[];
-  isLoadingHorarios: boolean;
-  onTipoChange: (id: string) => void;
+  userId: string;
+  onSuccess: () => void; // Callback para atualizar a lista na Page
 }
 
 export const AgendarConsultaPartial: React.FC<AgendarConsultaProps> = ({
-  formOptions,
-  isSubmitting,
-  handleSubmit,
-  opcoesHorarios,     // <--- Recebe
-  isLoadingHorarios,  // <--- Recebe
-  onTipoChange        // <--- Recebe
+  userId,
+  onSuccess
 }) => {
+  // A Partial assume a responsabilidade do Hook
+  const {
+    isSubmitting,
+    isLoadingHorarios,
+    tiposOptions,
+    horariosOptions,
+    // Note que removemos os estados visuais (selectedTipo, sintomas) daqui
+    // pois eles ficam no form, mas mantemos as ações lógicas
+    handleTipoChange,
+    handleSlotChange, 
+    submitRequest
+  } = useConsultaForm(userId);
+
+  // Wrapper para processar o envio vindo do filho
+  const handleSubmitWrapper = async (data: ConsultaRequest) => {
+    // Aqui você pode adaptar se o seu submitRequest esperar argumentos diferentes
+    // Assumindo que seu hook foi ajustado para receber o payload ou os IDs:
+    
+    // Opção A: Se seu hook já tem o estado interno (mas movemos o estado pro form visual...)
+    // O ideal é que o submitRequest aceite o payload completo agora:
+    const success = await submitRequest(data); 
+    
+    if (success) {
+      onSuccess();
+    }
+  };
+
   return (
     <div className={styles.agendarConsultaContainer}>
-      {formOptions ? (
-        <ConsultaForm
-          options={formOptions} 
-          // Passando as props novas adiante
-          opcoesHorarios={opcoesHorarios}
+      {/* Se tiposOptions estiver vazio, mostra loading ou form */}
+      {tiposOptions.length >= 0 ? (
+        <AppointmentForm
+          userId={userId}
+          tiposOptions={tiposOptions}
+          horariosOptions={horariosOptions}
           isLoadingHorarios={isLoadingHorarios}
-          onTipoChange={onTipoChange}
-          
           isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
+          
+          // Passando as funções de lógica
+          onTipoChange={handleTipoChange}
+          onSlotChange={handleSlotChange}
+          onSubmit={handleSubmitWrapper}
         />
       ) : (
         <div className={styles.formLoadingSkeleton}>
-          <div className={`${styles.skeletonItem} ${styles.skeletonTitle}`}></div>
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className={styles.skeletonField}>
-              <div className={`${styles.skeletonItem} ${styles.skeletonLabel}`}></div>
-              <div className={`${styles.skeletonItem} ${styles.skeletonInput}`}></div>
-            </div>
-          ))}
-          <div className={`${styles.skeletonItem} ${styles.skeletonButton}`}></div>
+           {/* Seu Skeleton Loading... */}
+           Loading...
         </div>
       )}
     </div>

@@ -1,32 +1,34 @@
+// useConsultaList.ts
 import { useState, useCallback } from 'react';
+
 import Swal from 'sweetalert2';
-import { consultaService } from '../../services/consulta.service'; // Ajuste o caminho
-import type { ConsultaSummary } from '../../types/consulta.types';
+import { consultaService } from '../../services/consulta.service';
+import { ConsultaSummary } from '../../types/consulta.types';
 
 export const useConsultaList = (userId: string) => {
-  // --- Estados SQL (Confirmadas) ---
+  // --- Estados Confirmadas ---
   const [consultas, setConsultas] = useState<ConsultaSummary[]>([]);
   const [pageConsultas, setPageConsultas] = useState(0);
-  const [hasMoreConsultas, setHasMoreConsultas] = useState(false);
+  const [hasMoreConsultas, setHasMoreConsultas] = useState(true); // Começa true para tentar carregar
   const [isLoadingConsultas, setIsLoadingConsultas] = useState(false);
 
-  // --- Estados Mongo (Solicitações) ---
+  // --- Estados Solicitações ---
   const [solicitacoes, setSolicitacoes] = useState<ConsultaSummary[]>([]);
   const [pageSolicitacoes, setPageSolicitacoes] = useState(0);
-  const [hasMoreSolicitacoes, setHasMoreSolicitacoes] = useState(false);
+  const [hasMoreSolicitacoes, setHasMoreSolicitacoes] = useState(true);
   const [isLoadingSolicitacoes, setIsLoadingSolicitacoes] = useState(false);
 
-  // 1. Função de Busca Confirmadas (SQL)
+  // 1. Buscar Consultas (SQL)
   const fetchConsultas = useCallback(async (search = '', page = 0, isNewSearch = false) => {
     if (!userId) return;
     setIsLoadingConsultas(true);
     try {
-      const data = await consultaService.getConsultasConfirmadas(userId, { page, size: 10, search });
+      // Endpoint existe: getConsultasConfirmadas
+      const response = await consultaService.getConsultasConfirmadas(userId, { page, size: 10, search });
       
-      setConsultas(prev => isNewSearch ? data.content : [...prev, ...data.content]);
-      setHasMoreConsultas(!data.last); // Se last=false, tem mais
+      setConsultas(prev => isNewSearch ? response.content : [...prev, ...response.content]);
+      setHasMoreConsultas(!response.last);
       setPageConsultas(page);
-      
     } catch (error) {
       console.error(error);
       Swal.fire('Erro', 'Falha ao carregar histórico.', 'error');
@@ -35,17 +37,17 @@ export const useConsultaList = (userId: string) => {
     }
   }, [userId]);
 
-  // 2. Função de Busca Solicitações (Mongo)
+  // 2. Buscar Solicitações (Mongo)
   const fetchSolicitacoes = useCallback(async (page = 0, isNewSearch = false) => {
     if (!userId) return;
     setIsLoadingSolicitacoes(true);
     try {
-      const data = await consultaService.getSolicitacoesPendentes(userId, page);
+      // Endpoint existe: getSolicitacoesPendentes
+      const response = await consultaService.getSolicitacoesPendentes(userId, page);
       
-      setSolicitacoes(prev => isNewSearch ? data.content : [...prev, ...data.content]);
-      setHasMoreSolicitacoes(!data.last);
+      setSolicitacoes(prev => isNewSearch ? response.content : [...prev, ...response.content]);
+      setHasMoreSolicitacoes(!response.last);
       setPageSolicitacoes(page);
-
     } catch (error) {
       console.error(error);
     } finally {
@@ -53,7 +55,7 @@ export const useConsultaList = (userId: string) => {
     }
   }, [userId]);
 
-  // 3. Funções "Load More" (Chamadas pelo scroll infinito da Lista)
+  // Load More Actions
   const loadMoreConsultas = useCallback(() => {
     if (!isLoadingConsultas && hasMoreConsultas) {
       fetchConsultas('', pageConsultas + 1, false);
@@ -66,26 +68,23 @@ export const useConsultaList = (userId: string) => {
     }
   }, [isLoadingSolicitacoes, hasMoreSolicitacoes, pageSolicitacoes, fetchSolicitacoes]);
 
-  // Refresh Geral (Zera tudo)
+  // Init
   const refreshAll = useCallback(() => {
+    // Reseta paginação e listas
     fetchConsultas('', 0, true);
     fetchSolicitacoes(0, true);
   }, [fetchConsultas, fetchSolicitacoes]);
 
   return {
-    // SQL
     consultas,
     isLoadingConsultas,
     hasMoreConsultas,
     loadMoreConsultas,
-    fetchConsultas,
-
-    // Mongo
+    
     solicitacoes,
     isLoadingSolicitacoes,
     hasMoreSolicitacoes,
     loadMoreSolicitacoes,
-    fetchSolicitacoes,
 
     refreshAll
   };

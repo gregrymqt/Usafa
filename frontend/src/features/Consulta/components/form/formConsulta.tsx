@@ -1,53 +1,64 @@
 import React, { useMemo, useState } from "react";
 import styles from "./ConsultaForm.module.scss";
 import AuthForm from "../../../../components/Form/AuthForm";
-import { FormField } from "../../../../components/Form/types/form.type";
-import { useConsultaForm } from "../../hooks/partials/useConsultaForm";
+import { FormField, FormSelectOption } from "../../../../components/Form/types/form.type";
+import { ConsultaRequest } from "../../types/consulta.types";
 
 
 interface AppointmentFormProps {
-  userId: string; // ID do usuário logado (ou admin)
-  onCancel: () => void;
-  onSuccess: () => void;
+  // Dados Puros
+  userId: string;
+  tiposOptions: FormSelectOption[];
+  horariosOptions: FormSelectOption[];
+  isLoadingHorarios: boolean;
+  isSubmitting: boolean;
+
+  // Ações
+  onTipoChange: (tipoId: string) => void;
+  onSlotChange: (slotId: string) => void;
+  onSubmit: (data: ConsultaRequest) => Promise<void>;
+  onCancel?: () => void;
 }
 
 export const AppointmentForm: React.FC<AppointmentFormProps> = ({ 
-  userId, 
-  onCancel, 
-  onSuccess 
+  userId,
+  tiposOptions,
+  horariosOptions,
+  isLoadingHorarios,
+  isSubmitting,
+  onTipoChange,
+  onSlotChange,
+  onSubmit,
+  onCancel
 }) => {
-  // 1. Instancia o Hook
-  const {
-    // Estados
-    isSubmitting,
-    isLoadingHorarios,
-    tiposOptions,
-    horariosOptions,
-    
-    // Valores Selecionados
-    selectedTipo,
-    selectedSlot,
-    sintomas,
-    setSintomas,
-    
-    // Ações
-    handleTipoChange,
-    handleSlotChange,
-    submitRequest
-  } = useConsultaForm(userId);
+  // Estados locais APENAS para controle visual dos inputs
+  const [selectedTipo, setSelectedTipo] = useState<string>("");
+  const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [sintomas, setSintomas] = useState<string>("");
 
-  // Estado local apenas para o ID do Paciente (caso seja digitável como na imagem)
-  const [localPatientId, setLocalPatientId] = useState(userId);
+  // Handler local para mudança de tipo
+  const handleLocalTipoChange = (val: string) => {
+    setSelectedTipo(val);
+    setSelectedSlot(""); // Reseta slot visualmente
+    onTipoChange(val);   // Avisa a Partial para buscar horários
+  };
 
-  // 2. Função de Envio que conecta o Hook
-  const handleSubmitWrapper = async (e: React.FormEvent) => {
+  // Handler local para mudança de slot
+  const handleLocalSlotChange = (val: string) => {
+    setSelectedSlot(val);
+    onSlotChange(val);
+  };
+
+  const handleLocalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Passa o valor digitado (localPatientId) para o hook
-    const success = await submitRequest(localPatientId); 
-    if (success) {
-      onSuccess();
-    }
-};
+    const payload: ConsultaRequest = {
+        patientId: userId,
+        tipoConsultaId: selectedTipo,
+        horarioSlotId: selectedSlot,
+        sintomas: sintomas
+    };
+    await onSubmit(payload);
+  };
 
   // 3. Definição dos Campos (HTML Lógico)
   const fields: FormField[] = useMemo(() => [
@@ -57,9 +68,9 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         name: "patientId",
         label: "ID do Paciente",
         placeholder: "Cole o ID do paciente...",
-        value: localPatientId, 
+        value: userId, 
         // Apenas atualiza visualmente, pois o hook usa o userId passado na inicialização
-        onChange: (val) => setLocalPatientId(val as string), 
+        onChange: () => {}, 
         required: true,
         disabled: true // Se for paciente comum, deve ser travado
       },
@@ -68,13 +79,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         name: "tipoConsultaId",
         label: "Especialidade",
         value: selectedTipo,
-        // [CORREÇÃO] Passa string direto para o hook
-        onChange: (val) => handleTipoChange(val as string), 
-        
-        // [CORREÇÃO] Usa direto as opções do hook (sem duplicar o "Selecione...")
+        onChange: (val) => handleLocalTipoChange(val as string), 
         options: [
            { value: "", label: "Selecione a especialidade..." }, 
-           ...tiposOptions 
+           ...tiposOptions
         ],
         required: true,
       },
@@ -83,13 +91,9 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         name: "horarioSlotId",
         label: isLoadingHorarios ? "Buscando horários..." : "Horário / Médico",
         value: selectedSlot,
-        // [CORREÇÃO] Passa string (UUID) direto, sem Number()
-        onChange: (val) => handleSlotChange(val as string),
-        
+        onChange: (val) => handleLocalSlotChange(val as string),
         options: horariosOptions,
         required: true,
-        
-        // Lógica visual de travamento
         disabled: !selectedTipo || horariosOptions.length === 0,
         placeholder: !selectedTipo
           ? "Selecione a especialidade primeiro"
@@ -106,29 +110,22 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         placeholder: "Descreva o que está sentindo...",
       },
     ],
-    // Dependências para re-renderizar quando algo mudar
-    [localPatientId, selectedTipo, selectedSlot, sintomas, tiposOptions, horariosOptions, isLoadingHorarios]
+    [userId, selectedTipo, selectedSlot, sintomas, tiposOptions, horariosOptions, isLoadingHorarios]
   );
-
-  return (
+return (
     <div className={styles.appointmentForm}>
       <h3 className={styles.title}>Novo Agendamento</h3>
-      
       <AuthForm
         fields={fields}
-        handleSubmit={handleSubmitWrapper} // Usa nosso wrapper
+        handleSubmit={handleLocalSubmit}
         isLoading={isSubmitting}
         buttonText="Confirmar Agendamento"
       >
-        {/* Botão Cancelar Extra */}
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className={styles.cancelButton}
-        >
-          Cancelar
-        </button>
+        {onCancel && (
+          <button type="button" onClick={onCancel} disabled={isSubmitting} className={styles.cancelButton}>
+            Cancelar
+          </button>
+        )}
       </AuthForm>
     </div>
   );

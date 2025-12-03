@@ -5,6 +5,7 @@ import { ListaConsultasPartial } from "./PartialViews/Lista/ListaConsultasPartia
 import { AgendarConsultaPartial } from "./PartialViews/Agendar/_AgendarConsulta";
 import { useAuth } from "../Auth/hooks/useAuth";
 import { useConsulta } from "./hooks/useConsulta";
+import { ConsultaRequest } from "./types/consulta.types";
 
 const ConsultaPage: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +42,7 @@ const ConsultaPage: React.FC = () => {
 
   // Controla a visibilidade do toast de sucesso
   const [showSuccess, setShowSuccess] = useState(true);
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: ConsultaRequest) => {
     await handleSubmitConsulta(data);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 5000); // Esconde após 5s
