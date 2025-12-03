@@ -2,8 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 // Ajuste o caminho
 import styles from './_MinhasConsultasPartial.module.scss';
 import { Consulta } from '../../types/profile.type';
-import { ColumnType } from '../../../../components/Tables/types';
-import { getConsultas } from '../../../Consulta/services/consulta.service';
+import { consultaService } from '../../../Consulta/services/consulta.service';
 import Table from '../../../../components/Tables/Tables';
 
 // Interface para tipar a resposta paginada do backend (Spring Page)
@@ -12,13 +11,17 @@ interface Page<T> {
   totalPages: number;
 }
 
-// Tipagem para os dados da tabela (pode incluir ReactNode no status)
-interface ConsultaTableData extends Omit<Consulta, 'status'> {
-  status: React.ReactNode;
-}
-
 interface Props {
   userId: string;
+}
+
+interface ConsultaRow {
+  id: string; // ou number, dependendo do seu back
+  data: string;
+  horario: string;
+  medico: string;
+  especialidade: string;
+  status: React.ReactNode; // Para o elemento JSX <span>
 }
 
 export const MinhasConsultasPartial: React.FC<Props> = ({ userId }) => {
@@ -36,7 +39,7 @@ export const MinhasConsultasPartial: React.FC<Props> = ({ userId }) => {
     setError(null);
     try {
       // Chama a API fornecida no contexto
-      const response = await getConsultas(userId, {
+      const response = await consultaService.getConsultasConfirmadas(userId, {
         page: page, 
         size: pageSize, 
         search: '' // Pode adicionar um input de busca no futuro
@@ -62,26 +65,36 @@ export const MinhasConsultasPartial: React.FC<Props> = ({ userId }) => {
     }
   }, [userId, page, fetchConsultas]); // Adiciona fetchConsultas na dependência
 
-  // Transformação dos dados para UX (Adicionando Badges coloridos)
-  const tableData: ConsultaTableData[] = useMemo(() => {
-    return data.map((item) => ({
-      ...item,
-      status: (
-        // Adiciona verificação para status nulo/undefined
-        <span className={`${styles.statusBadge} ${styles[item.status ? item.status.toLowerCase() : 'desconhecido']}`}>
-          {item.status || 'N/A'}
-        </span>
-      )
-    }));
+  const tableData = useMemo<ConsultaRow[]>(() => {
+    return data.map((item) => {
+        // Lógica para separar Data e Hora se o back mandar ISO String
+        const dataObj = new Date(item.data || ''); 
+        
+        return {
+            id: item.id, // Importante para keys
+            // Se o back já manda separado, use item.data. Se manda junto, formate:
+            data: item.data || dataObj.toLocaleDateString('pt-BR'), 
+            horario: item.horario || dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            
+            medico: item.medico, // Garante que pegue o nome
+            especialidade: item.especialidade  || 'Geral', // Fallback
+            
+            status: (
+                <span className={`${styles.statusBadge} ${styles[item.status?.toLowerCase() || 'pendente']}`}>
+                {item.status || 'Pendente'}
+                </span>
+            )
+        } as ConsultaRow;
+    });
   }, [data]);
 
-  // Definição das colunas
-  const columns: ColumnType<ConsultaTableData>[] = [
-    { header: 'Data', accessor: 'data' }, // Corrigido: 'data' em vez de 'dia'
-    { header: 'Horário', accessor: 'horario' },
-    { header: 'Médico', accessor: 'medico' },
-    { header: 'Especialidade', accessor: 'especialidade' }, // Corrigido: 'especialidade' em vez de 'tipo'
-    { header: 'Status', accessor: 'status' },
+  // Colunas alinhadas com o objeto retornado no tableData acima
+  const columns = [
+    { header: 'Data', accessor: 'data' as const },           // <--- Adicione 'as const'
+    { header: 'Horário', accessor: 'horario' as const },     // <--- Adicione 'as const'
+    { header: 'Médico', accessor: 'medico' as const },       // <--- Adicione 'as const'
+    { header: 'Especialidade', accessor: 'especialidade' as const },
+    { header: 'Status', accessor: 'status' as const },
   ];
 
   return (
@@ -99,11 +112,11 @@ export const MinhasConsultasPartial: React.FC<Props> = ({ userId }) => {
       ) : (
         <>
           <div className={styles.tableWrapper}>
-            <Table<ConsultaTableData> 
+            <Table 
               colunas={columns} 
               dados={tableData} 
             />
-          </div>
+       </div>
 
           {/* Controles de Paginação UI */}
           <div className={styles.paginationControls}>

@@ -12,16 +12,20 @@ const BASE_URL = '/consultas';
 export const consultaService = {
 
   // 1. Listagem
+  // ... dentro do objeto consultaService
+
   getConsultasConfirmadas: async (userId: string, params: { page: number, size: number, search?: string }) => {
     const queryParams = new URLSearchParams({
         page: params.page.toString(),
         size: params.size.toString()
     });
+    
     if (params.search) queryParams.append('search', params.search);
     
-    // [CORREÇÃO] Tipagem explicita do retorno
-    const  data  = await api.get<Page<ConsultaSummary>>(`${BASE_URL}/user/${userId}?${queryParams.toString()}`);
-    return data;
+    // O wrapper já retorna o corpo (Page<ConsultaSummary>), então atribuímos direto a 'response'
+    const response = await api.get<Page<ConsultaSummary>>(`${BASE_URL}/user/${userId}?${queryParams.toString()}`);
+    
+    return response; // Retorna o objeto Page direto
   },
 
   getSolicitacoesPendentes: async (userId: string, page: number) => {

@@ -6,23 +6,34 @@ import Table from '../../../../../../components/Tables/Tables';
 import { ColumnType } from '../../../../../../components/Tables/types';
 import { useSlotManagement } from '../../hooks/useSlotManagement';
 
-// Tipo de dado que vem do Backend (exemplo)
+// 1. Interface dos dados que vêm do Backend
 interface SlotData {
   id: number;
-  dataHoraInicio: string; // Ex: "2025-12-05T08:00:00"
-  dataHoraFim: string; // Ex: "2025-12-05T08:30:00"
+  dataHoraInicio: string;
+  dataHoraFim: string;
   status: 'DISPONIVEL' | 'AGENDADO' | 'BLOQUEADO' | 'FINALIZADO';
   valor?: number;
 }
 
+// 2. Interface Nova: Define exatamente o que vai ser renderizado na Tabela
+interface SlotTableRow {
+  id: number;
+  data: string;
+  hora: string;
+  valor: string;
+  statusDisplay: React.ReactNode; 
+  acoes: React.ReactNode;      
+}
+
 interface SlotListTableProps {
   slots: SlotData[];
-  onRefresh: () => void; // Recarrega a lista após delete/update
+  onRefresh: () => void;
 }
 
 export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }) => {
   const { removeSlot, editSlot } = useSlotManagement();
 
+  // Lógica de Atualizar Status
   const handleUpdateStatus = async (slotId: number, status: 'BLOQUEADO' | 'DISPONIVEL') => {
     const success = await editSlot(slotId, { status: status });
     if (success) {
@@ -31,68 +42,56 @@ export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }
     }
   };
 
+  // Lógica de Deletar SIMPLIFICADA
+  // O ActionMenu já pede confirmação e mostra mensagem de sucesso.
+  // Aqui só executamos a ação lógica.
   const handleDeleteSlot = async (slotId: number) => {
-     Swal.fire({
-      title: 'Tem certeza?',
-      text: 'Você irá excluir este horário. Se ele estiver agendado, a exclusão falhará.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sim, Deletar!',
-      cancelButtonText: 'Cancelar',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        const success = await removeSlot(slotId);
-        if (success) {
-          Swal.fire('Deletado!', 'O horário foi removido.', 'success');
-          onRefresh();
-        }
-      }
-    });
+    const success = await removeSlot(slotId);
+    
+    if (success) {
+      // Apenas recarrega a lista, pois o ActionMenu já mostrou o alerta de "Deletado!"
+      onRefresh();
+    }
   };
 
-
-  // Mapeia os dados brutos para a estrutura da Tabela
-  const data = useMemo(() => {
+  // 3. Transformação de Dados com Tipagem Explícita
+  const data = useMemo<SlotTableRow[]>(() => {
     return slots.map((slot) => {
-      // Formata data e hora para exibição
       const date = new Date(slot.dataHoraInicio);
       const dataFormatada = date.toLocaleDateString('pt-BR');
       const horaInicio = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       const horaFim = new Date(slot.dataHoraFim).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const horaCompleta = `${horaInicio} - ${horaFim}`;
-
 
       return {
         id: slot.id,
         data: dataFormatada,
-        hora: horaCompleta,
+        hora: `${horaInicio} - ${horaFim}`,
         valor: slot.valor ? `R$ ${slot.valor.toFixed(2)}` : 'N/A',
-        // Renderização Customizada do Status (Badge)
+        
+        // Renderização do Badge de Status
         statusDisplay: (
           <span className={`${styles.badge} ${styles[slot.status.toLowerCase()]}`}>
-            {slot.status}
+            {slot.status} 
           </span>
         ),
-        // Renderização Customizada das Ações (ActionMenu)
+        
+        // Renderização do Menu de Ações
         acoes: (
           <ActionMenu 
-            // O update aqui será para Bloquear/Desbloquear o horário
             onUpdate={() => {
-              // Alterna entre DISPONIVEL e BLOQUEADO
               const newStatus = slot.status === 'DISPONIVEL' ? 'BLOQUEADO' : 'DISPONIVEL';
               handleUpdateStatus(slot.id, newStatus);
             }}
+            // Passamos a função simplificada que não abre mais modal
             onDelete={() => handleDeleteSlot(slot.id)}
           />
         )
       };
     });
-  }, [slots, onRefresh]);
+  }, [slots, onRefresh]); 
 
-  // Definição das colunas
-  const columns: ColumnType<typeof data[0]>[] = [
+  // 4. Definição das Colunas
+  const columns: ColumnType<SlotTableRow>[] = [
     { header: 'Data', accessor: 'data' },
     { header: 'Horário', accessor: 'hora' },
     { header: 'Valor', accessor: 'valor' },
@@ -100,14 +99,20 @@ export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }
     { header: 'Ações', accessor: 'acoes' }           
   ];
 
-  if (slots.length === 0) {
-    return <div className={styles.emptyState}>Nenhum horário cadastrado para este período. Use o formulário acima para gerar a agenda.</div>;
+  // Feedback visual se não houver dados
+  if (!slots || slots.length === 0) {
+    return (
+      <div className={styles.emptyState}>
+        Nenhum horário cadastrado para este período.
+        Use o formulário acima para gerar a agenda. 
+      </div>
+    );
   }
 
   return (
     <div className={styles.tableWrapper}>
-      <h3 className={styles.tableTitle}>Agenda Detalhada (Slots Individuais)</h3>
-      <Table colunas={columns} dados={data} />
+      <h3 className={styles.tableTitle}>Agenda Detalhada</h3>
+      <Table colunas={columns} dados={data} /> 
     </div>
   );
 };

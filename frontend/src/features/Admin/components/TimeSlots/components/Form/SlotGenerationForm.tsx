@@ -1,40 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import styles from './SlotGenerationForm.module.scss';
 import Swal from 'sweetalert2';
 import { useSlotManagement } from '../../hooks/useSlotManagement';
+import AuthForm from '../../../../../../components/Form/AuthForm';
+import { FormField } from '../../../../../../components/Form/types/form.type';
+import { FormSelectOption } from '../../../appointment/types/appointment.type';
 
 interface SlotGenerationFormProps {
-  onSuccess: (medicoId: string) => void; 
+  onSuccess: (medicoId: string) => void;
 }
 
-// Interface local para o estado do formulário
 interface FormDataState {
   medicoId: string;
   inicio: string;
   fim: string;
-  duracao: string; // string pois vem do <select> ou <input>
+  duracao: string;
 }
 
 export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSuccess }) => {
   const { generateAgenda, isLoading, error, clearError } = useSlotManagement();
   
   const [formData, setFormData] = useState<FormDataState>({
-    medicoId: '', 
+    medicoId: '',
     inicio: '',
     fim: '',
     duracao: '30'
   });
 
-  // Tipagem correta do evento de mudança
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // Helper para atualizar o estado. 
+  // O AuthForm retorna o valor direto, então não precisamos de e.target
+  const updateField = useCallback((name: keyof FormDataState, value: string | number | boolean) => {
+    setFormData(prev => ({ ...prev, [name]: String(value) }));
+  }, []);
 
-  // Tipagem correta do submit
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // O AuthForm passa o evento, então prevenimos o reload
     
+    // Validação
     if (!formData.medicoId) {
       Swal.fire('Atenção', 'Informe o ID do médico.', 'warning');
       return;
@@ -46,85 +48,87 @@ export const SlotGenerationForm: React.FC<SlotGenerationFormProps> = ({ onSucces
 
     const success = await generateAgenda({
       medicoId: formData.medicoId,
-      inicio: formData.inicio, 
+      inicio: formData.inicio,
       fim: formData.fim,
-      duracaoMinutos: Number(formData.duracao), // Conversão explícita
+      duracaoMinutos: Number(formData.duracao),
     });
 
     if (success) {
       Swal.fire('Sucesso', 'Agenda gerada com sucesso!', 'success');
-      onSuccess(formData.medicoId); 
+      onSuccess(formData.medicoId);
     }
   };
+
+  // Opções para o Select de Duração
+  const durationOptions: FormSelectOption[] = useMemo(() => [
+    { value: '15', label: '15 min' },
+    { value: '30', label: '30 min' },
+    { value: '45', label: '45 min' },
+    { value: '60', label: '60 min' },
+  ], []);
+
+  // Definição dos campos para o AuthForm
+  const fields: FormField[] = useMemo(() => [
+    {
+      elementType: 'input',
+      type: 'text',
+      name: 'medicoId',
+      label: 'ID do Médico',
+      placeholder: 'Digite o ID do médico',
+      value: formData.medicoId,
+      required: true,
+      onChange: (val) => updateField('medicoId', val), // AuthForm retorna string direto
+    },
+    {
+      elementType: 'input',
+      type: 'datetime-local', // Input nativo de data/hora
+      name: 'inicio',
+      label: 'Início',
+      placeholder: '',
+      value: formData.inicio,
+      required: true,
+      onChange: (val) => updateField('inicio', val),
+    },
+    {
+      elementType: 'input',
+      type: 'datetime-local',
+      name: 'fim',
+      label: 'Fim',
+      placeholder: '',
+      value: formData.fim,
+      required: true,
+      onChange: (val) => updateField('fim', val),
+    },
+    {
+      elementType: 'select',
+      name: 'duracao',
+      label: 'Duração (min)',
+      value: formData.duracao,
+      options: durationOptions,
+      required: true,
+      onChange: (val) => updateField('duracao', val),
+    }
+  ], [formData, durationOptions, updateField]);
 
   return (
     <div className={styles.formContainer}>
       <h3 className={styles.title}>Gerar Disponibilidade (Lote)</h3>
+      
+      {/* Exibição de Erro externa ao Form */}
       {error && (
         <div className={styles.errorAlert}>
-          {error} 
+          {error}
           <button onClick={clearError} className={styles.closeButton}>&times;</button>
         </div>
       )}
-      
-      <form onSubmit={handleSubmit} className={styles.formGrid}>
-        <div className={styles.inputGroup}>
-            <label htmlFor="medicoId">ID do Médico</label>
-            <input 
-              type="text" 
-              name="medicoId" 
-              value={formData.medicoId} 
-              onChange={handleChange} 
-              required
-              className={styles.input}
-            />
-        </div>
 
-        <div className={styles.inputGroup}>
-          <label htmlFor="inicio">Início</label>
-          <input 
-            type="datetime-local" 
-            name="inicio" 
-            value={formData.inicio} 
-            onChange={handleChange} 
-            required
-            className={styles.input}
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label htmlFor="fim">Fim</label>
-          <input 
-            type="datetime-local" 
-            name="fim" 
-            value={formData.fim} 
-            onChange={handleChange} 
-            required 
-            className={styles.input}
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label htmlFor="duracao">Duração (min)</label>
-          <select 
-            name="duracao" 
-            value={formData.duracao} 
-            onChange={handleChange}
-            className={styles.select}
-          >
-            <option value="15">15 min</option>
-            <option value="30">30 min</option>
-            <option value="45">45 min</option>
-            <option value="60">60 min</option>
-          </select>
-        </div>
-
-        <div className={styles.actions}>
-          <button type="submit" disabled={isLoading} className={styles.submitButton}>
-            {isLoading ? 'Gerando...' : 'Gerar Agenda'}
-          </button>
-        </div>
-      </form>
+      {/* Componente Genérico substituindo o form HTML manual */}
+      <AuthForm
+        fields={fields}
+        handleSubmit={handleSubmit}
+        isLoading={isLoading}
+        buttonText="Gerar Agenda"
+      />
     </div>
   );
 };

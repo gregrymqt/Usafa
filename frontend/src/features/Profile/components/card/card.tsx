@@ -12,7 +12,7 @@ interface ProfileCardProps {
  * Componente de "Card" reutilizável para agrupar seções da página de perfil,
  * utilizando o componente genérico Card.
  */
-export const ProfileCard: React.FC<ProfileCardProps> = ({ title, icon, children }) => (
+ const ProfileCard: React.FC<ProfileCardProps> = ({ title, icon, children }) => (
   <Card title={title} description="">
     <>
       <div className={styles.cardHeader}>

@@ -45,10 +45,20 @@ export interface CheckboxField extends BaseField {
   onChange: (value: boolean) => void; // <-- Agora é SÓ (value: boolean)
 }
 
-// O FormField agora é uma "União" de todos os tipos acima
-export type FormField = InputField | TextareaField | SelectField | CheckboxField;
+export interface FileField extends BaseField {
+  elementType: 'file';
+  accept?: string;       // Ex: "image/*", ".pdf"
+  onChange: (file: File | null) => void; // Retorna o Arquivo direto
+  previewUrl?: string | null; // URL para mostrar a imagem prévia
+  placeholder?: string; // Texto a ser exibido quando não houver prévia
+}
 
-// --- FIM DAS DEFINIÇÕES DE TIPO ---
+export type FormField = 
+  | InputField 
+  | TextareaField 
+  | SelectField 
+  | CheckboxField 
+  | FileField; // <--- Adicionado aqui
 
 
 export interface AuthFormProps {

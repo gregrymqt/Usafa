@@ -3,7 +3,7 @@
  * (Necessário para o tipo UserData)
  */
 export interface Consulta {
-  id: number;
+  id: string;
   data: string;
   horario: string;
   especialidade: string;
@@ -21,8 +21,6 @@ export interface UserData {
   name: string;    // O Form usa 'nome'
   email: string;
   cep: string;
-  cartaoSus: string;
-  endereco: string;
   proximasConsultas: Consulta[];
   consultasAnteriores: Consulta[];
   picture: string;

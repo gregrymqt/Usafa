@@ -1,88 +1,108 @@
-import { useState, useEffect } from 'react';
-import { useDebounce } from '../../../shared/utils/forPages.utils'; 
-import { connectWebSocket, subscribe, unsubscribe } from '../../../shared/services/websocket.service'; 
-import type { NotificationEnvelope, ConsultaSummary } from '../types/consulta.types';
-
-// Imports dos Hooks Parciais
-import { useConsultaForm } from './partials/useConsultaForm';
-import { useConsultaList } from './partials/useConsultaList'; // Importe o arquivo acima
+import { useState, useEffect } from "react";
+import { useDebounce } from "../../../shared/utils/forPages.utils";
+import { ConsultaSummary, NotificationEnvelope, ConsultaRequest } from "../types/consulta.types";
+import { useConsultaForm } from "./partials/useConsultaForm";
+import { useConsultaList } from "./partials/useConsultaList";
+import { subscribe, unsubscribe } from "../../../shared/services/websocket.service";
 
 export const useConsulta = (userId: string) => {
   // 1. Estados Locais
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500); // Sintaxe correta do use-debounce
   const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
-  const [error, setError] = useState<string | null>(null); // Adicionei estado de erro pois a página pede
-  
+  const [error, setError] = useState<string | null>(null);
+
   // 2. Instancia os Hooks Filhos
   const form = useConsultaForm(userId);
   const list = useConsultaList(userId);
 
-  // 3. Inicialização
+  // 3. Efeito de Busca (Search)
+  // Quando o termo de busca muda, recarrega a lista de consultas
   useEffect(() => {
-    // Busca inicial
+    // Agora o TS não vai reclamar, pois exportamos fetchConsultas no passo 1
     list.fetchConsultas(debouncedSearchTerm, 0, true);
-    list.fetchSolicitacoes(0, true);
-  }, [debouncedSearchTerm]); // Removemos list.fetch... das dependências para evitar loop, ou use useCallback nos filhos
-  
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm]); 
+  // Nota: Não incluímos 'list' aqui para evitar loops infinitos, 
+  // pois 'list' muda a cada render se não for memorizado no hook filho.
+
+  // 4. Carregar Opções Iniciais do Formulário
   useEffect(() => {
     form.loadInitialOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 4. WebSocket
+  // 5. WebSocket
   useEffect(() => {
     if (!userId) return;
-    connectWebSocket();
+    
+    // connectWebSocket(); // Descomente se precisar iniciar a conexão aqui
     const topic = `/user/${userId}/queue/consultas`;
     
     const sub = subscribe<NotificationEnvelope<ConsultaSummary>>(topic, (envelope) => {
       console.log("Notificação Recebida:", envelope);
-      setConfirmedConsulta(envelope.data);
-      list.refreshAll(); 
+      if (envelope.data) {
+        setConfirmedConsulta(envelope.data);
+        list.refreshAll(); 
+      }
     });
 
-    return () => { if (sub) unsubscribe(topic); };
-  }, [userId]);
+    return () => { if (sub != undefined) { unsubscribe(topic); } };
+  }, [userId, list.refreshAll]); // Adicionado refreshAll nas dependências
 
-  // 5. Submit Integrado
-  const handleSubmitIntegrated = async (data: any) => {
-    // Se o seu form hook já gerencia os dados internamente, o parametro 'data' pode ser ignorado 
-    // ou usado dependendo de como AgendarConsultaPartial envia.
+  // 6. Submit Integrado
+  const handleSubmitIntegrated = async (data: ConsultaRequest) => {
+    setError(null); // Limpa erros anteriores
     try {
-      await form.submitRequest();
-      // Se a requisição for bem-sucedida, atualiza as listas.
-      list.refreshAll();
+      // O hook do form processa o envio
+      const success = await form.submitRequest(data);
+      
+      if (success) {
+        // Se deu certo, atualiza as listas para mostrar a nova solicitação/consulta
+        list.refreshAll();
+      }
     } catch (e) {
-      // Se submitRequest() lançar um erro, ele será capturado aqui.
-      // Você pode, opcionalmente, tratar o erro (ex: setError()).
       console.error("Falha ao submeter a consulta:", e);
+      setError("Ocorreu um erro ao processar sua solicitação.");
     }
   };
 
-  // 6. RETORNO COMPATÍVEL COM ConsultaPage.tsx
+  // 7. Retorno Unificado
   return {
-    // --- Listas e Paginação (Mapeamento Exato) ---
+    // --- Listas e Paginação ---
     consultas: list.consultas,
     isLoadingConsultas: list.isLoadingConsultas,
-    hasMoreConsultas: list.hasMoreConsultas, // [CORRIGIDO] Agora existe
-    loadMoreConsultas: list.loadMoreConsultas, // [CORRIGIDO] Agora existe
+    hasMoreConsultas: list.hasMoreConsultas,
+    loadMoreConsultas: list.loadMoreConsultas,
 
     solicitacoes: list.solicitacoes,
     isLoadingSolicitacoes: list.isLoadingSolicitacoes,
-    hasMoreSolicitacoes: list.hasMoreSolicitacoes, // [CORRIGIDO]
-    loadMoreSolicitacoes: list.loadMoreSolicitacoes, // [CORRIGIDO]
+    hasMoreSolicitacoes: list.hasMoreSolicitacoes,
+    loadMoreSolicitacoes: list.loadMoreSolicitacoes,
 
-    // --- Formulário (Renomeando para bater com a Página) ---
-    formOptions: form.tiposOptions,    // A página chama de formOptions, o hook chama de tiposOptions
-    opcoesHorarios: form.horariosOptions, // A página chama de opcoesHorarios
+    // --- Busca ---
+    searchTerm,
+    setSearchTerm, // Exportado para usar no Input de busca da página
+
+    // --- Formulário ---
+    formOptions: { // Agrupado para bater com a interface esperada se necessário
+        medicos: [], // Se precisar preencher
+        tipos: form.tiposOptions,
+        horarios: form.horariosOptions
+    },
+    // Ou exporte direto como estava, mas garanta que a Page saiba lidar:
+    tiposOptions: form.tiposOptions, 
+    opcoesHorarios: form.horariosOptions,
     isLoadingHorarios: form.isLoadingHorarios,
-    buscarHorarios: form.handleTipoChange, // A página chama de buscarHorarios
-    handleSubmitConsulta: handleSubmitIntegrated, // A página chama de handleSubmitConsulta
+    buscarHorarios: form.handleTipoChange,
+    
+    handleSubmitConsulta: handleSubmitIntegrated,
     isSubmitting: form.isSubmitting,
 
     // --- Feedback ---
     confirmedConsulta,
     closeConfirmationModal: () => setConfirmedConsulta(null),
-    error
+    error,
+    refreshAll: list.refreshAll // Expondo refreshAll para uso externo
   };
 };

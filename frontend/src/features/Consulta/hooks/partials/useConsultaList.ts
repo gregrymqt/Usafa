@@ -74,8 +74,8 @@ export const useConsultaList = (userId: string) => {
     fetchConsultas('', 0, true);
     fetchSolicitacoes(0, true);
   }, [fetchConsultas, fetchSolicitacoes]);
-
-  return {
+  
+return {
     consultas,
     isLoadingConsultas,
     hasMoreConsultas,
@@ -86,6 +86,10 @@ export const useConsultaList = (userId: string) => {
     hasMoreSolicitacoes,
     loadMoreSolicitacoes,
 
-    refreshAll
+    refreshAll,
+    
+    // ADICIONE ESTAS DUAS LINHAS:
+    fetchConsultas,    // Necessário para o Search do pai
+    fetchSolicitacoes  // Necessário para controle fino do pai
   };
 };

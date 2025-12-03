@@ -5,52 +5,41 @@ import { ListaConsultasPartial } from "./PartialViews/Lista/ListaConsultasPartia
 import { AgendarConsultaPartial } from "./PartialViews/Agendar/_AgendarConsulta";
 import { useAuth } from "../Auth/hooks/useAuth";
 import { useConsulta } from "./hooks/useConsulta";
-import { ConsultaRequest } from "./types/consulta.types";
 
 const ConsultaPage: React.FC = () => {
   const { user } = useAuth();
+  
+  // O Hook da Page agora só cuida de LISTAS (GET)
   const {
-    // --- Dados e Ações do Hook ---
-    // --- Dados SQL (Confirmadas) ---
     consultas,
     isLoadingConsultas,
-    hasMoreConsultas, // Nome atualizado
+    hasMoreConsultas,
     loadMoreConsultas,
 
-    // --- Dados Mongo (Solicitações) - NOVO ---
     solicitacoes,
     isLoadingSolicitacoes,
-    hasMoreSolicitacoes, // Nome atualizado
+    hasMoreSolicitacoes,
     loadMoreSolicitacoes,
-
-    // --- Formulário ---
-    formOptions,
-    opcoesHorarios,
-    isLoadingHorarios,
-    buscarHorarios, // Equivalente ao onTipoChange da partial
-    handleSubmitConsulta,
-    isSubmitting,
-
-    // --- Feedback ---
-    confirmedConsulta,
-    closeConfirmationModal,
+    
+    refreshAll, // Importante ter um refresh geral
     error,
-  } = useConsulta(user?.publicId || "");
+    confirmedConsulta,
+    closeConfirmationModal
+  } = useConsulta(user?.publicId || ""); // Use o hook de Listas aqui, não o de Form
 
-  // Controle local para mostrar/esconder o formulário (UX Mobile melhor)
   const [showForm, setShowForm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Controla a visibilidade do toast de sucesso
-  const [showSuccess, setShowSuccess] = useState(true);
-  const handleFormSubmit = async (data: ConsultaRequest) => {
-    await handleSubmitConsulta(data);
+  // Callback simples: Se o form (Partial) der sucesso, recarrega as listas e avisa
+  const handleFormSuccess = () => {
     setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 5000); // Esconde após 5s
+    setShowForm(false); // Fecha o form mobile se quiser
+    refreshAll();       // Recarrega as listas
+    setTimeout(() => setShowSuccess(false), 5000);
   };
 
   return (
     <div className={styles.pageContainer}>
-      {/* Cabeçalho visível apenas em mobile */}
       <header className={styles.header}>
         <h1>Meus Agendamentos</h1>
         <button
@@ -61,26 +50,19 @@ const ConsultaPage: React.FC = () => {
         </button>
       </header>
 
-      {/* Seção do Formulário de Agendamento */}
-      <section
-        className={`${styles.formSection} ${showForm ? styles.open : ""}`}
-      >
-        <AgendarConsultaPartial
-          formOptions={formOptions}
-          isSubmitting={isSubmitting}
-          handleSubmit={handleFormSubmit}
-          opcoesHorarios={opcoesHorarios}
-          isLoadingHorarios={isLoadingHorarios}
-          onTipoChange={buscarHorarios}
+      <section className={`${styles.formSection} ${showForm ? styles.open : ""}`}>
+        {/* CHAMADA LIMPA: A Partial resolve tudo sozinha agora */}
+        <AgendarConsultaPartial 
+            userId={user?.publicId || ""} 
+            onSuccess={handleFormSuccess} 
         />
       </section>
 
-      {/* Conteúdo principal que agrupa banners e a lista */}
       <div className={styles.mainContent}>
         {error && <div className={styles.errorBanner}>{error}</div>}
         {showSuccess && (
           <div className={styles.successToast}>
-            Solicitação enviada! Acompanhe o status na aba "Solicitações".
+            Solicitação enviada com sucesso!
           </div>
         )}
 

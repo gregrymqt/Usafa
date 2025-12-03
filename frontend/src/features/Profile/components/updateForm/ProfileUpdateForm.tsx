@@ -80,7 +80,6 @@ export const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
         handleSubmit={handleSubmit}
         isLoading={isUpdating}
         buttonText="Salvar Alterações"
-        actionsClassName={styles.actions}
       >
         {/* Seção de Upload de Foto, agora seguindo a estrutura do SCSS */}
         <div className={styles.photoUploadSection}>

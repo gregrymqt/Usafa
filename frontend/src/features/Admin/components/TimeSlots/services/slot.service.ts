@@ -17,10 +17,18 @@ export const slotService = {
   /**
    * Atualiza um slot individual (Bloquear ou Mudar Preço).
    * Rota: PUT /admin/slots/{id}
-   * Usamos Partial<Slot> pois podemos enviar apenas o status ou apenas o valor.
    */
   atualizarSlot: async (idSlot: number, data: Partial<Slot>): Promise<void> => {
-    await api.put<void>(`${ENDPOINT}/${idSlot}`, data);
+    // CORREÇÃO DE COESÃO:
+    // O Backend (AtualizarSlotDTO) espera 'novoStatus', mas a interface Slot tem 'status'.
+    // Precisamos mapear manualmente para garantir que o Java entenda.
+    
+    const payload = {
+      novoStatus: data.status, // Mapeia 'status' do front para 'novoStatus' do DTO Java
+      // Se o DTO Java evoluir para aceitar valor, adicione aqui: valor: data.valor
+    };
+
+    await api.put<void>(`${ENDPOINT}/${idSlot}`, payload);
   },
 
   /**
@@ -34,7 +42,6 @@ export const slotService = {
   /**
    * Busca slots de um médico para exibir na tabela.
    * Rota: GET /admin/slots?medicoId=...&data=...
-   * * MUDANÇA: Retorna Promise<SlotResponse[]> em vez de any[]
    */
   listarSlotsPorMedico: async (medicoId: string, dataIso: string): Promise<SlotResponse[]> => {
       const params = new URLSearchParams({
@@ -42,7 +49,8 @@ export const slotService = {
         data: dataIso
       });
       
-      // Tipamos o retorno do get para SlotResponse[]
+      // Retorna a lista crua do backend. 
+      // Dica: Se precisar usar na UI, pode ser necessário um adapter para transformar SlotResponse em Slot
       return api.get<SlotResponse[]>(`${ENDPOINT}?${params.toString()}`);
   }
 };

@@ -1,65 +1,75 @@
 import React from 'react';
-import { AppointmentForm } from '../../components/form/formConsulta';
+import { AppointmentForm } from '../../components/form/formConsulta'; // Ajuste o caminho se necessário
 import styles from './_AgendarConsulta.module.scss';
-import { useConsultaForm } from '../../hooks/partials/useConsultaForm'; // O Hook vem AQUI agora
+import { useConsultaForm } from '../../hooks/partials/useConsultaForm';
 import { ConsultaRequest } from '../../types/consulta.types';
 
 interface AgendarConsultaProps {
   userId: string;
-  onSuccess: () => void; // Callback para atualizar a lista na Page
+  onSuccess: () => void; // Callback para avisar a Page que deu tudo certo
 }
 
 export const AgendarConsultaPartial: React.FC<AgendarConsultaProps> = ({
   userId,
   onSuccess
 }) => {
-  // A Partial assume a responsabilidade do Hook
+  // 1. O Hook é instanciado AQUI (a Partial é o cérebro)
   const {
+    // Estados de carregamento
     isSubmitting,
     isLoadingHorarios,
+    
+    // Dados para os selects
     tiposOptions,
     horariosOptions,
-    // Note que removemos os estados visuais (selectedTipo, sintomas) daqui
-    // pois eles ficam no form, mas mantemos as ações lógicas
-    handleTipoChange,
-    handleSlotChange, 
-    submitRequest
+    
+    // Ações de lógica
+    handleTipoChange,  // Busca horários quando troca o tipo
+    handleSlotChange,  // (Opcional) Se precisar fazer algo quando troca o slot
+    submitRequest      // Função que envia para o backend
   } = useConsultaForm(userId);
 
-  // Wrapper para processar o envio vindo do filho
+  // 2. Wrapper para tratar o envio vindo do formulário visual
   const handleSubmitWrapper = async (data: ConsultaRequest) => {
-    // Aqui você pode adaptar se o seu submitRequest esperar argumentos diferentes
-    // Assumindo que seu hook foi ajustado para receber o payload ou os IDs:
-    
-    // Opção A: Se seu hook já tem o estado interno (mas movemos o estado pro form visual...)
-    // O ideal é que o submitRequest aceite o payload completo agora:
+    // Chama o submit do hook passando os dados preenchidos no form
+    // OBS: Certifique-se que seu 'submitRequest' no hook aceita receber o objeto 'data'
     const success = await submitRequest(data); 
     
     if (success) {
-      onSuccess();
+      onSuccess(); // Avisa a Page para recarregar a lista
     }
   };
 
   return (
     <div className={styles.agendarConsultaContainer}>
-      {/* Se tiposOptions estiver vazio, mostra loading ou form */}
-      {tiposOptions.length >= 0 ? (
+      {/* Verifica se as opções de "Tipos" carregaram. 
+        Se sim, mostra o formulário. Se não, mostra o Skeleton.
+      */}
+      {tiposOptions && tiposOptions.length >= 0 ? (
         <AppointmentForm
+          // Passa dados puros
           userId={userId}
           tiposOptions={tiposOptions}
           horariosOptions={horariosOptions}
           isLoadingHorarios={isLoadingHorarios}
           isSubmitting={isSubmitting}
           
-          // Passando as funções de lógica
+          // Passa as funções de controle
           onTipoChange={handleTipoChange}
-          onSlotChange={handleSlotChange}
+          onSlotChange={handleSlotChange} // Se o hook não tiver essa, pode remover ou passar vazia
           onSubmit={handleSubmitWrapper}
         />
       ) : (
+        // Skeleton Loading para melhor UX enquanto carrega as opções
         <div className={styles.formLoadingSkeleton}>
-           {/* Seu Skeleton Loading... */}
-           Loading...
+          <div className={`${styles.skeletonItem} ${styles.skeletonTitle}`}></div>
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className={styles.skeletonField}>
+              <div className={`${styles.skeletonItem} ${styles.skeletonLabel}`}></div>
+              <div className={`${styles.skeletonItem} ${styles.skeletonInput}`}></div>
+            </div>
+          ))}
+          <div className={`${styles.skeletonItem} ${styles.skeletonButton}`}></div>
         </div>
       )}
     </div>

@@ -18,8 +18,6 @@ export const useUserProfileData = () => {
       cep: user.cep,
       name: user.name,
       cpf: 'Não informado',
-      cartaoSus: '',
-      endereco: '',
       picture: '',
       proximasConsultas: [],
       consultasAnteriores: [],
@@ -44,8 +42,6 @@ export const useUserProfileData = () => {
                 cep: user.cep,
                 name: user.name,
                 cpf: 'Não informado',
-                cartaoSus: '',
-                endereco: '',
                 picture: '',
                 proximasConsultas: [],
                 consultasAnteriores: [],
@@ -63,7 +59,7 @@ export const useUserProfileData = () => {
         // Se mudou algo, atualiza
         return {
           ...prev,
-          nome: user.name,
+          name: user.name,
           cep: user.cep,
           email: user.email
         };

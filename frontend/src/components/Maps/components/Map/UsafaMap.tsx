@@ -9,6 +9,8 @@ interface UsafaMapProps {
 
 export const UsafaMap: React.FC<UsafaMapProps> = ({ usafa, userLocation }) => {
   // Correção da URL: Usando o padrão Universal do Google Maps DIR
+  // UsafaMap.tsx
+// Use o formato oficial "dir" (directions) com api=1
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${usafa.lat},${usafa.lng}&travelmode=driving`;
   return (
     <div className={style.mapContainer}>
