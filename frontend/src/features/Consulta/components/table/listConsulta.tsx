@@ -4,12 +4,12 @@ import Table from '../../../../components/Tables/Tables';
 import type { ColumnType } from '../../../../components/Tables/types';
 import type { ConsultaListProps } from './types/ConsultaList.types';
 import { useInfiniteScroll } from '../../../../shared/utils/forPages.utils';
-import { ConsultaSummary } from '../../types/consulta.types';
+import { SolicitacaoSummary } from '../../types/consulta.types';
 
 // Define as colunas para o seu componente de Tabela
-const colunas: ColumnType<ConsultaSummary>[] = [
-  { header: 'Médico', accessor: 'medico' },
-  { header: 'Tipo', accessor: 'tipo' },
+const colunas: ColumnType<SolicitacaoSummary>[] = [
+  { header: 'Médico', accessor: 'doctorName' },
+  { header: 'Tipo', accessor: 'appointmentTypeName' },
   { header: 'Data', accessor: 'dia' },
   { header: 'Horário', accessor: 'horario' },
   { header: 'Status', accessor: 'status' },

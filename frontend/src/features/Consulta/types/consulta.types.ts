@@ -4,14 +4,15 @@ export interface FormSelectOption {
 }
 
 // Interface unificada para o que vem da API de listagem
-export interface ConsultaSummary {
-  id: string;        // UUID ou ID
-  medico: string;    // Nome do médico
-  tipo: string;      // Especialidade
-  dia: string;       // "2025-12-03"
-  horario: string;   // "20:30"
-  status: string;    // "AGENDADA", "PENDENTE"
+export interface SolicitacaoSummary {
+  id: string;
   sintomas?: string;
+  dia: string;
+  horario: string;
+  status: string;
+  doctorName: string;          // Era 'medico'
+  appointmentTypeName: string; // Era 'tipo'
+  patientName: string;
 }
 
 // Payload de envio

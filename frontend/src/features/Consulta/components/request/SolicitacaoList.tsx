@@ -3,10 +3,10 @@ import styles from "./SolicitacaoList.module.scss";
 import Table from "../../../../components/Tables/Tables";
 import { ColumnType } from "../../../../components/Tables/types";
 import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
-import { ConsultaSummary } from "../../types/consulta.types";
+import { SolicitacaoSummary } from "../../types/consulta.types";
 
 interface SolicitacaoListProps {
-  solicitacoes: ConsultaSummary[];
+  solicitacoes: SolicitacaoSummary[];
   isLoading: boolean;
   hasMore: boolean;
   loadMore: () => void;
@@ -31,20 +31,20 @@ export const SolicitacaoList: React.FC<SolicitacaoListProps> = ({
   const { lastElementRef } = useInfiniteScroll(loadMore, hasMore, isLoading);
 
   // Definição das colunas
-  const colunas: ColumnType<ConsultaSummary>[] = useMemo<
-    ColumnType<ConsultaSummary>[]
+  const colunas: ColumnType<SolicitacaoSummary>[] = useMemo<
+    ColumnType<SolicitacaoSummary>[]
   >(
     () => [
       {
         header: "Especialidade",
-        accessor: "especialidade" as keyof ConsultaSummary,
+        accessor: "especialidade" as keyof SolicitacaoSummary,
       }, // Adapte ao nome do campo no DTO
-      { header: "Médico", accessor: "medico" as keyof ConsultaSummary },
+      { header: "Médico", accessor: "medico" as keyof SolicitacaoSummary },
       { header: "Data Solicitada", accessor: "dia" }, // Formatar data se necessário no Table ou aqui
       {
         header: "Status",
         accessor: "status",
-        render: (row: ConsultaSummary) => <StatusBadge status={row.status} />, // Renderização customizada
+        render: (row: SolicitacaoSummary) => <StatusBadge status={row.status} />, // Renderização customizada
       },
     ],
     []

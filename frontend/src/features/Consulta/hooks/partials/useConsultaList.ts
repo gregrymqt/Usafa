@@ -3,17 +3,17 @@ import { useState, useCallback } from 'react';
 
 import Swal from 'sweetalert2';
 import { consultaService } from '../../services/consulta.service';
-import { ConsultaSummary } from '../../types/consulta.types';
+import { SolicitacaoSummary } from '../../types/consulta.types';
 
 export const useConsultaList = (userId: string) => {
   // --- Estados Confirmadas ---
-  const [consultas, setConsultas] = useState<ConsultaSummary[]>([]);
+  const [consultas, setConsultas] = useState<SolicitacaoSummary[]>([]);
   const [pageConsultas, setPageConsultas] = useState(0);
   const [hasMoreConsultas, setHasMoreConsultas] = useState(true); // Começa true para tentar carregar
   const [isLoadingConsultas, setIsLoadingConsultas] = useState(false);
 
   // --- Estados Solicitações ---
-  const [solicitacoes, setSolicitacoes] = useState<ConsultaSummary[]>([]);
+  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoSummary[]>([]);
   const [pageSolicitacoes, setPageSolicitacoes] = useState(0);
   const [hasMoreSolicitacoes, setHasMoreSolicitacoes] = useState(true);
   const [isLoadingSolicitacoes, setIsLoadingSolicitacoes] = useState(false);

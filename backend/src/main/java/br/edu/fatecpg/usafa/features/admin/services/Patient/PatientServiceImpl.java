@@ -20,6 +20,7 @@ import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientHelper;
 import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientMapper;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
+import br.edu.fatecpg.usafa.features.caching.page.PageCacheHelper;
 import br.edu.fatecpg.usafa.models.User;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
@@ -36,6 +37,7 @@ public class PatientServiceImpl implements IPatientService {
     private final PatientMapper mapper;
     private final PatientHelper helper;
     private final IPasswordCreationTokenService passwordCreationTokenService;
+    private final PageCacheHelper pageCacheHelper;
 
     private static final String CACHE_KEY_ALL_PATIENTS = "patients:all";
 
@@ -47,31 +49,33 @@ public class PatientServiceImpl implements IPatientService {
     @Override
     @Transactional(readOnly = true)
     public Page<PatientResponseDto> getAllPatients(String search, Pageable pageable) {
-        log.info("Buscando pacientes paginados. Page: {}, Size: {}, Search: '{}'",
-                pageable.getPageNumber(), pageable.getPageSize(), search);
+        
+        // 1. Gera chave única baseada nos filtros
+        String safeSearch = (search != null && !search.trim().isEmpty()) ? search : "ALL";
+        String cacheKey = String.format("PATIENTS:PAGE:%s:%d:%d", 
+                safeSearch, pageable.getPageNumber(), pageable.getPageSize());
 
-        Page<User> userPage;
-
-        // Verifica se há termo de busca (ignora espaços em branco)
-        if (search != null && !search.trim().isEmpty()) {
-            // Busca por Nome OU Email contendo o termo
-            userPage = userRepository.searchPatients(
-                    search, pageable);
-        } else {
-            // Busca todos sem filtro
-            userPage = userRepository.findAllPatients(pageable);
-        }
-
-        // Mapeia a Page<User> para Page<PatientResponseDto>
-        return userPage.map(mapper::toDto);
+        // 2. Delega para o Helper
+        return pageCacheHelper.getPageFromCacheOrDb(
+                cacheKey,
+                PatientResponseDto.class,
+                () -> {
+                    // Lógica de Busca no Banco (Supplier)
+                    if (!"ALL".equals(safeSearch)) {
+                        return userRepository.searchPatients(search, pageable);
+                    } else {
+                        return userRepository.findAllPatients(pageable);
+                    }
+                },
+                mapper::toDto,      // Conversor
+                10, TimeUnit.MINUTES // Tempo de Cache
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<PatientResponseDto> searchByCpf(String cpf) {
-        log.info("Buscando paciente específico pelo CPF: {}", cpf);
-
-        // A query no repositório já exclui usuários com o papel 'ADMIN'.
+        // Busca pontual não costuma precisar de cache pesado, mas se quiser, pode adicionar.
         return userRepository.findPatientByCpf(cpf)
                 .map(mapper::toDto)
                 .map(List::of)
@@ -114,19 +118,11 @@ public class PatientServiceImpl implements IPatientService {
         log.info("Criando novo paciente: {}", patientDto.getEmail());
         LocalDate birthDate = helper.parseBirthDate(patientDto.getBirthDate());
 
-        User user = new User();
-        // Nota: Idealmente use um Mapper ou Builder aqui para limpar o código
-        user.setName(patientDto.getName());
-        user.setEmail(patientDto.getEmail());
-        user.setCpf(patientDto.getCpf());
-        user.setCep(patientDto.getCep());
-        user.setPhone(patientDto.getPhone());
-        user.setBirthDate(birthDate);
-        user.setCreatedByAdmin(true);
+        User user = helper.createPacient(patientDto, birthDate, true);
 
         try {
             User savedUser = userRepository.save(user);
-            cacheService.delete(CACHE_KEY_ALL_PATIENTS); // Invalida cache da lista completa
+            invalidatePatientCaches();
 
             // Gera o token de criação de senha para o novo usuário.
             passwordCreationTokenService.createAndSaveToken(savedUser);
@@ -153,7 +149,7 @@ public class PatientServiceImpl implements IPatientService {
 
         try {
             User updatedUser = userRepository.save(user);
-            cacheService.delete(CACHE_KEY_ALL_PATIENTS);
+            invalidatePatientCaches();
             return mapper.toDto(updatedUser);
         } catch (DataAccessException e) {
             throw new DatabaseOperationException("Erro ao atualizar paciente", e);
@@ -169,9 +165,19 @@ public class PatientServiceImpl implements IPatientService {
 
         try {
             userRepository.deleteByPublicId(user.getPublicId());
-            cacheService.delete(CACHE_KEY_ALL_PATIENTS);
+            invalidatePatientCaches();
         } catch (DataAccessException e) {
             throw new DatabaseOperationException("Erro ao deletar paciente", e);
         }
     }
+    private void invalidatePatientCaches() {
+        // 1. Remove a lista estática (usada em dropdowns)
+        cacheService.delete(CACHE_KEY_ALL_PATIENTS);
+        
+        // 2. Remove todas as páginas cacheadas (ex: PATIENTS:PAGE:ALL:0:10, PATIENTS:PAGE:João:0:10)
+        cacheService.deletePattern("PATIENTS:PAGE:*");
+        
+        log.info("Caches de pacientes invalidados com sucesso.");
+    }
+
 }

@@ -1,16 +1,16 @@
 import { useState, useCallback } from 'react';
 import Swal from 'sweetalert2';
 import { consultaService } from '../../services/consulta.service';
-import { ConsultaSummary } from '../../types/consulta.types';
+import { SolicitacaoSummary } from '../../types/consulta.types';
 
 
 export const useConsultaList = (userId: string) => {
   // --- Estado: Consultas Confirmadas (SQL) ---
-  const [consultas, setConsultas] = useState<ConsultaSummary[]>([]);
+  const [consultas, setConsultas] = useState<SolicitacaoSummary[]>([]);
   const [isLoadingConsultas, setIsLoadingConsultas] = useState(false);
   
   // --- Estado: Solicitações (Mongo/Redis) ---
-  const [solicitacoes, setSolicitacoes] = useState<ConsultaSummary[]>([]);
+  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoSummary[]>([]);
   const [isLoadingSolicitacoes, setIsLoadingSolicitacoes] = useState(false);
 
   // 1. Buscar Consultas Confirmadas

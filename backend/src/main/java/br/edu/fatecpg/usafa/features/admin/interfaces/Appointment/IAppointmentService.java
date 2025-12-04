@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.AppointmentResponseDto;
 import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
+import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
 import br.edu.fatecpg.usafa.models.User;
 
 /**
@@ -20,5 +21,7 @@ public interface IAppointmentService {
     AppointmentResponseDto updateAppointment(String id, AppointmentRequestDto appointmentDto);
 
     void deleteAppointment(String id);
+
+    Page<ConsultaDTO> findConsultasByUser(User user, Pageable pageable);
 
 }

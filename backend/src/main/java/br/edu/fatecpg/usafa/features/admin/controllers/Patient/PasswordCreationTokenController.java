@@ -22,8 +22,6 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/admin/password-tokens")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-@PreAuthorize("hasRole('ADMIN')")
 public class PasswordCreationTokenController {
 
     private final IPasswordCreationTokenService tokenService;
@@ -38,6 +36,7 @@ public class PasswordCreationTokenController {
      * @param requestDto DTO contendo o ID público do usuário (paciente).
      * @return Um DTO de resposta com a URL de criação e a data de expiração.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/generate")
     public ResponseEntity<PasswordCreationTokenResponseDto> generateToken(@Valid @RequestBody PasswordCreationTokenRequestDto requestDto) {
         // 1. Encontra o usuário pelo ID público para passar ao serviço
@@ -65,6 +64,7 @@ public class PasswordCreationTokenController {
      * @param userPublicId O ID público do usuário.
      * @return O DTO de resposta do token se encontrado, ou 404 Not Found.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{userPublicId}")
     public ResponseEntity<PasswordCreationTokenResponseDto> getToken(@PathVariable String userPublicId) {
         return tokenService.findTokenByUserPublicId(userPublicId)
@@ -107,6 +107,7 @@ public class PasswordCreationTokenController {
      * @param userPublicId O ID público do usuário cujo token será deletado.
      * @return 204 No Content.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userPublicId}")
     public ResponseEntity<Void> deleteToken(@PathVariable String userPublicId) {
         tokenService.deleteToken(userPublicId);

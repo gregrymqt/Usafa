@@ -2,23 +2,23 @@ import React from 'react';
 import styles from './ConsultaSummary.module.scss';
 // Importa as novas funções genéricas
 import { downloadAsTxt, shareContent } from '../../../../shared/';
-import { type ConsultaSummary } from '../../types/consulta.types.ts';
+import { type SolicitacaoSummary } from '../../types/consulta.types.ts';
 import type { ConsultaSummaryProps } from './types/modal.types';
 
 /**
  * (Função de formatação agora local)
  * Formata os dados da consulta como um texto simples.
  */
-const formatConsultaAsText = (summary: ConsultaSummary): string => {
+const formatConsultaAsText = (summary: SolicitacaoSummary): string => {
   return `
 SOLICITAÇÃO DE CONSULTA
-Protocolo: ${summary.tipo}
+Protocolo: ${summary.appointmentTypeName}
 ------------------------------------
-Médico:     ${summary.medico}
-Tipo:       ${summary.tipo}
+Médico:     ${summary.doctorName}
+Tipo:       ${summary.appointmentTypeName}
 Data:       ${summary.dia} às ${summary.horario}
 Sintomas:   ${summary.sintomas || 'Nenhum sintoma relatado.'}
-  `;
+  `
 };
 
 

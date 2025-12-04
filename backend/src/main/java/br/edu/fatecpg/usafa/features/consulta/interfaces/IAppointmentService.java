@@ -17,7 +17,7 @@ import br.edu.fatecpg.usafa.models.User;
  * Interface para o serviço de Consultas.
  * Define os contratos que o Controller espera.
  */
-public interface IConsultaService {
+public interface IAppointmentService {
 
     /**
      * Busca todas as consultas de um usuário específico.

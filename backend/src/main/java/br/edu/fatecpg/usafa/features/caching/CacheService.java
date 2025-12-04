@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -15,13 +16,12 @@ import java.util.concurrent.TimeUnit;
  * Fornece métodos básicos de CRUD (Create, Read, Update, Delete) para
  * armazenar, recuperar e remover objetos do cache.
  */
+
 @Service
-@Slf4j // Adiciona logs automáticos
-@RequiredArgsConstructor // Cria construtor para as dependências final
+@Slf4j
+@RequiredArgsConstructor
 public class CacheService implements ICacheService {
 
-    // Usar <String, String> costuma ser mais seguro para garantir que seja salvo como JSON puro,
-    // mas manterei <String, Object> para compatibilidade com sua config atual.
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -52,17 +52,15 @@ public class CacheService implements ICacheService {
                 return null;
             }
 
-            // Se o RedisTemplate já retornou o objeto do tipo certo, retorna direto
             if (clazz.isInstance(value)) {
                 return clazz.cast(value);
             }
 
-            // Caso o Redis retorne um LinkedHashMap (comum com Jackson), converte para o Objeto
             return objectMapper.convertValue(value, clazz);
 
         } catch (Exception e) {
             log.error("Erro ao buscar do cache Redis (Key: {}): {}", key, e.getMessage());
-            return null; // Retorna null para forçar a busca no banco de dados
+            return null;
         }
     }
 
@@ -75,6 +73,23 @@ public class CacheService implements ICacheService {
         }
     }
 
+    // --- IMPLEMENTAÇÃO DO NOVO MÉTODO ---
+    @Override
+    public void deletePattern(String pattern) {
+        try {
+            // 1. Busca todas as chaves que batem com o padrão (ex: "DOCTORS:*")
+            Set<String> keys = redisTemplate.keys(pattern);
+
+            if (keys != null && !keys.isEmpty()) {
+                // 2. Deleta todas elas de uma vez
+                redisTemplate.delete(keys);
+                log.info("Cache limpo para o padrão '{}'. Total removido: {}", pattern, keys.size());
+            }
+        } catch (Exception e) {
+            log.error("Erro ao deletar padrão do cache Redis (Pattern: {}): {}", pattern, e.getMessage());
+        }
+    }
+
     @Override
     public boolean exists(String key) {
         try {
@@ -82,7 +97,7 @@ public class CacheService implements ICacheService {
             return Boolean.TRUE.equals(hasKey);
         } catch (Exception e) {
             log.error("Erro ao verificar existência no cache Redis (Key: {}): {}", key, e.getMessage());
-            return false; // Na dúvida, diz que não existe para buscar no banco
+            return false;
         }
     }
 }

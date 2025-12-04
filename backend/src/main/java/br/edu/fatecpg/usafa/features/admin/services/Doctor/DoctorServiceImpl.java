@@ -1,5 +1,7 @@
 package br.edu.fatecpg.usafa.features.admin.services.Doctor;
 
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,7 @@ import br.edu.fatecpg.usafa.features.admin.repositories.IMedicoRepository;
 import br.edu.fatecpg.usafa.features.admin.utils.doctor.DoctorHelper;
 import br.edu.fatecpg.usafa.features.admin.utils.doctor.DoctorMapper;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
+import br.edu.fatecpg.usafa.features.caching.page.PageCacheHelper;
 import br.edu.fatecpg.usafa.features.picture.interfaces.IPictureService;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
@@ -33,34 +36,31 @@ public class DoctorServiceImpl implements IDoctorService {
     private final IPictureService pictureService;
     private final DoctorHelper helper;
     private final DoctorMapper mapper;
-
-    private static final String CACHE_KEY_ALL_DOCTORS = "doctors:all";
+    private final PageCacheHelper pageCacheHelper;
 
     @Override
     @Transactional(readOnly = true)
     public Page<DoctorResponseDto> getAllDoctors(Pageable pageable, String search) {
-        log.info("Buscando médicos ativos. Paginação: {}, termo de busca: '{}'", pageable, search);
-        try {
-            Page<Medico> medicosPage;
+        
+        // 1. Gera chave de cache única baseada na busca e página
+        String safeSearch = (search != null && !search.trim().isEmpty()) ? search : "ALL";
+        String cacheKey = String.format("DOCTORS:%s:%d:%d", safeSearch, pageable.getPageNumber(), pageable.getPageSize());
 
-            // 1. Lógica de Busca (Apenas Ativos)
-            if (search != null && !search.trim().isEmpty()) {
-                log.info("Realizando busca por '{}' em médicos ativos", search);
-                // Precisa ter este método no Repository:
-                // @Query("SELECT m FROM Medico m WHERE m.active = true AND (LOWER(m.nome) LIKE ... OR LOWER(m.crm) LIKE ...)")
-                medicosPage = medicoRepository.searchActiveDoctors(search, pageable);
-            } else {
-                log.info("Listando todos os médicos ativos");
-                // Precisa ter este método no Repository: Page<Medico> findByActiveTrue(Pageable pageable);
-                medicosPage = medicoRepository.findByActiveTrue(pageable); 
-            }
-
-            return medicosPage.map(mapper::toDto);
-
-        } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao buscar médicos: {}", e.getMessage());
-            throw new DatabaseOperationException("Erro ao buscar médicos", e);
-        }
+        // 2. Delega para o Helper Genérico (Resolve o problema de 'Abstract Page')
+        return pageCacheHelper.getPageFromCacheOrDb(
+                cacheKey,
+                DoctorResponseDto.class,
+                () -> {
+                    // Lógica de busca no banco (Supplier)
+                    if (!"ALL".equals(safeSearch)) {
+                        return medicoRepository.searchActiveDoctors(search, pageable);
+                    } else {
+                        return medicoRepository.findByActiveTrue(pageable);
+                    }
+                },
+                mapper::toDto,     // Conversor
+                10, TimeUnit.MINUTES // Cache
+        );
     }
 
     @Override
@@ -91,7 +91,7 @@ public class DoctorServiceImpl implements IDoctorService {
 
         try {
             Medico savedMedico = medicoRepository.save(medico);
-            cacheService.delete(CACHE_KEY_ALL_DOCTORS);
+            invalidateDoctorCaches();   
             return mapper.toDto(savedMedico);
         } catch (DataAccessException e) {
             log.error("Erro de banco de dados ao salvar médico: {}", e.getMessage());
@@ -144,7 +144,7 @@ public class DoctorServiceImpl implements IDoctorService {
 
         try {
             Medico updatedMedico = medicoRepository.save(medico);
-            cacheService.delete(CACHE_KEY_ALL_DOCTORS);
+            invalidateDoctorCaches();
             return mapper.toDto(updatedMedico);
 
         } catch (DataAccessException e) {
@@ -178,7 +178,7 @@ public class DoctorServiceImpl implements IDoctorService {
             }
 
             medicoRepository.saveAndFlush(medico);
-            cacheService.delete(CACHE_KEY_ALL_DOCTORS);
+            invalidateDoctorCaches();
             
             log.info("Médico ID {} inativado com sucesso.", id);
 
@@ -186,5 +186,13 @@ public class DoctorServiceImpl implements IDoctorService {
             log.error("Erro de banco ao inativar médico: {}", e.getMessage());
             throw new DatabaseOperationException("Erro ao inativar o médico", e);
         }
+    }
+
+    private void invalidateDoctorCaches() {
+        // Se o seu CacheService suportar pattern delete:
+        cacheService.deletePattern("DOCTORS:*");
+        
+        // Ou deleta chaves específicas conhecidas/padrão
+        cacheService.delete("FORM_OPTIONS_STATIC"); // Se médicos aparecerem no form de agendamento
     }
 }

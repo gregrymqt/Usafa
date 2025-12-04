@@ -20,8 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/patients") // Endpoint base 
 @RequiredArgsConstructor // Para injeção de dependência do service
-@CrossOrigin(origins = "*") // Permite requisições do seu front-end
-@PreAuthorize("hasRole('ADMIN')")
 public class PatientController {
 
     private final IPatientService patientService;
@@ -31,6 +29,7 @@ public class PatientController {
      * GET /admin/patients?page=0&size=10&search=termo
      * Mapeia: getPatients()
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<Page<PatientResponseDto>> getAllPatients(
             @RequestParam(required = false, defaultValue = "") String search,
@@ -44,6 +43,7 @@ public class PatientController {
      * POST /admin/patients/search-by-cpf
      * Mapeia: searchPatientByCpf()
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/search-by-cpf")
     public ResponseEntity<List<PatientResponseDto>> searchPatientByCpf(@Valid @RequestBody PatientSearchCpfRequestDto dto) {
         List<PatientResponseDto> result = patientService.searchByCpf(dto.getCpf());
@@ -53,6 +53,7 @@ public class PatientController {
     /**
      * Cria um novo paciente.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<PatientResponseDto> createPatient(@Valid @RequestBody PatientRequestDto patientDto) {
         PatientResponseDto newPatient = patientService.createPatient(patientDto);
@@ -63,6 +64,7 @@ public class PatientController {
      * Atualiza um paciente existente.
      * Mapeia: updatePatient() [cite: 5]
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<PatientResponseDto> updatePatient(
             @PathVariable String id,
@@ -74,6 +76,7 @@ public class PatientController {
     /**
      * Deleta um paciente.
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePatient(@PathVariable String id) {
         patientService.deletePatient(id);

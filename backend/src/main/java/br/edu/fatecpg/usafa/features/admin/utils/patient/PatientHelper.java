@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.PatientRequestDto;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
 import br.edu.fatecpg.usafa.models.User;
@@ -79,5 +80,19 @@ public class PatientHelper {
         } catch (IllegalArgumentException e) {
             throw new BusinessRuleException("Formato de ID inválido: " + publicId, e); 
         }
+    }
+
+    public User createPacient(PatientRequestDto patientDto,
+         LocalDate birthDate,
+         boolean createdByAdmin) {
+        return User.builder()
+                .name(patientDto.getName())
+                .email(patientDto.getEmail())
+                .cpf(patientDto.getCpf())
+                .cep(patientDto.getCep())
+                .phone(patientDto.getPhone())
+                .birthDate(birthDate)
+                .createdByAdmin(createdByAdmin)
+                .build();
     }
 }

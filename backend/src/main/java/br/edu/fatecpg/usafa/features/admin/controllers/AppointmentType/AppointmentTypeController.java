@@ -17,26 +17,29 @@ import java.util.List;
 @RestController
 @RequestMapping("/tipos-consulta")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class AppointmentTypeController {
 
     private final IAppointmentTypeService appointmentTypeService;
-
+    
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<AppointmentTypeResponseDto>> getAll() {
         return ResponseEntity.ok(appointmentTypeService.getAll());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<AppointmentTypeResponseDto> create(@Valid @RequestBody AppointmentTypeRequestDto requestDto) {
         return new ResponseEntity<>(appointmentTypeService.create(requestDto), HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{publicId}")
     public ResponseEntity<AppointmentTypeResponseDto> update(@PathVariable String publicId, @Valid @RequestBody AppointmentTypeRequestDto requestDto) {
         return ResponseEntity.ok(appointmentTypeService.update(publicId, requestDto));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{publicId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String publicId) {

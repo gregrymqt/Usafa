@@ -11,5 +11,7 @@ public interface ICacheService {
 
     void delete(String key);
 
+    void deletePattern(String pattern);
+
     boolean exists(String key);
 }

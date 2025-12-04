@@ -2,17 +2,17 @@ import React, { useState } from "react";
 import { ConsultaList } from "../../components/table/listConsulta";
 import styles from "./ListaConsultas.module.scss"; // CSS das abas abaixo
 import { SolicitacaoList } from "../../components/request/SolicitacaoList";
-import { ConsultaSummary } from "../../types/consulta.types";
+import { SolicitacaoSummary } from "../../types/consulta.types";
 
 interface ListaConsultasProps {
   // CORREÇÃO: Alterado de Consulta[] para ConsultaSummary[]
-  consultas: ConsultaSummary[];
+  consultas: SolicitacaoSummary[];
   isLoadingConsultas: boolean;
   hasMoreConsultas: boolean;
   loadMoreConsultas: () => void;
 
   // Props Solicitações
-  solicitacoes: ConsultaSummary[];
+  solicitacoes: SolicitacaoSummary[];
   isLoadingSolicitacoes: boolean;
   hasMoreSolicitacoes: boolean;
   loadMoreSolicitacoes: () => void;

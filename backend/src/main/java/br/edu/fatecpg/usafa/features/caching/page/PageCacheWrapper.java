@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.shared.page; // Ajuste o pacote
+package br.edu.fatecpg.usafa.features.caching.page; // Ajuste o pacote
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
