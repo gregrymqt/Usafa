@@ -1,6 +1,6 @@
-import { type ConsultaSummary } from '../../../types/consulta.types';
+import { type SolicitacaoSummary } from '../../../types/consulta.types';
 
 
 export interface ConsultaSummaryProps {
-  summary: ConsultaSummary;
+  summary: SolicitacaoSummary;
 }

@@ -1,7 +1,7 @@
-import type { ConsultaSummary } from "../../../types/consulta.types";
+import type { SolicitacaoSummary } from "../../../types/consulta.types";
 
 export interface ConsultaListProps {
-  consultas: ConsultaSummary[];
+  consultas: SolicitacaoSummary[];
   isLoading: boolean;
   hasMore: boolean;
   loadMore: () => void;

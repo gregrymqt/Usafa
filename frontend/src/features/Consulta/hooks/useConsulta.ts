@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDebounce } from "../../../shared/utils/forPages.utils";
-import { ConsultaSummary, NotificationEnvelope, ConsultaRequest } from "../types/consulta.types";
+import { SolicitacaoSummary, NotificationEnvelope, ConsultaRequest } from "../types/consulta.types";
 import { useConsultaForm } from "./partials/useConsultaForm";
 import { useConsultaList } from "./partials/useConsultaList";
 import { subscribe, unsubscribe } from "../../../shared/services/websocket.service";
@@ -9,7 +9,7 @@ export const useConsulta = (userId: string) => {
   // 1. Estados Locais
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500); // Sintaxe correta do use-debounce
-  const [confirmedConsulta, setConfirmedConsulta] = useState<ConsultaSummary | null>(null);
+  const [confirmedConsulta, setConfirmedConsulta] = useState<SolicitacaoSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // 2. Instancia os Hooks Filhos
@@ -39,7 +39,7 @@ export const useConsulta = (userId: string) => {
     // connectWebSocket(); // Descomente se precisar iniciar a conexão aqui
     const topic = `/user/${userId}/queue/consultas`;
     
-    const sub = subscribe<NotificationEnvelope<ConsultaSummary>>(topic, (envelope) => {
+    const sub = subscribe<NotificationEnvelope<SolicitacaoSummary>>(topic, (envelope) => {
       console.log("Notificação Recebida:", envelope);
       if (envelope.data) {
         setConfirmedConsulta(envelope.data);

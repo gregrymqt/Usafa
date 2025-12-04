@@ -2,17 +2,19 @@ import { useState, useCallback, useEffect } from "react";
 import Swal from "sweetalert2";
 import { ApiError } from "../../../../../shared";
 import type {
-  Appointment,
   AppointmentFormData,
   FormSelectOption,
-  ConsultaFormOptionsResponse // Importe a interface nova que criamos
+  ConsultaFormOptionsResponse
 } from "../types/appointment.type";
+// Importamos a interface correta que vem do service
+import { SolicitacaoSummary } from "../../../../Consulta/types/consulta.types"; 
 import { useDebounce } from "../../../../../shared/utils/forPages.utils";
 import { appointmentService } from "../services/appointment.service";
 
 export const useAppointments = () => {
   // --- Estados Principais ---
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  // Alterado de Appointment[] para SolicitacaoSummary[] para bater com o retorno da API
+  const [appointments, setAppointments] = useState<SolicitacaoSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +25,7 @@ export const useAppointments = () => {
 
   // --- Estados para o Formulário ---
   const [typeOptions, setTypeOptions] = useState<FormSelectOption[]>([]);
-  const [slotOptions, setSlotOptions] = useState<FormSelectOption[]>([]); // Slots do médico
+  const [slotOptions, setSlotOptions] = useState<FormSelectOption[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -34,13 +36,17 @@ export const useAppointments = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await appointmentService.getAppointments({
+        // O service retorna Page<SolicitacaoSummary> 
+        const response = await appointmentService.getAllAppointments({
           page: pageNumber,
           size: 10,
           search,
         });
+
         setAppointments((prev) =>
-          isNewSearch ? response.content : [...prev, ...response.content]
+          isNewSearch 
+            ? response.content 
+            : [...prev, ...response.content]
         );
         setHasMore(!response.last);
         setPage(pageNumber);
@@ -59,34 +65,18 @@ export const useAppointments = () => {
     []
   );
 
-  // 2. Carregar Opções Iniciais (CORRIGIDO)
-  // Agora desestrutura o objeto para pegar apenas os 'tipos' (Especialidades)
+  // 2. Carregar Opções Iniciais
   const loadInitialOptions = useCallback(async () => {
     try {
-      // Chama o método novo que busca /consultas/options
       const data: ConsultaFormOptionsResponse = await appointmentService.getFormOptions();
-      
-      // Salva apenas a lista de especialidades no estado
-      // Se vier null/undefined, garante array vazio
       setTypeOptions(data.tipos || []);
-      
-      // Se futuramente precisar da lista de médicos geral, salvaria aqui:
-      // setDoctorOptions(data.medicos || []); 
-      
     } catch (error: unknown) {
       console.error("Erro ao carregar opções do formulário", error);
-      const mensagemDoBackend =
-        error instanceof ApiError
-          ? error.message
-          : "Não foi possível carregar as especialidades.";
-      // Não damos alert aqui para não bloquear a tela, apenas log
-      console.warn(mensagemDoBackend);
     }
   }, []);
 
-  // 3. Buscar Slots dinamicamente (Mantido e revisado)
+  // 3. Buscar Slots dinamicamente
   const fetchSlotsForType = useCallback(async (tipoId: string) => {
-    // Se o usuário limpar o select (vier vazio), limpamos os slots
     if (!tipoId) {
       setSlotOptions([]);
       return;
@@ -94,37 +84,36 @@ export const useAppointments = () => {
 
     setIsLoadingSlots(true);
     try {
-      const slots = await appointmentService.getSlotsByType(tipoId);
-      const slotsFormatados = slots.map(slot => ({
+      const slots = await appointmentService.getHorariosPorTipo(tipoId);
+      const slotsFormatados = slots.map((slot) => ({
         ...slot,
-        value: String(slot.value) 
+        value: String(slot.value),
       }));
-      
+
       setSlotOptions(slotsFormatados);
     } catch (error: unknown) {
       console.error("Erro ao buscar horários", error);
       Swal.fire("Atenção", "Não há horários disponíveis para esta especialidade.", "info");
-      setSlotOptions([]); // Limpa em caso de erro para não mostrar lixo
+      setSlotOptions([]);
     } finally {
       setIsLoadingSlots(false);
     }
   }, []);
 
-  // --- CRUD Operations (Mantidas iguais) ---
+  // --- CRUD Operations ---
 
   const addAppointment = async (formData: AppointmentFormData) => {
     setIsLoading(true);
     try {
-      const newAppointment = await appointmentService.createAppointment(formData);
-      setAppointments((prev) => [newAppointment, ...prev]);
-      // Atualiza a lista para refletir a mudança
+      // O create retorna void[cite: 44], então apenas aguardamos
+      await appointmentService.createAppointment(formData);
+      
+      // Recarrega a lista do servidor para pegar o novo item
       fetchAppointments(searchTerm, 0, true);
       Swal.fire("Sucesso", "Consulta agendada com sucesso!", "success");
     } catch (error: unknown) {
       const mensagemDoBackend =
-        error instanceof ApiError
-          ? error.message
-          : "Falha ao agendar consulta.";
+        error instanceof ApiError ? error.message : "Falha ao agendar consulta.";
       Swal.fire("Erro", mensagemDoBackend, "error");
       throw error;
     } finally {
@@ -135,16 +124,18 @@ export const useAppointments = () => {
   const editAppointment = async (id: string, formData: AppointmentFormData) => {
     setIsLoading(true);
     try {
-      const updatedAppointment = await appointmentService.updateAppointment(id, formData);
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === id ? updatedAppointment : a))
-      );
+      // O update também retorna void.
+      // Removemos a tentativa de atualizar o estado local manualmente (map)
+      // pois não temos o objeto atualizado de volta.
+      await appointmentService.updateAppointment(id, formData);
+      
+      // Recarrega a lista para mostrar os dados atualizados
+      fetchAppointments(searchTerm, 0, true);
+      
       Swal.fire("Sucesso", "Consulta atualizada com sucesso!", "success");
     } catch (error: unknown) {
       const mensagemDoBackend =
-        error instanceof ApiError
-          ? error.message
-          : "Falha ao atualizar consulta.";
+        error instanceof ApiError ? error.message : "Falha ao atualizar consulta.";
       Swal.fire("Erro", mensagemDoBackend, "error");
       throw error;
     } finally {
@@ -159,9 +150,7 @@ export const useAppointments = () => {
       fetchAppointments(debouncedSearchTerm, 0, true);
     } catch (error: unknown) {
       const mensagemDoBackend =
-        error instanceof ApiError
-          ? error.message
-          : "Falha ao deletar consulta.";
+        error instanceof ApiError ? error.message : "Falha ao deletar consulta.";
       Swal.fire("Erro", mensagemDoBackend, "warning");
     }
   };
@@ -183,7 +172,7 @@ export const useAppointments = () => {
   }, [loadInitialOptions]);
 
   return {
-    appointments,
+    appointments, // Agora é do tipo SolicitacaoSummary[]
     isLoading,
     error,
     hasMore,
@@ -194,11 +183,9 @@ export const useAppointments = () => {
     removeAppointment,
     editAppointment,
     refetch: () => fetchAppointments(debouncedSearchTerm, 0, true),
-    
-    // Exports para o Form
-    typeOptions,       
-    slotOptions,       
-    isLoadingSlots,    
-    fetchSlotsForType  
+    typeOptions,
+    slotOptions,
+    isLoadingSlots,
+    fetchSlotsForType,
   };
 };

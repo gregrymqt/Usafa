@@ -13,6 +13,9 @@ export interface SolicitacaoSummary {
   doctorName: string;          // Era 'medico'
   appointmentTypeName: string; // Era 'tipo'
   patientName: string;
+  patientId: string;
+  horarioSlotId: string;
+  appointmentTypeId: string;
 }
 
 // Payload de envio

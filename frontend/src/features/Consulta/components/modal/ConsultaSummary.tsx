@@ -1,65 +1,55 @@
 import React from 'react';
 import styles from './ConsultaSummary.module.scss';
-// Importa as novas funções genéricas
 import { downloadAsTxt, shareContent } from '../../../../shared/';
-import { type SolicitacaoSummary } from '../../types/consulta.types.ts';
+// Certifique-se que o caminho da importação está correto para o seu projeto
+import { type SolicitacaoSummary } from '../../types/consulta.types'; 
 import type { ConsultaSummaryProps } from './types/modal.types';
 
-/**
- * (Função de formatação agora local)
- * Formata os dados da consulta como um texto simples.
- */
 const formatConsultaAsText = (summary: SolicitacaoSummary): string => {
+  // CORREÇÃO: Usando 'appointmentTypeName' e 'doctorName' conforme a interface SolicitacaoSummary
   return `
 SOLICITAÇÃO DE CONSULTA
-Protocolo: ${summary.appointmentTypeName}
+Protocolo: ${summary.id}
 ------------------------------------
 Médico:     ${summary.doctorName}
 Tipo:       ${summary.appointmentTypeName}
 Data:       ${summary.dia} às ${summary.horario}
 Sintomas:   ${summary.sintomas || 'Nenhum sintoma relatado.'}
-  `
+  `;
 };
-
 
 export const ConsultaSummarys: React.FC<ConsultaSummaryProps> = ({ summary }) => {
   
-  /**
-   * Chama o utilitário de download genérico
-   */
   const handleDownload = () => {
-    // 1. Formata os dados específicos da consulta
     const textContent = formatConsultaAsText(summary);
-    const filename = `consulta-${summary.tipo}.txt`;
-    
-    // 2. Chama a função genérica
+    // CORREÇÃO: Propriedade correta para o nome do arquivo
+    const filename = `consulta-${summary.appointmentTypeName}.txt`;
     downloadAsTxt(textContent, filename);
   };
-  
-  /**
-   * Chama o utilitário de compartilhamento genérico
-   */
+
   const handleShare = () => { 
     const shareData: ShareData = {
-      title: 'Confirmação de Consulta', // <- Texto atualizado
-      text: `Minha consulta (Protocolo: ${summary.tipo}) com ${summary.medico} foi confirmada.`, // <- Texto atualizado
+      title: 'Confirmação de Consulta',
+      // CORREÇÃO: Propriedade correta para o texto de compartilhamento
+      text: `Minha consulta de ${summary.appointmentTypeName} com ${summary.doctorName} foi confirmada.`,
     };
     shareContent(shareData); 
   };
 
   return (
         <>
-          {/* Título Atualizado */}
           <h2 className={styles.title}>Consulta Confirmada!</h2>
           <p className={styles.subtitle}>
             Sua solicitação foi processada com sucesso.
           </p>
           
-          <p className={styles.protocol}>Protocolo: <strong>{summary.tipo}</strong></p> 
-          
+          {/* CORREÇÃO: Propriedade correta para exibição */}
+          <p className={styles.protocol}>Protocolo: <strong>{summary.id}</strong></p> 
+   
           <div className={styles.summaryDetails}> 
-            <p><strong>Médico:</strong> {summary.medico}</p>
-            <p><strong>Tipo:</strong> {summary.tipo}</p>
+            {/* CORREÇÃO: Ajuste de nomes das propriedades (medico -> doctorName, tipo -> appointmentTypeName) */}
+            <p><strong>Médico:</strong> {summary.doctorName}</p>
+            <p><strong>Tipo:</strong> {summary.appointmentTypeName}</p>
             <p><strong>Data:</strong> {summary.dia} às {summary.horario}</p>
             {summary.sintomas && <p><strong>Sintomas:</strong> {summary.sintomas}</p>}
           </div>
