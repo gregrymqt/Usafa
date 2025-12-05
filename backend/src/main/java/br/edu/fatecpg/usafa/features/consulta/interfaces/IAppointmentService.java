@@ -20,7 +20,7 @@ public interface IAppointmentService {
     // --- LEITURA ---
     Page<AppointmentUserResponseDTO> findConsultasByUser(User user, Pageable pageable);
 
-    Page<AppointmentAdminResponseDTO> getAllAppointments(Pageable pageable);
+    Page<AppointmentAdminResponseDTO> getAllAppointments(Pageable pageable, String search);
 
     FormOptionsDTO getFormOptions();
 

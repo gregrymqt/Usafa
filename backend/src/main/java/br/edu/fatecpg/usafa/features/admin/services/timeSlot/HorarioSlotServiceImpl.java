@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.features.admin.services.timeSlot;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,21 +45,21 @@ public class HorarioSlotServiceImpl implements IHorarioSlotService {
         int slotsCriados = 0;
 
         // Enquanto o horário atual + duração for menor ou igual ao fim do expediente
-        while (cursor.plusMinutes(dados.duracaoMinutos()).isBefore(dados.fim()) || 
-               cursor.plusMinutes(dados.duracaoMinutos()).isEqual(dados.fim())) {
+        while (cursor.plusMinutes(dados.duracaoMinutos()).isBefore(dados.fim()) ||
+                cursor.plusMinutes(dados.duracaoMinutos()).isEqual(dados.fim())) {
 
             LocalDateTime fimSlot = cursor.plusMinutes(dados.duracaoMinutos());
 
             // Verifica se já existe slot nesse horário para evitar sobreposição
             boolean existeSlot = slotRepository
-                .findByMedicoPublicIdAndDataHoraInicio(dados.medicoId(), cursor)
-                .isPresent();
+                    .findByMedicoPublicIdAndDataHoraInicio(dados.medicoId(), cursor)
+                    .isPresent();
 
             if (!existeSlot) {
                 HorarioSlot slot = new HorarioSlot(medico, cursor, fimSlot);
                 // Define valor se foi passado, senão usa lógica padrão (ou null)
-                // slot.setValor(dados.valorConsulta()); 
-                
+                // slot.setValor(dados.valorConsulta());
+
                 slotRepository.save(slot);
                 slotsCriados++;
             }
@@ -73,7 +74,8 @@ public class HorarioSlotServiceImpl implements IHorarioSlotService {
             log.info("Agenda gerada com sucesso! Total de slots criados: {}", slotsCriados);
         }
     }
-@Override
+
+    @Override
     @Transactional
     public void atualizarSlot(Long idSlot, AtualizarSlotDTO dados) {
         HorarioSlot slot = buscarSlotPorId(idSlot);
@@ -82,11 +84,12 @@ public class HorarioSlotServiceImpl implements IHorarioSlotService {
         if (slot.getStatus() == StatusHorario.AGENDADO || slot.getStatus() == StatusHorario.FINALIZADO) {
             throw new BusinessRuleException("Não é possível alterar um horário que já possui agendamento.");
         }
-        
+
         if (dados.novoStatus() != null) {
-            // Impede que o admin force "AGENDADO" manualmente sem passar pelo fluxo de consulta
+            // Impede que o admin force "AGENDADO" manualmente sem passar pelo fluxo de
+            // consulta
             if (dados.novoStatus() == StatusHorario.AGENDADO) {
-                 throw new BusinessRuleException("Para agendar, utilize o fluxo de criar Consulta.");
+                throw new BusinessRuleException("Para agendar, utilize o fluxo de criar Consulta.");
             }
             slot.setStatus(dados.novoStatus());
         }
@@ -99,7 +102,8 @@ public class HorarioSlotServiceImpl implements IHorarioSlotService {
     public void excluirSlot(Long idSlot) {
         HorarioSlot slot = buscarSlotPorId(idSlot);
 
-        // REGRA: Não deleta slot com agendamento. O correto é cancelar a consulta antes.
+        // REGRA: Não deleta slot com agendamento. O correto é cancelar a consulta
+        // antes.
         if (slot.getStatus() != StatusHorario.DISPONIVEL && slot.getStatus() != StatusHorario.BLOQUEADO) {
             throw new BusinessRuleException("Este horário possui um agendamento ativo e não pode ser excluído.");
         }
@@ -110,13 +114,20 @@ public class HorarioSlotServiceImpl implements IHorarioSlotService {
     // Método auxiliar privado para evitar repetição de código
     private HorarioSlot buscarSlotPorId(Long id) {
         return slotRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Slot de horário não encontrado."));
+                .orElseThrow(() -> new NotFoundException("Slot de horário não encontrado."));
     }
-    
+
     @Override
     @Transactional
     public void excluirAgendaPorDia(String medicoId, String dataIso) {
         // Implementação bônus: Excluir todos os slots LIVRES de um dia específico
         // Necessário converter dataIso para LocalDate e buscar no repo
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HorarioSlot> listarSlotsPorMedico(String medicoId) {
+        // Busca direta pelo publicId
+        return slotRepository.findAllByMedicoPublicIdOrderByDataHoraInicioAsc(medicoId);
     }
 }

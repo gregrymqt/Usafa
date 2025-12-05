@@ -1,6 +1,7 @@
 package br.edu.fatecpg.usafa.features.consulta.controllers; // Ajuste o pacote
 
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
+import br.edu.fatecpg.usafa.features.consulta.dtos.Admin.AppointmentAdminResponseDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.FormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.SelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.User.AppointmentUserResponseDTO;
@@ -31,6 +32,21 @@ public class AppointmentController {
     private final UserUtils userUtils;
 
     /**
+     * Endpoint para listar todas as consultas (Visão do Administrador).
+     * Mapeado para GET /consultas
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<AppointmentAdminResponseDTO>> getAllAppointments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search // Novo parâmetro opcional
+    ) {
+        Pageable pageable = PageRequest.of(page, size); // Pode adicionar sort se quiser
+        return ResponseEntity.ok(consultaService.getAllAppointments(pageable, search));
+    }
+
+    /**
      * Endpoint para buscar o histórico de consultas confirmadas.
      * Retorna AppointmentUserResponseDTO (Visão do Paciente).
      */
@@ -41,7 +57,7 @@ public class AppointmentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
-        
+
         Optional<User> userOptional = userUtils.getUserFromAuthentication(authentication);
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -72,7 +88,8 @@ public class AppointmentController {
     }
 
     /**
-     * Carga Dinâmica: Busca slots disponíveis quando o usuário escolhe a especialidade.
+     * Carga Dinâmica: Busca slots disponíveis quando o usuário escolhe a
+     * especialidade.
      */
     @GetMapping("/horarios-disponiveis/{tipoId}")
     @PreAuthorize("isAuthenticated()")

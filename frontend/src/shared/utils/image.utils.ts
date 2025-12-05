@@ -1,8 +1,5 @@
 // src/shared/utils/image.utils.ts
 
-// Ajuste o caminho da importação conforme a estrutura do seu projeto
-import { API_BASE_URL } from '../services/api.service'; 
-
 /**
  * Resolve a URL completa de uma imagem.
  * - Se for nulo/vazio: retorna null.
@@ -20,5 +17,5 @@ export const getImageUrl = (imageName: string | null | undefined): string | null
   }
 
   // Se for imagem local salva pelo Spring, monta a URL completa
-  return `${API_BASE_URL}/uploads/${imageName}`;
+  return `http://localhost:8080${imageName}`;
 };

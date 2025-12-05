@@ -26,6 +26,7 @@ services:
       - /app/target             # Ignora pasta de build
       - maven-repo:/root/.m2    # Persiste as dependências baixadas (para não baixar tudo sempre)
       - ./logs:/app/logs
+      - ./uploads:/app/uploads
     # O comando que dá permissão e roda o app
     command: /bin/sh -c "chmod +x mvnw && ./mvnw spring-boot:run"
 

@@ -32,4 +32,6 @@ public interface IHorarioSlotRepository extends JpaRepository<HorarioSlot, Long>
     List<HorarioSlot> findDisponiveisPorTipoConsulta(@Param("tipoId") String tipoId);
 
     Optional<HorarioSlot> findByPublicId(String publicId);
+
+    List<HorarioSlot> findAllByMedicoPublicIdOrderByDataHoraInicioAsc(String medicoPublicId);
 }

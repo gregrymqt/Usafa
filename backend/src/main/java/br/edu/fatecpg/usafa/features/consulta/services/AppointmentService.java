@@ -43,19 +43,19 @@ public class AppointmentService implements IAppointmentService {
     private final IConsultaRepository consultaRepository;
     private final IHorarioSlotRepository horarioSlotRepository;
     private final ITipoConsultaRepository tipoConsultaRepository;
-    
-    private final AppointmentConsumerHelper consumerHelper; 
+
+    private final AppointmentConsumerHelper consumerHelper;
     private final ICacheService cacheService;
     private final PageCacheHelper pageCacheHelper;
-    private final AppointmentHelper helper; 
+    private final AppointmentHelper helper;
     private final AppointmentMapper appointmentMapper;
-    
+
     // --- LEITURA ---
 
     @Override
     @Transactional(readOnly = true)
     public Page<AppointmentUserResponseDTO> findConsultasByUser(User user, Pageable pageable) {
-        // Verifica se o helper tem o método getConsultasCacheKey. 
+        // Verifica se o helper tem o método getConsultasCacheKey.
         // Se der erro aqui, verifique o arquivo AppointmentHelper.java
         String cacheKey = helper.getConsultasCacheKey(
                 user.getPublicId().toString() + ":" + pageable.getPageNumber() + ":" + pageable.getPageSize());
@@ -65,24 +65,33 @@ public class AppointmentService implements IAppointmentService {
                 AppointmentUserResponseDTO.class,
                 () -> consultaRepository.findByUser(user, pageable),
                 // CORREÇÃO: Lambda explícito ajuda o compilador a entender o tipo
-                consulta -> appointmentMapper.toUserDto(consulta), 
-                5, TimeUnit.MINUTES
-        );
+                consulta -> appointmentMapper.toUserDto(consulta),
+                5, TimeUnit.MINUTES);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AppointmentAdminResponseDTO> getAllAppointments(Pageable pageable) {
-        String cacheKey = "ADMIN_APPOINTMENTS:" + pageable.getPageNumber() + ":" + pageable.getPageSize();
+    public Page<AppointmentAdminResponseDTO> getAllAppointments(Pageable pageable, String search) {
+        // IMPORTANTE: Adicione o 'search' na chave do cache para evitar conflitos de
+        // cache
+        String searchKey = (search != null) ? search.trim() : "";
+        String cacheKey = "ADMIN_APPOINTMENTS:" + pageable.getPageNumber() + ":" + pageable.getPageSize() + ":"
+                + searchKey;
 
         return pageCacheHelper.getPageFromCacheOrDb(
                 cacheKey,
                 AppointmentAdminResponseDTO.class,
-                () -> consultaRepository.findAll(pageable),
-                // CORREÇÃO: Lambda explícito
+                () -> {
+                    // Se tiver termo de busca, usa o método customizado do repositório
+                    if (!searchKey.isEmpty()) {
+                        return consultaRepository.searchConsultas(searchKey, pageable);
+                    }
+                    // Se não, busca tudo
+                    return consultaRepository.findAll(pageable);
+                },
+                // Mapper
                 consulta -> appointmentMapper.toAdminDto(consulta),
-                2, TimeUnit.MINUTES
-        );
+                2, TimeUnit.MINUTES);
     }
 
     // --- ESCRITA ---
@@ -91,7 +100,8 @@ public class AppointmentService implements IAppointmentService {
     @Transactional
     public AppointmentAdminResponseDTO createAppointment(AppointmentOperationDTO operationDTO, User userLogado) {
         try {
-            User paciente = (userLogado != null) ? userLogado : consumerHelper.findUserOrThrow(operationDTO.getPatientId());
+            User paciente = (userLogado != null) ? userLogado
+                    : consumerHelper.findUserOrThrow(operationDTO.getPatientId());
 
             HorarioSlot slot = horarioSlotRepository.findByPublicId(operationDTO.getHorarioSlotId())
                     .orElseThrow(() -> new BusinessRuleException("Horário não encontrado."));
@@ -117,7 +127,8 @@ public class AppointmentService implements IAppointmentService {
             consulta.setHorarioSlot(slot);
             consulta.setSintomas(operationDTO.getSintomas());
             consulta.setStatus(ConsultaStatus.PENDENTE);
-            // consulta.setPublicId(UUID.randomUUID().toString()); // Descomente se não for gerado no @PrePersist
+            // consulta.setPublicId(UUID.randomUUID().toString()); // Descomente se não for
+            // gerado no @PrePersist
 
             Consulta saved = consultaRepository.save(consulta);
             slot.setConsulta(saved);
@@ -137,12 +148,13 @@ public class AppointmentService implements IAppointmentService {
     public AppointmentAdminResponseDTO updateAppointment(String id, AppointmentOperationDTO operationDTO) {
         Consulta consulta = consultaRepository.findByPublicId(id)
                 .orElseThrow(() -> new NotFoundException("Consulta não encontrada"));
-                
+
         User oldUser = consulta.getUser();
-        
-        String patientIdTarget = operationDTO.getPatientId() != null ? operationDTO.getPatientId() : oldUser.getPublicId().toString();
+
+        String patientIdTarget = operationDTO.getPatientId() != null ? operationDTO.getPatientId()
+                : oldUser.getPublicId().toString();
         User newUser = consumerHelper.findUserOrThrow(patientIdTarget);
-        
+
         TipoConsulta tipo = tipoConsultaRepository.findByPublicId(operationDTO.getTipoConsultaId())
                 .orElseThrow(() -> new BusinessRuleException("Tipo inválido."));
 
@@ -160,12 +172,12 @@ public class AppointmentService implements IAppointmentService {
 
             currentSlot.setStatus(StatusHorario.DISPONIVEL);
             currentSlot.setConsulta(null);
-            
+
             newSlot.setStatus(StatusHorario.AGENDADO);
-            
+
             consulta.setHorarioSlot(newSlot);
             consulta.setMedico(newSlot.getMedico());
-            
+
             horarioSlotRepository.save(currentSlot);
             horarioSlotRepository.save(newSlot);
         }
@@ -173,13 +185,13 @@ public class AppointmentService implements IAppointmentService {
         consulta.setUser(newUser);
         consulta.setTipoConsulta(tipo);
         consulta.setSintomas(operationDTO.getSintomas());
-        
+
         if (operationDTO.getStatus() != null) {
-             try {
-                 consulta.setStatus(ConsultaStatus.valueOf(operationDTO.getStatus()));
-             } catch (IllegalArgumentException e) {
-                 // ignore
-             }
+            try {
+                consulta.setStatus(ConsultaStatus.valueOf(operationDTO.getStatus()));
+            } catch (IllegalArgumentException e) {
+                // ignore
+            }
         }
 
         Consulta updated = consultaRepository.save(consulta);
@@ -197,7 +209,7 @@ public class AppointmentService implements IAppointmentService {
     public void deleteAppointment(String id) {
         Consulta consulta = consultaRepository.findByPublicId(id)
                 .orElseThrow(() -> new NotFoundException("Consulta não encontrada"));
-                
+
         HorarioSlot slot = consulta.getHorarioSlot();
 
         if (slot != null) {
@@ -212,7 +224,7 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     public FormOptionsDTO getFormOptions() {
-        return helper.getFormOptionsCached(); 
+        return helper.getFormOptionsCached();
     }
 
     @Override

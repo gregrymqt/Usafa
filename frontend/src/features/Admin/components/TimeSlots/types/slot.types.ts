@@ -8,7 +8,7 @@ export interface SlotResponse {
   medicoId?: string; // Pode vir nulo ou undefined da API
   dataHoraInicio: string;
   dataHoraFim: string;
-  status: string; // Na API é string genérica
+  status:   SlotStatus |string; // Na API é string genérica
   valor?: number;
 }
 

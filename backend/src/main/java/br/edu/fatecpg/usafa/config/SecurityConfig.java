@@ -27,82 +27,87 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AuthenticationProvider authenticationProvider;
-    private final AuthenticationSuccessHandler oAuth2SuccessHandler;
-    private final JwtAuthFilter jwtAuthFilter; // Movi para cá para injeção via construtor
+        private final AuthenticationProvider authenticationProvider;
+        private final AuthenticationSuccessHandler oAuth2SuccessHandler;
+        private final JwtAuthFilter jwtAuthFilter; // Movi para cá para injeção via construtor
 
-    @Value("${app.cors.allowed-origin}")
-    private String allowedOrigin;
+        @Value("${app.cors.allowed-origin}")
+        private String allowedOrigin;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/auth/**", // Cobre Login, Register e seu LogoutController
-                                "/oauth2/**", // Endpoints do OAuth2
-                                "/login/**", // Páginas de login padrão
-                                "/error", // Tratamento de erros
-                                "/v3/api-docs/**", // Swagger
-                                "/swagger-ui/**", // Swagger UI
-                                "/api/v1/maps/**", // Sua API de mapas
-                                "/home/**", // <--- CORREÇÃO: Libera toda a área da Home
-                                "/admin/password-tokens/validate/**")
-                        .permitAll()
-                        .anyRequest().authenticated())
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler))
-                // Desabilita o logout padrão do Spring para evitar conflito com seu Controller
-                // customizado
-                .logout(AbstractHttpConfigurer::disable)
+        @Value("${app.url.general}")
+        private String urlGeneral;
 
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(
+                                                                "/auth/**", // Cobre Login, Register e seu
+                                                                            // LogoutController
+                                                                "/oauth2/**", // Endpoints do OAuth2
+                                                                "/login/**", // Páginas de login padrão
+                                                                "/error", // Tratamento de erros
+                                                                "/v3/api-docs/**", // Swagger
+                                                                "/swagger-ui/**", // Swagger UI
+                                                                "/api/v1/maps/**", // Sua API de mapas
+                                                                "/home/**", // <--- CORREÇÃO: Libera toda a área da Home
+                                                                "/admin/password-tokens/validate/**",
+                                                                "/uploads/**")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
+                                .oauth2Login(oauth2 -> oauth2
+                                                .successHandler(oAuth2SuccessHandler))
+                                // Desabilita o logout padrão do Spring para evitar conflito com seu Controller
+                                // customizado
+                                .logout(AbstractHttpConfigurer::disable)
 
-        return http.build();
-    }
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authenticationProvider(authenticationProvider)
+                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+                return http.build();
+        }
 
-        // 1. Defina explicitamente as origens permitidas.
-        // O erro acontece frequentemente porque o navegador não aceita '*' quando
-        // credentials=true
-        // Adicione o localhost do Vite (5173) e a URL do Ngrok se necessário.
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173", // Seu Frontend Local
-                "http://localhost:3000", // Caso use porta 3000
-                "https://18395e4cd322.ngrok-free.app" // Sua URL Ngrok (Opcional, mas bom ter)
-        ));
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
 
-        // 2. Métodos permitidos
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                // 1. Defina explicitamente as origens permitidas.
+                // O erro acontece frequentemente porque o navegador não aceita '*' quando
+                // credentials=true
+                // Adicione o localhost do Vite (5173) e a URL do Ngrok se necessário.
+                configuration.setAllowedOrigins(Arrays.asList(
+                                "http://localhost:5173", // Seu Frontend Local
+                                "http://localhost:3000", // Caso use porta 3000
+                                urlGeneral // Sua URL Ngrok (Opcional, mas bom ter)
+                ));
 
-        // 3. Headers permitidos (Mantenha o ngrok-skip-browser-warning)
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Auth-Token",
-                "ngrok-skip-browser-warning", // Importante para Ngrok
-                "Origin",
-                "Accept",
-                "X-Requested-With",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"));
+                // 2. Métodos permitidos
+                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        // 4. Expor headers para o frontend ler
-        configuration.setExposedHeaders(List.of("Authorization", "X-Auth-Token"));
+                // 3. Headers permitidos (Mantenha o ngrok-skip-browser-warning)
+                configuration.setAllowedHeaders(Arrays.asList(
+                                "Authorization",
+                                "Content-Type",
+                                "X-Auth-Token",
+                                "ngrok-skip-browser-warning", // Importante para Ngrok
+                                "Origin",
+                                "Accept",
+                                "X-Requested-With",
+                                "Access-Control-Request-Method",
+                                "Access-Control-Request-Headers"));
 
-        // 5. Permitir cookies/credenciais
-        configuration.setAllowCredentials(true);
+                // 4. Expor headers para o frontend ler
+                configuration.setExposedHeaders(List.of("Authorization", "X-Auth-Token"));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+                // 5. Permitir cookies/credenciais
+                configuration.setAllowCredentials(true);
+
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }

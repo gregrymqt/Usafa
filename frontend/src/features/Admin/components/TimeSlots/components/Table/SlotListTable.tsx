@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import styles from './SlotListTable.module.scss';
 import Swal from 'sweetalert2';
 import { ActionMenu } from '../../../../../../components/ActionMenu/ActionMenu';
@@ -28,34 +28,53 @@ interface SlotTableRow {
 interface SlotListTableProps {
   slots: SlotData[];
   onRefresh: () => void;
+  // Adicionamos esta prop para enviar o ID digitado para quem for buscar os dados
+  onSearch: (medicoId: string) => void;
+  isLoading?: boolean; // Opcional: para desabilitar o botão enquanto busca
 }
 
-export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }) => {
+export const SlotListTable: React.FC<SlotListTableProps> = ({ 
+  slots, 
+  onRefresh, 
+  onSearch,
+  isLoading = false 
+}) => {
   const { removeSlot, editSlot } = useSlotManagement();
+  
+  // Estado local para controlar o input de busca
+  const [localMedicoId, setLocalMedicoId] = useState('');
 
   // Lógica de Atualizar Status
   const handleUpdateStatus = async (slotId: number, status: 'BLOQUEADO' | 'DISPONIVEL') => {
     const success = await editSlot(slotId, { status: status });
     if (success) {
       Swal.fire('Sucesso', `Status alterado para ${status}.`, 'success');
-      onRefresh();
+      onRefresh(); // Recarrega usando a busca atual
     }
   };
 
-  // Lógica de Deletar SIMPLIFICADA
-  // O ActionMenu já pede confirmação e mostra mensagem de sucesso.
-  // Aqui só executamos a ação lógica.
+  // Lógica de Deletar
   const handleDeleteSlot = async (slotId: number) => {
     const success = await removeSlot(slotId);
-    
     if (success) {
-      // Apenas recarrega a lista, pois o ActionMenu já mostrou o alerta de "Deletado!"
       onRefresh();
     }
   };
 
-  // 3. Transformação de Dados com Tipagem Explícita
+  // Função disparada ao clicar em buscar
+  const handleSearchClick = () => {
+    if (localMedicoId.trim()) {
+      onSearch(localMedicoId);
+    } else {
+        Swal.fire('Atenção', 'Digite o ID do médico para buscar.', 'warning');
+    }
+  };
+
+  // Transformação de Dados
   const data = useMemo<SlotTableRow[]>(() => {
+    // Proteção caso slots venha undefined
+    if (!slots) return [];
+
     return slots.map((slot) => {
       const date = new Date(slot.dataHoraInicio);
       const dataFormatada = date.toLocaleDateString('pt-BR');
@@ -67,22 +86,17 @@ export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }
         data: dataFormatada,
         hora: `${horaInicio} - ${horaFim}`,
         valor: slot.valor ? `R$ ${slot.valor.toFixed(2)}` : 'N/A',
-        
-        // Renderização do Badge de Status
         statusDisplay: (
           <span className={`${styles.badge} ${styles[slot.status.toLowerCase()]}`}>
             {slot.status} 
           </span>
         ),
-        
-        // Renderização do Menu de Ações
         acoes: (
           <ActionMenu 
             onUpdate={() => {
               const newStatus = slot.status === 'DISPONIVEL' ? 'BLOQUEADO' : 'DISPONIVEL';
               handleUpdateStatus(slot.id, newStatus);
             }}
-            // Passamos a função simplificada que não abre mais modal
             onDelete={() => handleDeleteSlot(slot.id)}
           />
         )
@@ -90,7 +104,7 @@ export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }
     });
   }, [slots, onRefresh]); 
 
-  // 4. Definição das Colunas
+  // Definição das Colunas
   const columns: ColumnType<SlotTableRow>[] = [
     { header: 'Data', accessor: 'data' },
     { header: 'Horário', accessor: 'hora' },
@@ -99,20 +113,42 @@ export const SlotListTable: React.FC<SlotListTableProps> = ({ slots, onRefresh }
     { header: 'Ações', accessor: 'acoes' }           
   ];
 
-  // Feedback visual se não houver dados
-  if (!slots || slots.length === 0) {
-    return (
-      <div className={styles.emptyState}>
-        Nenhum horário cadastrado para este período.
-        Use o formulário acima para gerar a agenda. 
-      </div>
-    );
-  }
-
   return (
     <div className={styles.tableWrapper}>
+      
+      {/* 1. ÁREA DE BUSCA (INPUT) - Agora sempre visível */}
+      <div className={styles.searchHeader}>
+        <div className={styles.inputGroup}>
+            <label htmlFor="medicoIdSearch">ID Público do Médico</label>
+            <input 
+                id="medicoIdSearch"
+                type="text" 
+                placeholder="Ex: 550e8400-e29b..."
+                value={localMedicoId}
+                onChange={(e) => setLocalMedicoId(e.target.value)}
+            />
+        </div>
+        <button 
+            onClick={handleSearchClick}
+            disabled={isLoading}
+            className={styles.searchButton}
+        >
+            {isLoading ? 'Buscando...' : '🔍 Buscar Agenda'}
+        </button>
+      </div>
+
       <h3 className={styles.tableTitle}>Agenda Detalhada</h3>
-      <Table colunas={columns} dados={data} /> 
+
+      {/* 2. TABELA OU EMPTY STATE - Renderização condicional dentro do layout */}
+      {!slots || slots.length === 0 ? (
+        <div className={styles.emptyState}>
+          {localMedicoId 
+            ? "Nenhum horário encontrado para este médico." 
+            : "Insira o ID do médico acima para visualizar a agenda."}
+        </div>
+      ) : (
+        <Table colunas={columns} dados={data} /> 
+      )}
     </div>
   );
 };
