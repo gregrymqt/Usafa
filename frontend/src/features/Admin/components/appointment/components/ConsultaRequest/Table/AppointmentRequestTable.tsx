@@ -1,157 +1,117 @@
 import React, { useMemo, useState } from "react";
 import styles from "./AppointmentRequestTable.module.scss";
-// Remove 'ConsultaRequestTableProps' - não precisamos mais das props de dados
-import type { ConsultaDocument, TableRowData } from "./types/consultaRequestTable.type";
 import { ActionMenu } from "../../../../../../../components/ActionMenu/ActionMenu";
 import type { ColumnType } from "../../../../../../../components/Tables/types";
 import Table from "../../../../../../../components/Tables/Tables";
-import { useConsultaRequests } from "../../../hooks/useAppointmentRequest";
+import { useAppointmentRequests } from "../../../hooks/useAppointmentRequest"; // Ajuste o nome do arquivo do hook se necessário
 import { ConsultaEditModal } from "../Modal/AppointmentEditModal";
+import { AppointmentAdminResponse } from "../../../types/appointment.type";
+// Import novo
 
-// Colunas (igual ao seu arquivo) [cite: 3]
+interface TableRowData {
+  id: string;
+  paciente: string;
+  medico: string;
+  data: string;
+  status: React.ReactNode;
+  actions: React.ReactNode;
+}
+
 const columns: ColumnType<TableRowData>[] = [
   { header: "Paciente", accessor: "paciente" },
   { header: "Médico", accessor: "medico" },
-  { header: "Data", accessor: "data" },
+  { header: "Data/Hora", accessor: "data" }, // Título ajustado
   { header: "Status", accessor: "status" },
   { header: "Ações", accessor: "actions" },
 ];
 
-// Helper de data (igual ao seu arquivo) [cite: 4-6]
-const formatDateTime = (dia: string, horario: string) => {
-  try {
-    const date = new Date(`${dia}T${horario}:00`);
-    return date.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch (e) {
-    console.error("Erro ao formatar data e hora:", e);
-    return `${dia} ${horario}`;
-  }
-};
-
-// 2. Remove as PROPS de dados (requests, isLoading, onUpdateStatus, onDelete)
 export const ConsultaRequestTable: React.FC = () => {
-  // 3. CONSOME O HOOK
   const {
-    requests,
+    requests, // Agora é AppointmentAdminResponse[]
     isLoading,
     error,
     handleUpdateStatus,
     handleDeleteRequest,
-    // 1. Obtém os novos estados e setters do hook
     searchTerm,
     setSearchTerm,
     statusFilter,
     setStatusFilter,
-  } = useConsultaRequests();
+  } = useAppointmentRequests();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRequest, setEditingRequest] = useState<ConsultaDocument | null>(
-    null
-  );
+  const [editingRequest, setEditingRequest] = useState<AppointmentAdminResponse | null>(null);
 
-  const handleOpenModal = (request: ConsultaDocument) => {
+  const handleOpenModal = (request: AppointmentAdminResponse) => {
     setEditingRequest(request);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setEditingRequest(null);
-    setIsModalOpen(false);
-  };
-
-  // 4. Transforma os dados (agora vêm do hook)
   const tableData: TableRowData[] = useMemo(() => {
-    if (!requests) return []; // Se 'requests' for null, retorna array vazio
+    if (!requests) return [];
 
     return requests.map((req) => ({
       id: req.id,
-      paciente: req.nomePaciente,
-      medico: req.nomeMedico,
-      data: formatDateTime(req.dia, req.horario),
-      // Igual ao seu arquivo [cite: 8]
+      // Usando as propriedades planas do novo DTO
+      paciente: req.pacienteNome || "Desconhecido", 
+      medico: req.medicoNome || "Não atribuído",
+      // Como o DTO já manda strings formatadas (data e horario), apenas concatenamos
+      data: `${req.data} às ${req.horario}`, 
       status: (
         <span
           className={`${styles.statusBadge} ${
-            styles[`status${req.status.toLowerCase()}`]
+            styles[`status${req.status?.toLowerCase()}`] || styles.statusDefault
           }`}
         >
           {req.status}
         </span>
       ),
       actions: (
-        // 7. (ALTERADO) ActionMenu agora abre o modal
         <ActionMenu
-          onUpdate={() => handleOpenModal(req)} // Passa a request inteira
+          onUpdate={() => handleOpenModal(req)}
           onDelete={() => handleDeleteRequest(req.id)}
         />
       ),
     }));
-    // Adiciona as funções do hook (com 'useCallback') nas dependências
-  }, [requests, handleUpdateStatus, handleDeleteRequest]);
+  }, [requests, handleDeleteRequest]);
 
-  // 6. Trata o estado de Loading (igual ao seu arquivo) [cite: 10]
-  if (isLoading) {
-    return <p className={styles.loading}>Carregando solicitações...</p>;
-  }
+  if (isLoading) return <p className={styles.loading}>Carregando solicitações...</p>;
+  if (error) return <p className={styles.error}>Erro: {error.message}</p>;
 
-  // 7. (NOVO) Trata o estado de Erro
-  if (error) {
-    return (
-      <p className={styles.loading}>
-        Erro ao carregar dados: {error.message} (Status: {error.status})
-      </p>
-    );
-  }
-
-  // 8. Renderiza a tabela (igual ao seu arquivo) [cite: 11]
- return (
+  return (
     <div className={styles.tableWrapper}>
-      {/* 2. Adiciona a barra de filtros */}
       <div className={styles.filterBar}>
         <div className={styles.filterGroup}>
-          <label htmlFor="search-paciente">Buscar por Paciente</label>
+          <label>Buscar Paciente</label>
           <input
-            id="search-paciente"
             type="text"
-            placeholder="Digite o nome do paciente..."
+            placeholder="Nome..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
         </div>
         <div className={styles.filterGroup}>
-          <label htmlFor="status-filter">Filtrar por Status</label>
+          <label>Status</label>
           <select
-            id="status-filter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className={styles.statusSelect}
           >
             <option value="">Todos</option>
-            <option value="PENDING">Pendente</option>
-            <option value="CONFIRMED">Aprovado</option>
-            <option value="CANCELLED">Recusado</option>
+            <option value="PENDENTE">Pendente</option>
+            <option value="ACEITA">Aceita</option>
+            <option value="RECUSADA">Recusada</option>
           </select>
         </div>
       </div>
 
-      <Table<TableRowData>
-        colunas={columns}
-        dados={tableData}
-      /> 
+      <Table<TableRowData> colunas={columns} dados={tableData} />
 
-      {/* 9. (NOVO) Renderiza o modal (ele só aparece se isOpen=true) */}
       <ConsultaEditModal
         isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        onClose={() => setIsModalOpen(false)}
         request={editingRequest}
-        onSubmit={handleUpdateStatus} // Passa a função do hook
+        onSubmit={handleUpdateStatus}
       />
     </div>
   );

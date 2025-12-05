@@ -1,48 +1,43 @@
+// --- DTOs de Apoio (Allow/Options) ---
 export interface FormSelectOption {
   value: string | number; 
   label: string;
 }
 
-// Interface unificada para o que vem da API de listagem
-export interface SolicitacaoSummary {
-  id: string;
-  sintomas?: string;
-  dia: string;
-  horario: string;
-  status: string;
-  doctorName: string;          // Era 'medico'
-  appointmentTypeName: string; // Era 'tipo'
-  patientName: string;
-  patientId: string;
-  horarioSlotId: string;
-  appointmentTypeId: string;
+export interface ConsultaFormOptionsResponse {
+  medicos: FormSelectOption[];
+  tipos: FormSelectOption[];
+  // O backend manda 'dias' também, adicionei aqui caso precise futuramente
+  dias?: FormSelectOption[]; 
+  horarios: FormSelectOption[];
 }
 
-// Payload de envio
+// --- DTO de Entrada (AppointmentOperationDTO) ---
 export interface ConsultaRequest {
-  patientId: string;
-  horarioSlotId: string; // String para aceitar UUID
+  patientId: string; // O Backend pega do token, mas se vc manda, ok.
+  horarioSlotId: string;
   tipoConsultaId: string;
   sintomas: string;
+  // status: não precisa mandar na criação pelo usuário
 }
 
+// --- DTO de Resposta (AppointmentUserResponseDTO) ---
+// Renomeei para ficar claro que é a visão do usuário
+export interface AppointmentUserResponse {
+  id: string;
+  medicoNome: string;      // Corrigido de doctorName
+  especialidade: string;   // Corrigido de appointmentTypeName
+  data: string;            // Corrigido de dia
+  horario: string;
+  status: string;
+  sintomas?: string;
+}
+
+// Interface genérica de paginação
 export interface Page<T> {
   content: T[];
   last: boolean;
   totalElements: number;
   size: number;
   number: number;
-}
-
-// Resposta do /options
-export interface ConsultaFormOptionsResponse {
-  medicos: FormSelectOption[];
-  tipos: FormSelectOption[];
-  horarios: FormSelectOption[];
-}
-
-export interface NotificationEnvelope<T> {
-  type: string;    // Ex: "SOLICITACAO_RECEBIDA"
-  message: string; // Ex: "Recebemos seu pedido..."
-  data: T;         // O objeto principal (ConsultaSummary, etc)
 }

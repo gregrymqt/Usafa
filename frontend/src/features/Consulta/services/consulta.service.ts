@@ -3,24 +3,20 @@ import {
   ConsultaRequest, 
   ConsultaFormOptionsResponse, 
   FormSelectOption,
-  SolicitacaoSummary, // Atenção: Verifique se os campos batem com o DTO do back
+  AppointmentUserResponse, // Interface corrigida
   Page
 } from '../types/consulta.types';
 
-// Rota para Consultas Confirmadas (AppointmentController)
+// Rota para Consultas Confirmadas
 const CONSULTAS_BASE_URL = '/consultas';
 
-// Rota para Solicitações/Rascunhos (AppointmentRequestController)
+// Rota para Solicitações (Requests)
 const REQUESTS_BASE_URL = '/requests';
 
 export const consultaService = {
 
   // --- 1. CONSULTAS CONFIRMADAS (AppointmentController) ---
-
-  /**
-   * Busca histórico de consultas confirmadas.
-   * Rota Back: GET /consultas/user/{userId}
-   */
+  // Retorna Page<AppointmentUserResponseDTO> do Java
   getConsultasConfirmadas: async (userId: string, params: { page: number, size: number, search?: string }) => {
     const queryParams = new URLSearchParams({
         page: params.page.toString(),
@@ -29,50 +25,41 @@ export const consultaService = {
     
     if (params.search) queryParams.append('search', params.search);
     
-    const response = await api.get<Page<SolicitacaoSummary>>(`${CONSULTAS_BASE_URL}/user/${userId}?${queryParams.toString()}`);
-    return response; 
+    // O backend retorna AppointmentUserResponseDTO
+    const response = await api.get<Page<AppointmentUserResponse>>(`${CONSULTAS_BASE_URL}/user/${userId}?${queryParams.toString()}`);
+    return response; // Geralmente axios retorna .data, verifique seu api.service
   },
 
   // --- 2. SOLICITAÇÕES / REQUESTS (AppointmentRequestController) ---
-
-  /**
-   * Busca solicitações pendentes (ou histórico de solicitações).
-   * Rota Back: GET /requests?userId={userId}&status={status}&page=...
-   * CORREÇÃO: Agora bate com a nova controller.
-   */
+  // Retorna Page<AppointmentUserResponseDTO> quando é USER
   getSolicitacoesPendentes: async (userId: string, page: number) => {
     const queryParams = new URLSearchParams({
-      userId: userId, // Passa como Query Param
+      userId: userId, 
       page: page.toString(),
-      size: '10',
-      // status: 'PENDENTE' // Se quiser filtrar só pendentes, descomente aqui
+      size: '10'
     });
 
-    // Chama /requests em vez de /consultas/requests/...
-    const data = await api.get<Page<SolicitacaoSummary>>(`${REQUESTS_BASE_URL}?${queryParams.toString()}`);
-    return data;
+    const response = await api.get<Page<AppointmentUserResponse>>(`${REQUESTS_BASE_URL}?${queryParams.toString()}`);
+    return response;
   },
 
-  /**
-   * Envia uma nova solicitação.
-   * Rota Back: POST /requests
-   * CORREÇÃO: URL ajustada.
-   */
+  // Envia AppointmentOperationDTO
   requestConsulta: async (payload: ConsultaRequest): Promise<void> => {
     await api.post(REQUESTS_BASE_URL, payload);
   },
 
-  // --- 3. DADOS AUXILIARES (AppointmentController) ---
-  // Estes continuam em /consultas pois são dados de apoio
-
+  // --- 3. OPTIONS (AppointmentController - Allow) ---
+  
+  // Retorna FormOptionsDTO
   getFormOptions: async (): Promise<ConsultaFormOptionsResponse> => {
-    const data = await api.get<ConsultaFormOptionsResponse>(`${CONSULTAS_BASE_URL}/options`);
-    return data;
+    const response = await api.get<ConsultaFormOptionsResponse>(`${CONSULTAS_BASE_URL}/options`);
+    return response;
   },
 
+  // Retorna List<SelectOptionDTO>
   getHorariosPorTipo: async (tipoConsultaId: string): Promise<FormSelectOption[]> => {
     if (!tipoConsultaId) return [];
-    const data = await api.get<FormSelectOption[]>(`${CONSULTAS_BASE_URL}/horarios-disponiveis/${tipoConsultaId}`);
-    return data;
+    const response = await api.get<FormSelectOption[]>(`${CONSULTAS_BASE_URL}/horarios-disponiveis/${tipoConsultaId}`);
+    return response;
   }
 };

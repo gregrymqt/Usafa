@@ -30,7 +30,7 @@ public class HomeContent {
     private String description;
 
     // ALTERAÇÃO: Join com a tabela Picture em vez de string solta
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "picture_id", referencedColumnName = "id")
     private Picture picture;
 

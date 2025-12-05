@@ -2,8 +2,8 @@ package br.edu.fatecpg.usafa.features.consulta.controllers; // Ajuste o pacote
 
 import br.edu.fatecpg.usafa.features.admin.dtos.appointment.UpdateAppointmentDTO;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
-import br.edu.fatecpg.usafa.features.consulta.dtos.AppointmentRequestDto;
-import br.edu.fatecpg.usafa.features.consulta.dtos.RequestAppointmentResponseDto;
+import br.edu.fatecpg.usafa.features.consulta.dtos.Admin.AppointmentAdminResponseDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.AppointmentOperationDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IAppointmentRequestService;
 import br.edu.fatecpg.usafa.models.User;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +34,12 @@ public class AppointmentRequestController {
 
     /**
      * [USER] Cria uma nova solicitação (Envia para Fila Redis).
+     * Usa AppointmentOperationDTO.
      */
     @PostMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> criarSolicitacao(
-            @Validated @RequestBody AppointmentRequestDto requestDTO,
+            @Validated @RequestBody AppointmentOperationDTO requestDTO,
             Authentication authentication) {
         
         User user = userUtils.getUserFromAuthentication(authentication)
@@ -49,6 +50,7 @@ public class AppointmentRequestController {
 
         try {
             // Publica no Redis para processamento assíncrono
+            // Importante: O DTO deve ser Serializável ou o RedisTemplate configurado com Jackson
             redisTemplate.convertAndSend(CONSULTA_QUEUE_NAME, requestDTO);
             log.info("Solicitação enviada para fila. Usuário: {}", user.getPublicId());
             return ResponseEntity.accepted().body("Solicitação recebida. Aguarde a confirmação.");
@@ -61,12 +63,11 @@ public class AppointmentRequestController {
 
     /**
      * [USER & ADMIN] Lista solicitações.
-     * - Se for USER: Força filtragem pelo ID do usuário logado.
-     * - Se for ADMIN: Pode ver tudo ou filtrar por ID/Status via params.
+     * Separa a lógica: Admin recebe DTO completo, User recebe DTO simplificado.
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Page<RequestAppointmentResponseDto>> listarSolicitacoes(
+    public ResponseEntity<?> listarSolicitacoes(
             @RequestParam(required = false) String userId, // Filtro opcional para Admin
             @RequestParam(required = false) String status,
             @PageableDefault(sort = "dia", direction = Sort.Direction.DESC) Pageable pageable,
@@ -78,29 +79,27 @@ public class AppointmentRequestController {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        String filterUserId;
-
         if (isAdmin) {
-            // Admin pode filtrar por qualquer ID ou ver todos (null)
-            filterUserId = userId; 
+            // Admin vê tudo ou filtra, e recebe o DTO completo (AdminResponseDTO)
+            // O filtro de userId pode ser passado se vier na requisição
+            // Nota: Se userId vier nulo, o service deve tratar (ou removê-lo se o método admin não filtrar por user específico na sua regra atual)
+            // Na interface atual: getAllRequestsAdmin(status, pageable) -> Filtra por status.
+            return ResponseEntity.ok(requestService.getAllRequestsAdmin(status, pageable));
         } else {
-            // Usuário comum SEMPRE filtra pelo próprio ID
-            filterUserId = currentUser.getPublicId().toString();
+            // User vê apenas as suas e recebe DTO simples (UserResponseDTO)
+            return ResponseEntity.ok(requestService.getRequestsByUser(currentUser.getPublicId().toString(), pageable));
         }
-
-        // Chama o método unificado do Service
-        Page<RequestAppointmentResponseDto> page = requestService.getRequests(filterUserId, status, pageable);
-        return ResponseEntity.ok(page);
     }
 
     /**
      * [ADMIN] Atualiza status (ACEITA/RECUSA) ou re-agenda solicitação.
+     * Usa AppointmentOperationDTO.
      */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<RequestAppointmentResponseDto> atualizarStatus(
+    public ResponseEntity<AppointmentAdminResponseDTO> atualizarStatus(
             @PathVariable String id,
-            @RequestBody UpdateAppointmentDTO dto) {
+            @RequestBody AppointmentOperationDTO dto) {
         return ResponseEntity.ok(requestService.updateStatus(id, dto));
     }
 

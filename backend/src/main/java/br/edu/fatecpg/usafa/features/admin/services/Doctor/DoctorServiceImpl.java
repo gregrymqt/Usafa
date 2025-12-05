@@ -41,10 +41,11 @@ public class DoctorServiceImpl implements IDoctorService {
     @Override
     @Transactional(readOnly = true)
     public Page<DoctorResponseDto> getAllDoctors(Pageable pageable, String search) {
-        
+
         // 1. Gera chave de cache única baseada na busca e página
         String safeSearch = (search != null && !search.trim().isEmpty()) ? search : "ALL";
-        String cacheKey = String.format("DOCTORS:%s:%d:%d", safeSearch, pageable.getPageNumber(), pageable.getPageSize());
+        String cacheKey = String.format("DOCTORS:%s:%d:%d", safeSearch, pageable.getPageNumber(),
+                pageable.getPageSize());
 
         // 2. Delega para o Helper Genérico (Resolve o problema de 'Abstract Page')
         return pageCacheHelper.getPageFromCacheOrDb(
@@ -58,7 +59,7 @@ public class DoctorServiceImpl implements IDoctorService {
                         return medicoRepository.findByActiveTrue(pageable);
                     }
                 },
-                mapper::toDto,     // Conversor
+                mapper::toDto, // Conversor
                 10, TimeUnit.MINUTES // Cache
         );
     }
@@ -67,7 +68,7 @@ public class DoctorServiceImpl implements IDoctorService {
     @Transactional
     public DoctorResponseDto createDoctor(DoctorRequestDto doctorDto, MultipartFile file) {
         log.info("Criando novo médico CRM: {}", doctorDto.getCrm());
-        
+
         if (medicoRepository.existsByCrm(doctorDto.getCrm())) {
             throw new BusinessRuleException("Já existe um médico cadastrado com este CRM.");
         }
@@ -82,6 +83,8 @@ public class DoctorServiceImpl implements IDoctorService {
         medico.setEmail(doctorDto.getEmail());
         medico.setCrm(doctorDto.getCrm());
         medico.setTipoConsulta(especialidade);
+        // Define padrão ativo se não vier no DTO
+        medico.setActive(true);
 
         // Lógica de Foto
         if (file != null && !file.isEmpty()) {
@@ -91,14 +94,10 @@ public class DoctorServiceImpl implements IDoctorService {
 
         try {
             Medico savedMedico = medicoRepository.save(medico);
-            invalidateDoctorCaches();   
+            invalidateDoctorCaches();
             return mapper.toDto(savedMedico);
         } catch (DataAccessException e) {
-            log.error("Erro de banco de dados ao salvar médico: {}", e.getMessage());
-            // Trata exceção de constraint (ex: email ou CRM duplicado)
-            if (e.getMessage().contains("ConstraintViolationException")) {
-                throw new BusinessRuleException("Email ou CRM já cadastrado.", e);
-            }
+            log.error("Erro ao salvar médico: {}", e.getMessage());
             throw new DatabaseOperationException("Erro ao salvar médico", e);
         }
     }
@@ -107,37 +106,36 @@ public class DoctorServiceImpl implements IDoctorService {
     @Transactional
     public DoctorResponseDto updateDoctor(String id, DoctorRequestDto doctorDto, MultipartFile file) {
         log.info("Atualizando médico ID: {}", id);
-        
-        // Busca o médico (mesmo se estiver inativo, pois estamos editando pelo ID)
+
         Medico medico = helper.findDoctorByPublicId(id);
 
-        // Validação de CRM único
-        medicoRepository.findByCrm(doctorDto.getCrm()).ifPresent(existing -> {
-            if (!existing.getPublicId().equals(id)) {
+        // Validação de CRM único (se mudou)
+        if (!medico.getCrm().equals(doctorDto.getCrm())) {
+            medicoRepository.findByCrm(doctorDto.getCrm()).ifPresent(existing -> {
                 throw new BusinessRuleException("Este CRM já pertence a outro médico.");
-            }
-        });
+            });
+        }
 
         // Atualiza dados básicos
         medico.setNome(doctorDto.getName());
         medico.setCrm(doctorDto.getCrm());
         medico.setEmail(doctorDto.getEmail());
 
-        // [LÓGICA NOVA] Reativação Automática
-        // Se o médico estava "Excluído" (active=false) e foi editado, entendemos que ele deve voltar a ser ativo.
+        // Reativação Automática
         if (!medico.isActive()) {
-            log.info("Reativando médico previamente inativo: {}", medico.getNome());
             medico.setActive(true);
         }
 
         // Atualiza Especialidade
-        if (!medico.getTipoConsulta().getPublicId().equalsIgnoreCase(doctorDto.getSpecialty())) {
+        if (!medico.getTipoConsulta().getPublicId().equals(doctorDto.getSpecialty())) {
             TipoConsulta novaEspec = helper.findSpecialtyByPublicId(doctorDto.getSpecialty());
             medico.setTipoConsulta(novaEspec);
         }
 
         // Atualiza Foto
         if (file != null && !file.isEmpty()) {
+            // Gera nova imagem e substitui
+            // OBS: Certifique-se que Medico tem @OneToOne(orphanRemoval=true)
             Picture newPicture = pictureService.uploadAndGetPicture(file, "doctor_profile");
             medico.setPicture(newPicture);
         }
@@ -146,25 +144,22 @@ public class DoctorServiceImpl implements IDoctorService {
             Medico updatedMedico = medicoRepository.save(medico);
             invalidateDoctorCaches();
             return mapper.toDto(updatedMedico);
-
         } catch (DataAccessException e) {
             log.error("Erro ao atualizar médico: {}", e.getMessage());
-            if (e.getMessage() != null && e.getMessage().contains("ConstraintViolationException")) {
-                throw new BusinessRuleException("Email ou CRM já cadastrado.", e);
-            }
             throw new DatabaseOperationException("Erro ao atualizar médico", e);
         }
     }
 
-   @Override
+    @Override
     @Transactional
     public void deleteDoctor(String id) {
         log.info("Iniciando inativação (Soft Delete) do médico ID: {}", id);
-        
+
         // 1. Buscar entidade
         Medico medico = helper.findDoctorByPublicId(id);
 
-        // 2. Validações (Ex: não pode inativar se tiver consultas pendentes, se for regra de negócio)
+        // 2. Validações (Ex: não pode inativar se tiver consultas pendentes, se for
+        // regra de negócio)
         helper.validateDoctorHasNoAppointments(medico);
 
         try {
@@ -179,7 +174,7 @@ public class DoctorServiceImpl implements IDoctorService {
 
             medicoRepository.saveAndFlush(medico);
             invalidateDoctorCaches();
-            
+
             log.info("Médico ID {} inativado com sucesso.", id);
 
         } catch (DataAccessException e) {
@@ -191,7 +186,7 @@ public class DoctorServiceImpl implements IDoctorService {
     private void invalidateDoctorCaches() {
         // Se o seu CacheService suportar pattern delete:
         cacheService.deletePattern("DOCTORS:*");
-        
+
         // Ou deleta chaves específicas conhecidas/padrão
         cacheService.delete("FORM_OPTIONS_STATIC"); // Se médicos aparecerem no form de agendamento
     }

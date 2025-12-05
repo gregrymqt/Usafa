@@ -29,7 +29,7 @@ public class HomeContentServiceImpl implements IHomeContentService {
     private final IHomeContentRepository repository;
     private final ICacheService cacheService;
     private final HomeContentMapper homeMapper;
-    
+
     // Injeção do PictureService para lidar com imagens
     private final IPictureService pictureService;
 
@@ -60,7 +60,8 @@ public class HomeContentServiceImpl implements IHomeContentService {
 
     @Override
     @Transactional
-    public HomeContentDto create(HomeContentRequestDto request, MultipartFile file) {        // 1. Validação de Tipo
+    public HomeContentDto create(HomeContentRequestDto request, MultipartFile file) {
+        // 1. Validação de Tipo
         ContentType type;
         try {
             type = ContentType.valueOf(request.getType());
@@ -68,21 +69,22 @@ public class HomeContentServiceImpl implements IHomeContentService {
             throw new BusinessRuleException("Tipo de conteúdo inválido.");
         }
 
-        Picture picture = null;
-        if (file != null && !file.isEmpty()) {
-            picture = pictureService.uploadAndGetPicture(file, type.name());
-        }
-
+        // 2. Cria Entidade
         HomeContent entity = new HomeContent();
         entity.setTitle(request.getTitle());
         entity.setDescription(request.getDescription());
         entity.setType(type);
         entity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
-        entity.setPicture(picture);
+
+        // 3. Lógica de Foto (Se houver arquivo, salva e vincula)
+        if (file != null && !file.isEmpty()) {
+            Picture picture = pictureService.uploadAndGetPicture(file, type.name());
+            entity.setPicture(picture);
+        }
 
         HomeContent saved = repository.save(entity);
 
-        // INVALIDAÇÃO: Se mudou algo, limpa o cache público para refletir a alteração
+        // INVALIDAÇÃO
         cacheService.delete(CACHE_KEY_PUBLIC);
 
         return homeMapper.toDto(saved);
@@ -94,28 +96,30 @@ public class HomeContentServiceImpl implements IHomeContentService {
         HomeContent entity = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Conteúdo não encontrado."));
 
-        if (request.getTitle() != null) entity.setTitle(request.getTitle());
-        if (request.getDescription() != null) entity.setDescription(request.getDescription());
-        if (request.getIsActive() != null) entity.setIsActive(request.getIsActive());
-        
-        // Atualiza tipo
-        if (request.getType() != null) { 
-             try {
+        if (request.getTitle() != null)
+            entity.setTitle(request.getTitle());
+        if (request.getDescription() != null)
+            entity.setDescription(request.getDescription());
+        if (request.getIsActive() != null)
+            entity.setIsActive(request.getIsActive());
+
+        if (request.getType() != null && !request.getType().isEmpty()) {
+            try {
                 entity.setType(ContentType.valueOf(request.getType()));
             } catch (IllegalArgumentException e) {
-                throw new BusinessRuleException("Tipo inválido");
+                throw new BusinessRuleException("Tipo de conteúdo inválido.");
             }
         }
 
         // Atualiza Imagem
         if (file != null && !file.isEmpty()) {
+            // Gera nova imagem e substitui.
+            // OBS: Certifique-se que HomeContent tem @OneToOne(orphanRemoval=true)
             Picture newPicture = pictureService.uploadAndGetPicture(file, entity.getType().name());
             entity.setPicture(newPicture);
         }
 
         HomeContent updated = repository.save(entity);
-
-        // INVALIDAÇÃO
         cacheService.delete(CACHE_KEY_PUBLIC);
 
         return homeMapper.toDto(updated);
@@ -124,9 +128,10 @@ public class HomeContentServiceImpl implements IHomeContentService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) throw new NotFoundException("Conteúdo não encontrado");
+        if (!repository.existsById(id))
+            throw new NotFoundException("Conteúdo não encontrado");
         repository.deleteById(id);
-        
+
         // INVALIDAÇÃO
         cacheService.delete(CACHE_KEY_PUBLIC);
     }

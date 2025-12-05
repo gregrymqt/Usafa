@@ -4,6 +4,8 @@ import { ActionMenu } from '../../../../../../components/ActionMenu/ActionMenu';
 import Table from '../../../../../../components/Tables/Tables';
 import { ColumnType } from '../../../../../../components/Tables/types';
 import { HomeContent, ContentType, CONTENT_TYPES } from '../../types/homeAdmin.type';
+// Importe o helper que criamos
+import { getImageUrl } from '../../../../../../shared/utils/image.utils'; 
 
 interface HomeListProps {
   data: HomeContent[];
@@ -21,21 +23,38 @@ const HomeList: React.FC<HomeListProps> = ({ data, onEdit, onDelete }) => {
   }, [data, filterType]);
 
   // Prepara os dados para o formato que a Table aceita
-  // Adicionando a coluna de 'ações' como um ReactNode
-  const tableData = filteredData.map(item => ({
-    ...item,
-    thumb: item.imageUrl ? <img src={item.imageUrl} alt="" className={styles.thumbImage} /> : '-',
-    actions: (
-      <ActionMenu 
-        onUpdate={() => onEdit(item)} 
-        onDelete={() => onDelete(item.id)} 
-      />
-    )
-  }));
+  const tableData = filteredData.map(item => {
+    // 1. Resolve a URL usando o helper
+    const finalImageUrl = getImageUrl(item.imageUrl);
+
+    return {
+      ...item,
+      // 2. Renderiza a imagem com tratamento de erro
+      thumb: finalImageUrl ? (
+        <img 
+          src={finalImageUrl} 
+          alt={item.title} 
+          className={styles.thumbImage} 
+          onError={(e) => {
+            // Se der erro (404), esconde a imagem ou mostra um placeholder
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      ) : (
+        <span className={styles.noImage}>-</span>
+      ),
+      actions: (
+        <ActionMenu 
+          onUpdate={() => onEdit(item)} 
+          onDelete={() => onDelete(item.id)} 
+        />
+      )
+    };
+  });
 
   // Definição das colunas
   const columns: ColumnType<typeof tableData[0]>[] = [
-    { header: 'Imagem', accessor: 'thumb' as keyof typeof tableData[0] }, // Cast pois accessor espera chave, mas estamos injetando node
+    { header: 'Imagem', accessor: 'thumb' as keyof typeof tableData[0] }, 
     { header: 'Título', accessor: 'title' },
     { header: 'Tipo', accessor: 'type' },
     { header: 'Descrição', accessor: 'description' },

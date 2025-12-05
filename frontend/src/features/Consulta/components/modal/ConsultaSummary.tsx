@@ -1,19 +1,20 @@
 import React from 'react';
 import styles from './ConsultaSummary.module.scss';
 import { downloadAsTxt, shareContent } from '../../../../shared/';
-// Certifique-se que o caminho da importação está correto para o seu projeto
-import { type SolicitacaoSummary } from '../../types/consulta.types'; 
-import type { ConsultaSummaryProps } from './types/modal.types';
+import type { AppointmentUserResponse } from '../../types/consulta.types';
 
-const formatConsultaAsText = (summary: SolicitacaoSummary): string => {
-  // CORREÇÃO: Usando 'appointmentTypeName' e 'doctorName' conforme a interface SolicitacaoSummary
+export interface ConsultaSummaryProps {
+  summary: AppointmentUserResponse;
+}
+
+const formatConsultaAsText = (summary: AppointmentUserResponse): string => {
   return `
 SOLICITAÇÃO DE CONSULTA
 Protocolo: ${summary.id}
 ------------------------------------
-Médico:     ${summary.doctorName}
-Tipo:       ${summary.appointmentTypeName}
-Data:       ${summary.dia} às ${summary.horario}
+Médico:     ${summary.medicoNome}
+Tipo:       ${summary.especialidade}
+Data:       ${summary.data} às ${summary.horario}
 Sintomas:   ${summary.sintomas || 'Nenhum sintoma relatado.'}
   `;
 };
@@ -22,16 +23,14 @@ export const ConsultaSummarys: React.FC<ConsultaSummaryProps> = ({ summary }) =>
   
   const handleDownload = () => {
     const textContent = formatConsultaAsText(summary);
-    // CORREÇÃO: Propriedade correta para o nome do arquivo
-    const filename = `consulta-${summary.appointmentTypeName}.txt`;
+    const filename = `consulta-${summary.especialidade}-${summary.data}.txt`;
     downloadAsTxt(textContent, filename);
   };
 
   const handleShare = () => { 
     const shareData: ShareData = {
       title: 'Confirmação de Consulta',
-      // CORREÇÃO: Propriedade correta para o texto de compartilhamento
-      text: `Minha consulta de ${summary.appointmentTypeName} com ${summary.doctorName} foi confirmada.`,
+      text: `Minha consulta de ${summary.especialidade} com ${summary.medicoNome} foi confirmada para ${summary.data}.`,
     };
     shareContent(shareData); 
   };
@@ -43,14 +42,12 @@ export const ConsultaSummarys: React.FC<ConsultaSummaryProps> = ({ summary }) =>
             Sua solicitação foi processada com sucesso.
           </p>
           
-          {/* CORREÇÃO: Propriedade correta para exibição */}
           <p className={styles.protocol}>Protocolo: <strong>{summary.id}</strong></p> 
    
           <div className={styles.summaryDetails}> 
-            {/* CORREÇÃO: Ajuste de nomes das propriedades (medico -> doctorName, tipo -> appointmentTypeName) */}
-            <p><strong>Médico:</strong> {summary.doctorName}</p>
-            <p><strong>Tipo:</strong> {summary.appointmentTypeName}</p>
-            <p><strong>Data:</strong> {summary.dia} às {summary.horario}</p>
+            <p><strong>Médico:</strong> {summary.medicoNome}</p>
+            <p><strong>Tipo:</strong> {summary.especialidade}</p>
+            <p><strong>Data:</strong> {summary.data} às {summary.horario}</p>
             {summary.sintomas && <p><strong>Sintomas:</strong> {summary.sintomas}</p>}
           </div>
 

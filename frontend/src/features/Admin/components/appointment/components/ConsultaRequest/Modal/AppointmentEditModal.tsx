@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import  { Modal } from '../../../../../../../components/Modal/Modal';
-import type { ConsultaEditModalProps, ConsultaUpdateData } from './types/ConsultaEditModal.type';
+import { Modal } from '../../../../../../../components/Modal/Modal';
 import styles from './AppointmentEditModal.module.scss';
+import { AppointmentAdminResponse, AppointmentOperation } from '../../../types/appointment.type';
+// Imports Novos
+
+
+export interface ConsultaEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  // Recebe o DTO de Visualização (Admin)
+  request: AppointmentAdminResponse | null; 
+  // Envia o DTO de Operação
+  onSubmit: (id: string, data: AppointmentOperation) => void; 
+}
 
 export const ConsultaEditModal: React.FC<ConsultaEditModalProps> = ({
   isOpen,
@@ -9,36 +20,28 @@ export const ConsultaEditModal: React.FC<ConsultaEditModalProps> = ({
   request,
   onSubmit,
 }) => {
-  // Estado interno do formulário
-  const [formData, setFormData] = useState<ConsultaUpdateData>({
-    status: '',
-    dia: '',
-    horario: '',
-  });
+  const [status, setStatus] = useState('');
 
-  // Quando 'request' (a consulta) muda, atualiza o formulário
   useEffect(() => {
     if (request) {
-      setFormData({
-        status: request.status,
-        dia: request.dia,
-        horario: request.horario,
-      });
+      setStatus(request.status);
     }
   }, [request]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (request) {
-      onSubmit(request.id, formData);
-      onClose(); // Fecha o modal após enviar
+      // Criamos o objeto Operation. Mantemos os IDs originais e mudamos o status.
+      const operationData: AppointmentOperation = {
+        patientId: request.pacienteId,
+        horarioSlotId: request.horarioSlotId,
+        tipoConsultaId: request.tipoConsultaId,
+        sintomas: request.sintomas,
+        status: status // O campo que estamos de fato mudando
+      };
+      
+      onSubmit(request.id, operationData);
+      onClose();
     }
   };
 
@@ -47,58 +50,32 @@ export const ConsultaEditModal: React.FC<ConsultaEditModalProps> = ({
       {request && (
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.info}>
-            <strong>Paciente:</strong> {request.nomePaciente} <br />
-            <strong>Médico:</strong> {request.nomeMedico}
-          </div>
-          
-          {/* Campo Dia */}
-          <div className={styles.formGroup}>
-            <label htmlFor="dia">Data</label>
-            <input
-              type="date"
-              id="dia"
-              name="dia"
-              value={formData.dia}
-              onChange={handleChange}
-              required
-            />
+            <strong>Paciente:</strong> {request.pacienteNome} <br />
+            <strong>Médico:</strong> {request.medicoNome} <br />
+            <strong>Data Solicitada:</strong> {request.data} às {request.horario}
           </div>
 
-          {/* Campo Horário */}
+          {/* Edição Simples de Status */}
           <div className={styles.formGroup}>
-            <label htmlFor="horario">Horário</label>
-            <input
-              type="time"
-              id="horario"
-              name="horario"
-              value={formData.horario}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          {/* Campo Status */}
-          <div className={styles.formGroup}>
-            <label htmlFor="status">Status</label>
+            <label htmlFor="status">Alterar Status</label>
             <select
               id="status"
               name="status"
-              value={formData.status}
-              onChange={handleChange}
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
             >
               <option value="PENDENTE">Pendente</option>
-              <option value="ACEITA">Aceita</option>
+              <option value="ACEITA">Aceita (Confirmar)</option>
               <option value="RECUSADA">Recusada</option>
             </select>
           </div>
 
-          {/* Botões */}
           <div className={styles.formActions}>
             <button type="button" className={styles.cancelButton} onClick={onClose}>
               Cancelar
             </button>
             <button type="submit" className={styles.submitButton}>
-              Salvar Alterações
+              Salvar
             </button>
           </div>
         </form>

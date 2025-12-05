@@ -1,58 +1,48 @@
-import { api } from "../../../../../shared";
-import { SolicitacaoSummary, ConsultaRequest } from "../../../../Consulta/types/consulta.types";
-import { ConsultaUpdateData } from "../components/ConsultaRequest/Modal/types/ConsultaEditModal.type";
-import { Page } from "../types/appointment.type";
+import { api } from "../../../../../shared"; // Ajuste seu import
+import type { 
+  Page, 
+  AppointmentAdminResponse, // O Admin vê solicitações com dados completos
+  AppointmentOperation        // O Admin usa isso para atualizar status
+} from "../types/appointment.type";
 
-
-// Rota base alinhada com AppointmentRequestController
 const BASE_URL = '/requests';
 
 export const appointmentRequestService = {
 
-  // --- LEITURA (UNIFICADA) ---
+  // --- LEITURA ---
 
   /**
-   * Busca solicitações.
-   * - Se for PACIENTE: Passa apenas o userId.
-   * - Se for ADMIN: Pode passar userId (filtro), status e search.
-   * * Rota: GET /requests?userId=...&status=...
+   * [ADMIN] Busca solicitações com filtros.
+   * Retorna AppointmentAdminResponseDTO (pois o endpoint Java admin retorna o DTO completo)
    */
-  getRequests: async (params: { 
+  getRequestsAdmin: async (params: { 
     page: number; 
     size: number; 
-    userId?: string; 
     status?: string; 
     search?: string; 
+    userId?: string;
   }) => {
     const queryParams = new URLSearchParams({
       page: params.page.toString(),
       size: params.size.toString(),
     });
 
-    if (params.userId) queryParams.append('userId', params.userId);
     if (params.status && params.status !== 'ALL') queryParams.append('status', params.status);
     if (params.search) queryParams.append('search', params.search);
+    if (params.userId) queryParams.append('userId', params.userId);
 
-    const response = await api.get<Page<SolicitacaoSummary>>(`${BASE_URL}?${queryParams.toString()}`);
+    const response = await api.get<Page<AppointmentAdminResponse>>(`${BASE_URL}?${queryParams.toString()}`);
     return response;
   },
 
-  // --- ESCRITA (PUBLIC) ---
+  // --- ESCRITA ---
 
   /**
-   * [PUBLIC] Envia uma nova solicitação para a fila.
+   * [ADMIN] Atualiza o status (ACEITA/RECUSA).
+   * Java: PUT /requests/{id}/status -> Body: AppointmentOperationDTO
    */
-  createRequest: async (payload: ConsultaRequest): Promise<void> => {
-    await api.post(BASE_URL, payload);
-  },
-
-  // --- ESCRITA (ADMIN) ---
-
-  /**
-   * [ADMIN] Atualiza o status (ACEITA/RECUSA) ou re-agenda.
-   * Rota: PUT /requests/{id}/status
-   */
-  updateStatus: async (id: string, updateData: ConsultaUpdateData): Promise<void> => {
+  updateStatus: async (id: string, updateData: AppointmentOperation): Promise<void> => {
+    // Atenção: O backend espera AppointmentOperationDTO no body
     await api.put(`${BASE_URL}/${id}/status`, updateData);
   },
 

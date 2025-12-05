@@ -1,29 +1,28 @@
-// useConsultaList.ts
 import { useState, useCallback } from 'react';
-
 import Swal from 'sweetalert2';
 import { consultaService } from '../../services/consulta.service';
-import { SolicitacaoSummary } from '../../types/consulta.types';
+// Importação correta do tipo atualizado
+import type { AppointmentUserResponse } from '../../types/consulta.types';
 
 export const useConsultaList = (userId: string) => {
   // --- Estados Confirmadas ---
-  const [consultas, setConsultas] = useState<SolicitacaoSummary[]>([]);
+  // Alterado de SolicitacaoSummary para AppointmentUserResponse
+  const [consultas, setConsultas] = useState<AppointmentUserResponse[]>([]);
   const [pageConsultas, setPageConsultas] = useState(0);
-  const [hasMoreConsultas, setHasMoreConsultas] = useState(true); // Começa true para tentar carregar
+  const [hasMoreConsultas, setHasMoreConsultas] = useState(true);
   const [isLoadingConsultas, setIsLoadingConsultas] = useState(false);
 
   // --- Estados Solicitações ---
-  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoSummary[]>([]);
+  const [solicitacoes, setSolicitacoes] = useState<AppointmentUserResponse[]>([]);
   const [pageSolicitacoes, setPageSolicitacoes] = useState(0);
   const [hasMoreSolicitacoes, setHasMoreSolicitacoes] = useState(true);
   const [isLoadingSolicitacoes, setIsLoadingSolicitacoes] = useState(false);
 
-  // 1. Buscar Consultas (SQL)
+  // 1. Buscar Consultas Confirmadas (SQL)
   const fetchConsultas = useCallback(async (search = '', page = 0, isNewSearch = false) => {
     if (!userId) return;
     setIsLoadingConsultas(true);
     try {
-      // Endpoint existe: getConsultasConfirmadas
       const response = await consultaService.getConsultasConfirmadas(userId, { page, size: 10, search });
       
       setConsultas(prev => isNewSearch ? response.content : [...prev, ...response.content]);
@@ -37,12 +36,11 @@ export const useConsultaList = (userId: string) => {
     }
   }, [userId]);
 
-  // 2. Buscar Solicitações (Mongo)
+  // 2. Buscar Solicitações Pendentes (Mongo/Redis)
   const fetchSolicitacoes = useCallback(async (page = 0, isNewSearch = false) => {
     if (!userId) return;
     setIsLoadingSolicitacoes(true);
     try {
-      // Endpoint existe: getSolicitacoesPendentes
       const response = await consultaService.getSolicitacoesPendentes(userId, page);
       
       setSolicitacoes(prev => isNewSearch ? response.content : [...prev, ...response.content]);
@@ -55,7 +53,7 @@ export const useConsultaList = (userId: string) => {
     }
   }, [userId]);
 
-  // Load More Actions
+  // Load More Actions (Infintie Scroll)
   const loadMoreConsultas = useCallback(() => {
     if (!isLoadingConsultas && hasMoreConsultas) {
       fetchConsultas('', pageConsultas + 1, false);
@@ -68,14 +66,13 @@ export const useConsultaList = (userId: string) => {
     }
   }, [isLoadingSolicitacoes, hasMoreSolicitacoes, pageSolicitacoes, fetchSolicitacoes]);
 
-  // Init
+  // Refresh Unificado (Para Search ou Updates)
   const refreshAll = useCallback(() => {
-    // Reseta paginação e listas
     fetchConsultas('', 0, true);
     fetchSolicitacoes(0, true);
   }, [fetchConsultas, fetchSolicitacoes]);
   
-return {
+  return {
     consultas,
     isLoadingConsultas,
     hasMoreConsultas,
@@ -87,9 +84,7 @@ return {
     loadMoreSolicitacoes,
 
     refreshAll,
-    
-    // ADICIONE ESTAS DUAS LINHAS:
-    fetchConsultas,    // Necessário para o Search do pai
-    fetchSolicitacoes  // Necessário para controle fino do pai
+    fetchConsultas,   
+    fetchSolicitacoes 
   };
 };

@@ -9,6 +9,7 @@ import { SidebarLayout } from '../../components/SidebarLayout/SidebarLayout';
 import type { ISidebarView } from '../../components/SidebarLayout/types/sidebar.type';
 import { MinhasConsultasPartial } from './components/consultas/_MinhasConsultasPartial';
 
+
 const ProfileLogo = () => (
   <span className={styles.profileLogo}>Meu Perfil</span>
 );

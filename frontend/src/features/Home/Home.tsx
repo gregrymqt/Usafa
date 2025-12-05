@@ -1,14 +1,14 @@
 import React from 'react';
-
 import styles from './Home.module.scss';
 
-// Importe o CSS do Swiper se necessário no seu projeto
 import 'swiper/css';
 import 'swiper/css/pagination';
 import Carousel from '../../components/Carousel/Carousel';
 import AboutSection from './components/AboutSection/About';
 import ServicesSection from './components/ServicesSection/Service';
 import { useHomeLogic } from './hooks/useHomeLogic';
+// Importe o helper
+import { getImageUrl } from '../../shared/utils/image.utils';
 
 const Home: React.FC = () => {
   const { 
@@ -20,7 +20,6 @@ const Home: React.FC = () => {
   } = useHomeLogic();
 
   if (loading) {
-    // Idealmente use um componente de Skeleton ou Spinner aqui
     return <div className={styles.loader}>Carregando...</div>;
   }
 
@@ -32,19 +31,26 @@ const Home: React.FC = () => {
         <section className={styles.mainCarouselSection}>
           <Carousel
             items={carouselItems}
-            renderItem={(item) => (
-              <div className={styles.carouselItemWrapper}>
-                 <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className={styles.mainCarouselImage}
-                  />
-                  {/* Se quiser colocar texto sobre a imagem no banner */}
+            renderItem={(item) => {
+              // Processa imagem do Banner
+              const bannerUrl = getImageUrl(item.imageUrl);
+              
+              return (
+                <div className={styles.carouselItemWrapper}>
+                   {bannerUrl && (
+                     <img
+                        src={bannerUrl}
+                        alt={item.title}
+                        className={styles.mainCarouselImage}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                   )}
                   <div className={styles.bannerCaption}>
                       <h2>{item.title}</h2>
                   </div>
-              </div>
-            )}
+                </div>
+              );
+            }}
             swiperOptions={{
               pagination: { clickable: true },
               autoplay: { delay: 5000 },
@@ -58,7 +64,6 @@ const Home: React.FC = () => {
       <ServicesSection items={serviceItems} />
 
       {/* 3. SOBRE NÓS */}
-      {/* Verifica se aboutItem existe antes de renderizar a seção inteira se preferir */}
       {aboutItem && <AboutSection data={aboutItem} />}
 
       {/* 4. GALERIA */}
@@ -66,11 +71,23 @@ const Home: React.FC = () => {
         <section className={styles.gallerySection}>
           <h2 className={styles.sectionTitle}>Galeria</h2>
           <div className={styles.galleryGrid}>
-            {galleryItems.map(item => (
-              <div key={item.id} className={styles.galleryItem}>
-                <img src={item.imageUrl} alt={item.title} loading="lazy" />
-              </div>
-            ))}
+            {galleryItems.map(item => {
+              // Processa imagem da Galeria
+              const galleryUrl = getImageUrl(item.imageUrl);
+              
+              if (!galleryUrl) return null; // Não renderiza item sem imagem
+
+              return (
+                <div key={item.id} className={styles.galleryItem}>
+                  <img 
+                    src={galleryUrl} 
+                    alt={item.title} 
+                    loading="lazy" 
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </section>
       )}

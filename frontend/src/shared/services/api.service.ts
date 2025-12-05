@@ -5,7 +5,7 @@ import type { ApiErrorResponse } from '../exceptions/types/ApiErrorResponse';
 // --- 1. Configuração Central ---
 // IMPORTANTE: Garanta que sua variável no .env é VITE_GENERAL_URL ou VITE_API_URL
 // Se no .env está VITE_GENERAL_URL, mude aqui para usar ela.
-const API_BASE_URL = import.meta.env.VITE_GENERAL_URL || 'http://localhost:8080/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_GENERAL_URL || 'http://localhost:8080/api/v1';
 
 export const USER_STORAGE_KEY = 'seu-app-User-token';
 

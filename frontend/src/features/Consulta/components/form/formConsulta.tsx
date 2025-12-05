@@ -1,11 +1,10 @@
 import React, { useMemo, useState } from "react";
 import styles from "./ConsultaForm.module.scss";
 import AuthForm from "../../../../components/Form/AuthForm";
-import { FormField, FormSelectOption } from "../../../../components/Form/types/form.type";
-import { ConsultaRequest } from "../../types/consulta.types";
+import { FormField } from "../../../../components/Form/types/form.type";
+import type { FormSelectOption, ConsultaRequest } from "../../types/consulta.types";
 
-
-interface AppointmentFormProps {
+export interface ConsultaFormProps {
   // Dados Puros
   userId: string;
   tiposOptions: FormSelectOption[];
@@ -20,7 +19,7 @@ interface AppointmentFormProps {
   onCancel?: () => void;
 }
 
-export const AppointmentForm: React.FC<AppointmentFormProps> = ({ 
+export const AppointmentForm: React.FC<ConsultaFormProps> = ({ 
   userId,
   tiposOptions,
   horariosOptions,
@@ -31,19 +30,17 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   onSubmit,
   onCancel
 }) => {
-  // Estados locais APENAS para controle visual dos inputs
+  // Estados locais para controle visual
   const [selectedTipo, setSelectedTipo] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [sintomas, setSintomas] = useState<string>("");
 
-  // Handler local para mudança de tipo
   const handleLocalTipoChange = (val: string) => {
     setSelectedTipo(val);
-    setSelectedSlot(""); // Reseta slot visualmente
-    onTipoChange(val);   // Avisa a Partial para buscar horários
+    setSelectedSlot(""); 
+    onTipoChange(val); 
   };
 
-  // Handler local para mudança de slot
   const handleLocalSlotChange = (val: string) => {
     setSelectedSlot(val);
     onSlotChange(val);
@@ -57,22 +54,21 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         horarioSlotId: selectedSlot,
         sintomas: sintomas
     };
+    // Chamada do pai (que chama o Service)
     await onSubmit(payload);
   };
 
-  // 3. Definição dos Campos (HTML Lógico)
   const fields: FormField[] = useMemo(() => [
       {
         elementType: "input",
         type: "text",
         name: "patientId",
         label: "ID do Paciente",
-        placeholder: "Cole o ID do paciente...",
+        placeholder: "Carregando ID...",
         value: userId, 
-        // Apenas atualiza visualmente, pois o hook usa o userId passado na inicialização
-        onChange: () => {}, 
+        onChange: () => {}, // Read-only visual
         required: true,
-        disabled: true // Se for paciente comum, deve ser travado
+        disabled: true 
       },
       {
         elementType: "select",
@@ -112,7 +108,8 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
     ],
     [userId, selectedTipo, selectedSlot, sintomas, tiposOptions, horariosOptions, isLoadingHorarios]
   );
-return (
+
+  return (
     <div className={styles.appointmentForm}>
       <h3 className={styles.title}>Novo Agendamento</h3>
       <AuthForm

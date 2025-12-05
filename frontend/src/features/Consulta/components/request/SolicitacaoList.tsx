@@ -3,22 +3,17 @@ import styles from "./SolicitacaoList.module.scss";
 import Table from "../../../../components/Tables/Tables";
 import { ColumnType } from "../../../../components/Tables/types";
 import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
-import { SolicitacaoSummary } from "../../types/consulta.types";
+import { AppointmentUserResponse } from "../../types/consulta.types";
 
 interface SolicitacaoListProps {
-  solicitacoes: SolicitacaoSummary[];
+  solicitacoes: AppointmentUserResponse[];
   isLoading: boolean;
   hasMore: boolean;
   loadMore: () => void;
 }
 
-// Componente para renderizar Status com estilo
 const StatusBadge = ({ status }: { status: string }) => {
-  // Mapeia classes CSS baseadas no status (PENDENTE, RECUSADA, ACEITA)
-  const statusClass =
-    styles[
-      `status${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}`
-    ];
+  const statusClass = styles[`status${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}`] || styles.statusDefault;
   return <span className={`${styles.badge} ${statusClass}`}>{status}</span>;
 };
 
@@ -30,21 +25,16 @@ export const SolicitacaoList: React.FC<SolicitacaoListProps> = ({
 }) => {
   const { lastElementRef } = useInfiniteScroll(loadMore, hasMore, isLoading);
 
-  // Definição das colunas
-  const colunas: ColumnType<SolicitacaoSummary>[] = useMemo<
-    ColumnType<SolicitacaoSummary>[]
-  >(
+  // Colunas mapeadas para AppointmentUserResponse
+  const colunas: ColumnType<AppointmentUserResponse>[] = useMemo(
     () => [
-      {
-        header: "Especialidade",
-        accessor: "especialidade" as keyof SolicitacaoSummary,
-      }, // Adapte ao nome do campo no DTO
-      { header: "Médico", accessor: "medico" as keyof SolicitacaoSummary },
-      { header: "Data Solicitada", accessor: "dia" }, // Formatar data se necessário no Table ou aqui
+      { header: "Especialidade", accessor: "especialidade" }, 
+      { header: "Médico", accessor: "medicoNome" },
+      { header: "Data Solicitada", accessor: "data" }, 
       {
         header: "Status",
         accessor: "status",
-        render: (row: SolicitacaoSummary) => <StatusBadge status={row.status} />, // Renderização customizada
+        render: (row: AppointmentUserResponse) => <StatusBadge status={row.status} />,
       },
     ],
     []
@@ -67,10 +57,7 @@ export const SolicitacaoList: React.FC<SolicitacaoListProps> = ({
   return (
     <section className={styles.listSection}>
       {renderContent()}
-
-      {/* Sentinela para Infinite Scroll */}
       <div ref={lastElementRef} style={{ height: "1px" }} />
-
       {isLoading && solicitacoes.length > 0 && (
         <div className={styles.loadingMore}>Carregando mais...</div>
       )}

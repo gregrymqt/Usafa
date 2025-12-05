@@ -1,27 +1,25 @@
-import { useState, useCallback } from "react";
-import Swal from "sweetalert2";
-import { consultaService } from "../../services/consulta.service";
-import { FormSelectOption, ConsultaRequest } from "../../types/consulta.types";
+import { useState, useCallback } from 'react';
+import Swal from 'sweetalert2';
+import { consultaService } from '../../services/consulta.service';
+import type { FormSelectOption, ConsultaRequest } from '../../types/consulta.types';
 
 export const useConsultaForm = (userId: string) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  
   const [tiposOptions, setTiposOptions] = useState<FormSelectOption[]>([]);
-  const [horariosOptions, setHorariosOptions] = useState<FormSelectOption[]>(
-    []
-  );
-
+  const [horariosOptions, setHorariosOptions] = useState<FormSelectOption[]>([]);
   const [isLoadingHorarios, setIsLoadingHorarios] = useState(false);
 
   const [selectedTipo, setSelectedTipo] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [sintomas, setSintomas] = useState("");
 
-  // [CORREÇÃO IMAGEM 484d88] - Filtra opções vazias para evitar duplicidade no select
+  // Carrega Médicos/Tipos iniciais
   const loadInitialOptions = useCallback(async () => {
     try {
       setIsLoadingHorarios(true);
       const data = await consultaService.getFormOptions();
+      // Filtra labels vazios para segurança
       const tiposValidos = (data.tipos || []).filter((t) => t.value && t.label);
       setTiposOptions(tiposValidos);
     } catch (error) {
@@ -31,6 +29,7 @@ export const useConsultaForm = (userId: string) => {
     }
   }, []);
 
+  // Ao mudar o tipo, busca os slots (horários/médicos) disponíveis
   const handleTipoChange = useCallback(async (tipoId: string) => {
     setSelectedTipo(tipoId);
     setSelectedSlot("");
@@ -51,7 +50,6 @@ export const useConsultaForm = (userId: string) => {
     setIsSubmitting(true);
     try {
       const payload: ConsultaRequest = {
-        // Garante que usa o ID que está no Input visual, não o inicial
         patientId: data.patientId || userId, 
         tipoConsultaId: data.tipoConsultaId || selectedTipo,
         horarioSlotId: data.horarioSlotId || selectedSlot, 
@@ -61,6 +59,7 @@ export const useConsultaForm = (userId: string) => {
       await consultaService.requestConsulta(payload);
       Swal.fire("Sucesso", "Solicitação enviada!", "success");
 
+      // Limpa campos após sucesso
       setSelectedSlot("");
       setSintomas("");
       return true;

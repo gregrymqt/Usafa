@@ -1,22 +1,24 @@
 import React, { useState } from "react";
 import { ConsultaList } from "../../components/table/listConsulta";
-import styles from "./ListaConsultas.module.scss"; // CSS das abas abaixo
+import styles from "./ListaConsultas.module.scss"; 
 import { SolicitacaoList } from "../../components/request/SolicitacaoList";
-import { SolicitacaoSummary } from "../../types/consulta.types";
+// CORREÇÃO: Importando a nova interface correta
+import type { AppointmentUserResponse } from "../../types/consulta.types";
 
 interface ListaConsultasProps {
-  // CORREÇÃO: Alterado de Consulta[] para ConsultaSummary[]
-  consultas: SolicitacaoSummary[];
+  // CORREÇÃO: Alterado de SolicitacaoSummary para AppointmentUserResponse
+  consultas: AppointmentUserResponse[];
   isLoadingConsultas: boolean;
   hasMoreConsultas: boolean;
   loadMoreConsultas: () => void;
 
   // Props Solicitações
-  solicitacoes: SolicitacaoSummary[];
+  solicitacoes: AppointmentUserResponse[];
   isLoadingSolicitacoes: boolean;
   hasMoreSolicitacoes: boolean;
   loadMoreSolicitacoes: () => void;
 }
+
 export const ListaConsultasPartial: React.FC<ListaConsultasProps> = ({
   consultas,
   isLoadingConsultas,
@@ -27,9 +29,7 @@ export const ListaConsultasPartial: React.FC<ListaConsultasProps> = ({
   hasMoreSolicitacoes,
   loadMoreSolicitacoes,
 }) => {
-  const [activeTab, setActiveTab] = useState<"consultas" | "requests">(
-    "consultas"
-  );
+  const [activeTab, setActiveTab] = useState<"consultas" | "requests">("consultas");
 
   return (
     <div className={styles.container}>

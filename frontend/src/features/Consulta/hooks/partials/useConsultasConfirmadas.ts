@@ -1,67 +1,87 @@
-import { useState, useCallback } from 'react';
-import Swal from 'sweetalert2';
-import { consultaService } from '../../services/consulta.service';
-import { SolicitacaoSummary } from '../../types/consulta.types';
+import { useState, useEffect } from 'react';
+import { useDebounce } from '../../../../shared/utils/forPages.utils';
+import { AppointmentUserResponse, ConsultaRequest } from '../../types/consulta.types';
+import { useConsultaForm } from './useConsultaForm'; // Ajuste o caminho se estiver em ./partials/
+import { useConsultaList } from './useConsultaList'; // Ajuste o caminho se estiver em ./partials/
 
-
-export const useConsultaList = (userId: string) => {
-  // --- Estado: Consultas Confirmadas (SQL) ---
-  const [consultas, setConsultas] = useState<SolicitacaoSummary[]>([]);
-  const [isLoadingConsultas, setIsLoadingConsultas] = useState(false);
+export const useConsulta = (userId: string) => {
+  // 1. Estados Locais
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   
-  // --- Estado: Solicitações (Mongo/Redis) ---
-  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoSummary[]>([]);
-  const [isLoadingSolicitacoes, setIsLoadingSolicitacoes] = useState(false);
+  // Mantemos o estado para compatibilidade com a UI, mas ele iniciará null
+  const [confirmedConsulta, setConfirmedConsulta] = useState<AppointmentUserResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // 1. Buscar Consultas Confirmadas
-  const fetchConsultas = useCallback(async (search = '', page = 0) => {
-    if (!userId) return;
-    setIsLoadingConsultas(true);
+  // 2. Instancia os Hooks Filhos
+  const form = useConsultaForm(userId);
+  const list = useConsultaList(userId);
+
+  // 3. Efeito de Busca (Search)
+  useEffect(() => {
+    list.fetchConsultas(debouncedSearchTerm, 0, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm]); 
+
+  // 4. Carregar Opções Iniciais
+  useEffect(() => {
+    form.loadInitialOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --- WEBSOCKET REMOVIDO ---
+
+  // 6. Submit Integrado
+  const handleSubmitIntegrated = async (data: ConsultaRequest) => {
+    setError(null);
     try {
-      const data = await consultaService.getConsultasConfirmadas(userId, { 
-        page, 
-        size: 10, 
-        search 
-      });
-      // Lógica simplificada: sobrescreve a lista (se quiser infinito, usar spread)
-      setConsultas(data.content); 
-    } catch (error) {
-      console.error(error);
-      Swal.fire('Erro', 'Falha ao carregar histórico.', 'error');
-    } finally {
-      setIsLoadingConsultas(false);
+      const success = await form.submitRequest(data);
+      if (success) {
+        // Atualiza a lista manualmente após o envio bem-sucedido
+        list.refreshAll();
+      }
+    } catch (e) {
+      console.error("Falha ao submeter:", e);
+      setError("Ocorreu um erro ao processar sua solicitação.");
     }
-  }, [userId]);
+  };
 
-  // 2. Buscar Solicitações Pendentes
-  const fetchSolicitacoes = useCallback(async (page = 0) => {
-    if (!userId) return;
-    setIsLoadingSolicitacoes(true);
-    try {
-      const data = await consultaService.getSolicitacoesPendentes(userId, page);
-      setSolicitacoes(data.content);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoadingSolicitacoes(false);
-    }
-  }, [userId]);
-
-  // Refresh Unificado
-  const refreshAll = useCallback(() => {
-    fetchConsultas();
-    fetchSolicitacoes();
-  }, [fetchConsultas, fetchSolicitacoes]);
-
+  // 7. Retorno Unificado
   return {
-    consultas,
-    isLoadingConsultas,
-    fetchConsultas,
-    
-    solicitacoes,
-    isLoadingSolicitacoes,
-    fetchSolicitacoes,
+    // --- Listas ---
+    consultas: list.consultas, 
+    isLoadingConsultas: list.isLoadingConsultas,
+    hasMoreConsultas: list.hasMoreConsultas,
+    loadMoreConsultas: list.loadMoreConsultas,
 
-    refreshAll
+    solicitacoes: list.solicitacoes, 
+    isLoadingSolicitacoes: list.isLoadingSolicitacoes,
+    hasMoreSolicitacoes: list.hasMoreSolicitacoes,
+    loadMoreSolicitacoes: list.loadMoreSolicitacoes,
+
+    // --- Busca ---
+    searchTerm,
+    setSearchTerm,
+
+    // --- Formulário ---
+    formOptions: { 
+        medicos: [], 
+        tipos: form.tiposOptions,
+        horarios: form.horariosOptions
+    },
+    tiposOptions: form.tiposOptions,
+    opcoesHorarios: form.horariosOptions,
+    isLoadingHorarios: form.isLoadingHorarios,
+    buscarHorarios: form.handleTipoChange,
+    
+    handleSubmitConsulta: handleSubmitIntegrated,
+    isSubmitting: form.isSubmitting,
+    handleSlotChange: form.handleSlotChange,
+
+    // --- Feedback ---
+    confirmedConsulta,
+    closeConfirmationModal: () => setConfirmedConsulta(null),
+    error,
+    refreshAll: list.refreshAll
   };
 };

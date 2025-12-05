@@ -25,7 +25,7 @@ public class UserProfileService implements IUserProfileService {
 
     private final IUserRepository userRepository;
     private final ICacheService cacheService;
-    
+
     // INJEÇÃO DA SERVICE DE IMAGEM
     private final IPictureService pictureService;
 
@@ -65,35 +65,23 @@ public class UserProfileService implements IUserProfileService {
         user.setName(updateDTO.name());
         user.setCep(updateDTO.cep());
 
-        // 3. Lógica da Foto usando PictureService
+        // 3. Lógica da Foto (Padronizada)
         if (file != null && !file.isEmpty()) {
             log.info("Processando nova foto de perfil para: {}", email);
-            
-            // Faz o upload físico e gera a URL
-            Picture uploadedPicture = pictureService.uploadAndGetPicture(file, "perfil_usuario");
 
-            Picture currentPicture = user.getPicture();
-            if (currentPicture != null) {
-                // Atualiza existente
-                currentPicture.setUrl(uploadedPicture.getUrl());
-                currentPicture.setTitle("Foto de " + user.getName());
-            } else {
-                // Cria nova entidade Picture
-                Picture newPicture = Picture.builder()
-                        .url(uploadedPicture.getUrl())
-                        .group("perfil_usuario")
-                        .title("Foto de " + user.getName())
-                        .build();
-                user.setPicture(newPicture);
-            }
+            // O Service já salva no disco e cria a entrada no banco
+            Picture newPicture = pictureService.uploadAndGetPicture(file, "perfil_usuario");
+
+            // Apenas substituímos. O JPA com orphanRemoval=true apaga a anterior.
+            user.setPicture(newPicture);
         }
 
         // 4. Salva e Invalida Cache
         User updatedUser = userRepository.save(user);
-        
+
         String cacheKey = CACHE_PREFIX + email;
         cacheService.delete(cacheKey);
-        
+
         return new UserProfileResponseDTO(updatedUser);
     }
 }

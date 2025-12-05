@@ -1,24 +1,26 @@
-// (Caminho: .../components/AppointmentAdmin/AppointmentAdmin.tsx)
-
 import React from 'react';
 import styles from './AppointmentAdmin.module.scss';
 import { ActionMenu } from '../../../../components/ActionMenu/ActionMenu';
-import type { Appointment, AppointmentFormData } from './types/appointment.type';
 import { useInfiniteScroll } from '../../../../shared/utils/forPages.utils';
-
-// --- Componente da Aba de Consultas ---
+// Imports Novos
+import type { 
+  AppointmentAdminResponse, 
+  AppointmentOperation 
+} from './types/appointment.type';
 
 export interface AppointmentAdminProps {
-  appointments: Appointment[];
+  // Alterado para o tipo correto de Resposta Admin
+  appointments: AppointmentAdminResponse[];
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
-  onEditAppointment: (id: string, data: AppointmentFormData) => Promise<void>;
+  onEditAppointment: (id: string, data: AppointmentOperation) => Promise<void>;
   onDeleteAppointment: (id: string) => Promise<void>;
   loadMoreAppointments: () => void;
 }
+
 export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
-  appointments = [], // <--- CORREÇÃO AQUI: Garante que nunca seja undefined
+  appointments = [],
   isLoading,
   error,
   hasMore,
@@ -26,24 +28,7 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
   onDeleteAppointment,
   loadMoreAppointments,
 }) => {
-  // Função para formatar a data (sem alterações)
-  const formatDateTime = (isoString: string) => {
-    try {
-      const date = new Date(isoString);
-      if (isNaN(date.getTime())) return 'Data inválida'; 
-      return date.toLocaleString('pt-BR', { 
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch (e) {
-      console.error('Erro ao formatar data:', e);
-      return isoString;
-    }
-  };
-
+  
   const { lastElementRef } = useInfiniteScroll(
     loadMoreAppointments,
     hasMore,
@@ -51,15 +36,14 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
   );
 
   const renderContent = () => {
-    // Agora appointments nunca será undefined, o .length funciona seguro
     if (isLoading && appointments.length === 0) {
-      return <p className={styles.loading}>Carregando consultas...</p>; 
+      return <p className={styles.loading}>Carregando consultas...</p>;
     }
     if (error) {
-      return <p className={styles.error}>Erro: {error}</p>; 
+      return <p className={styles.error}>Erro: {error}</p>;
     }
     if (appointments.length === 0) {
-      return <p className={styles.empty}>Nenhuma consulta agendada.</p>; 
+      return <p className={styles.empty}>Nenhuma consulta agendada.</p>;
     }
 
     return (
@@ -74,21 +58,20 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
             >
               <div className={styles.cardHeader}>
                 <div className={styles.cardInfo}>
-                  {/* Verifica se patient/doctor existem antes de acessar .name para evitar crash extra */}
-                  <h3>{appt.patient?.name || 'Paciente Desconhecido'}</h3>
-                  <p>com {appt.doctor?.name || 'Médico não atribuído'}</p>
+                  {/* Usando propriedades planas do DTO */}
+                  <h3>{appt.pacienteNome || 'Paciente Desconhecido'}</h3>
+                  <p>com {appt.medicoNome || 'Médico não atribuído'}</p>
                 </div>
 
                 <ActionMenu
                   onUpdate={() => {
-                    // Constrói o objeto esperado pelo formulário de edição
-                    const formData: AppointmentFormData = {
-                      patientId: appt.patient?.id?.toString() || '',
+                    // CONVERSÃO IMPORTANTE:
+                    // De AppointmentAdminResponse (Visual) para AppointmentOperation (Envio)
+                    const formData: AppointmentOperation = {
+                      patientId: appt.pacienteId,
                       horarioSlotId: appt.horarioSlotId,
                       tipoConsultaId: appt.tipoConsultaId,
                       status: appt.status,
-                      date: appt.date,
-                      time: appt.time,
                       sintomas: appt.sintomas
                     };
                     onEditAppointment(appt.id, formData);
@@ -98,7 +81,11 @@ export const AppointmentAdmin: React.FC<AppointmentAdminProps> = ({
               </div>
               <div className={styles.cardBody}>
                 <p>
-                  <strong>Data:</strong> {formatDateTime(appt.date)}
+                  {/* Data e Horário já vêm formatados do backend */}
+                  <strong>Data:</strong> {appt.data} às {appt.horario}
+                </p>
+                <p>
+                   <strong>Especialidade:</strong> {appt.especialidadeNome}
                 </p>
               </div>
               <div className={styles.cardFooter}>

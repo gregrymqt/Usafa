@@ -1,6 +1,4 @@
-import type { Patient } from "../../Patient/types/patient.type";
-import type { Doctor } from "../../doctors/types/doctor.type";
-
+// --- Interfaces de Paginação ---
 export interface Page<T> {
   content: T[];
   last: boolean;
@@ -8,57 +6,54 @@ export interface Page<T> {
   totalPages: number;
   size: number;
   number: number;
+  // Propriedades adicionadas para compatibilidade com forPages.utils
+  empty: boolean; 
+  first: boolean;
+  numberOfElements: number;
 }
 
-export type AppointmentStatus =
-  | "Agendada"
-  | "Concluída"
-  | "Cancelada"
-  | "Pendente";
-
-/**
- * Interface de Visualização (Para a Tabela)
- */
-export interface Appointment {
+// --- DTO de Visualização (READ) - AppointmentAdminResponseDTO ---
+// Usado na Tabela do Admin (GET /consultas ou GET /requests como Admin)
+export interface AppointmentAdminResponse {
   id: string;
-  patient: Patient;
-  doctor: Doctor;
-  date: string; // ISO String (Vem do slot)
-  status: AppointmentStatus;
-  specialty?: string; // Opcional, para exibição
-  // --- Campos adicionados para permitir a edição ---
+  
+  // Relacionamentos (IDs para Edição)
+  pacienteId: string;
+  medicoId: string;
   horarioSlotId: string;
   tipoConsultaId: string;
+
+  // Dados Visuais (Para a Tabela)
+  pacienteNome: string;
+  medicoNome: string;
+  especialidadeNome: string;
+  
+  // Dados de Exibição
+  data: string;    // String formatada ou ISO
+  horario: string; // String formatada ou ISO
+  status: string;  // "AGENDADA", "PENDENTE", etc.
   sintomas?: string;
-  time: string; // Hora extraída do slot
 }
 
-/**
- * Interface de Envio (Para Criar/Editar)
- * Alinhada com o DTO do Backend (AppointmentRequestDto)
- */
-export interface AppointmentFormData {
-  patientId: string; // Admin seleciona o paciente
-  horarioSlotId: string; // ID do Slot (Substitui data/hora/medico)
-  tipoConsultaId: string; // ID da Especialidade
-  status: AppointmentStatus;
+// --- DTO de Operação (WRITE) - AppointmentOperationDTO ---
+// Usado para Criar, Editar e Atualizar Status (POST/PUT)
+export interface AppointmentOperation {
+  patientId: string;      // Obrigatório para Admin
+  horarioSlotId: string;  // Obrigatório
+  tipoConsultaId: string; // Obrigatório
   sintomas?: string;
-  date: string; // Mantido para compatibilidade, mas não usado no form
-  time: string; // Mantido para compatibilidade, mas não usado no form
+  status?: string;        // Usado na edição/atualização
 }
 
-// No Java: ConsultaFormOptionsDTO
-export interface ConsultaFormOptionsResponse {
-  medicos: FormSelectOption[];
-  tipos: FormSelectOption[];    // Essa é a lista de Especialidades
-  dias: FormSelectOption[];     // Pode vir vazio inicialmente
-  horarios: FormSelectOption[]; // Pode vir vazio inicialmente
-}
-
-/**
- * Opções para os Selects
- */
+// --- Options (Allow) ---
 export interface FormSelectOption {
   value: string | number;
   label: string;
+}
+
+export interface ConsultaFormOptionsResponse {
+  medicos: FormSelectOption[];
+  tipos: FormSelectOption[];
+  dias: FormSelectOption[];
+  horarios: FormSelectOption[];
 }

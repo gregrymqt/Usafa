@@ -103,3 +103,37 @@
     }
   }
 }
+
+/* --- Componentes do Card --- */
+.doctorInfoWrapper {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md; // 1rem (16px)
+}
+
+.avatarContainer {
+  flex-shrink: 0; // Impede que o avatar encolha
+}
+
+// Estilo base para o avatar e o placeholder
+.avatarBase {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doctorAvatar {
+  @extend .avatarBase;
+  object-fit: cover; // Garante que a imagem cubra o espaço sem distorcer
+}
+
+.avatarPlaceholder {
+  @extend .avatarBase;
+  background-color: $neutral-bg; // Cor de fundo neutra
+  color: $text-secondary;
+  font-weight: 700;
+  font-size: 1.25rem;
+}

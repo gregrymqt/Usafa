@@ -1,23 +1,29 @@
 import { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
 import { ApiError } from "../../../../../shared";
-import type { ConsultaDocument } from "../components/ConsultaRequest/Table/types/consultaRequestTable.type";
-import { consultaService } from "../services/appointmentRequest.service";
-import type { ConsultaUpdateData } from "../components/ConsultaRequest/Modal/types/ConsultaEditModal.type";
+// Imports Atualizados
+import type { 
+  AppointmentAdminResponse, 
+  AppointmentOperation 
+} from "../types/appointment.type";
+import { appointmentRequestService } from "../services/appointmentRequest.service";
 import {
   usePagination,
   useDebounce,
   type Page,
 } from "../../../../../shared/utils/forPages.utils";
 
-export const useConsultaRequests = () => {
-  const [requests, setRequests] = useState<ConsultaDocument[]>([]);
+export const useAppointmentRequests = () => {
+  // Estado tipado com AppointmentAdminResponse (Dados completos para tabela admin)
+  const [requests, setRequests] = useState<AppointmentAdminResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
-  const [pageData, setPageData] = useState<Page<ConsultaDocument>>();
+  
+  const [pageData, setPageData] = useState<Page<AppointmentAdminResponse>>();
+  
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); // 1. Adiciona estado para o filtro de status
-  const [currentPage, setCurrentPage] = useState(0); // Página atual, base 0
+  const [statusFilter, setStatusFilter] = useState(""); 
+  const [currentPage, setCurrentPage] = useState(0);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -28,21 +34,22 @@ export const useConsultaRequests = () => {
     });
 
   /**
-   * Busca as solicitações da API com paginação e filtro.
+   * Busca as solicitações da API (Admin View)
    */
   const fetchRequests = useCallback(
     async (page: number, search: string, status: string) => {
-      // 2. Adiciona 'status' como parâmetro
       try {
         setIsLoading(true);
         setError(null);
-        // 3. Passa os filtros 'search' e 'status' para o serviço
-        const response = await consultaService.getRequests({
+        
+        // Chama o serviço do Admin que retorna Page<AppointmentAdminResponse>
+        const response = await appointmentRequestService.getRequestsAdmin({
           page,
-          size: 10, // Itens por página
+          size: 10,
           search,
-          status,
+          status: status || undefined, // Envia undefined se vazio para filtrar tudo
         });
+        
         setRequests(response.content);
         setPageData(response);
       } catch (error: unknown) {
@@ -56,9 +63,7 @@ export const useConsultaRequests = () => {
         if (error instanceof ApiError) {
           setError(error);
         } else {
-          setError(
-            new ApiError("Erro inesperado ao buscar solicitações.", 500)
-          );
+          setError(new ApiError("Erro inesperado.", 500));
         }
       } finally {
         setIsLoading(false);
@@ -67,23 +72,35 @@ export const useConsultaRequests = () => {
     []
   );
 
-  // Efeito para buscar os dados quando a página ou a busca mudam
+  // Efeitos de Busca
   useEffect(() => {
-    // Quando um filtro muda, voltamos para a primeira página
     if (currentPage !== 0) {
-      // Evita um re-render desnecessário se já estiver na página 0
       setCurrentPage(0);
+    } else {
+      fetchRequests(currentPage, debouncedSearchTerm, statusFilter);
     }
-    fetchRequests(currentPage, debouncedSearchTerm, statusFilter);
-  }, [debouncedSearchTerm, statusFilter, currentPage, fetchRequests]); // 4. Adiciona 'statusFilter' às dependências
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, statusFilter]);
 
+  // Efeito de Paginação
+  useEffect(() => {
+    fetchRequests(currentPage, debouncedSearchTerm, statusFilter);
+  }, [currentPage, fetchRequests]);
+
+
+  /**
+   * Atualiza Status (Aceitar/Recusar)
+   * Usa AppointmentOperationDTO conforme definido no Java
+   */
   const handleUpdateStatus = useCallback(
-    async (id: string, data: ConsultaUpdateData) => {
+    async (id: string, data: AppointmentOperation) => {
       try {
-        const updatedDoc = await consultaService.updateStatus(id, data);
-        setRequests((currentData) =>
-          currentData.map((item) => (item.id === id ? updatedDoc : item))
-        );
+        // O backend retorna void no updateStatus ou o objeto atualizado.
+        // Por segurança, recarregamos a lista para garantir consistência.
+        await appointmentRequestService.updateStatus(id, data);
+        
+        fetchRequests(currentPage, debouncedSearchTerm, statusFilter);
+        
         Swal.fire("Sucesso", "Status da solicitação atualizado.", "success");
       } catch (error: unknown) {
         console.error(error);
@@ -94,18 +111,17 @@ export const useConsultaRequests = () => {
         Swal.fire("Erro ao Atualizar", mensagemDoBackend, "error");
       }
     },
-    []
+    [currentPage, debouncedSearchTerm, statusFilter, fetchRequests]
   );
 
   /**
-   * Função para DELETAR uma solicitação.
+   * Deleta Solicitação
    */
   const handleDeleteRequest = useCallback(
     async (id: string) => {
       try {
-        await consultaService.deleteRequest(id);
+        await appointmentRequestService.deleteRequest(id);
         Swal.fire("Sucesso", "Solicitação deletada com sucesso.", "success");
-        // 5. Recarrega a página atual com os filtros ativos
         fetchRequests(currentPage, debouncedSearchTerm, statusFilter);
       } catch (error: unknown) {
         console.error(error);
@@ -117,7 +133,7 @@ export const useConsultaRequests = () => {
       }
     },
     [currentPage, debouncedSearchTerm, statusFilter, fetchRequests]
-  ); // 6. Adiciona 'statusFilter' às dependências
+  );
 
   return {
     requests,
@@ -125,9 +141,9 @@ export const useConsultaRequests = () => {
     error,
     searchTerm,
     setSearchTerm,
-    statusFilter, // 7. Expõe o estado do filtro e seu setter
+    statusFilter,
     setStatusFilter,
-    currentPage: currentPage + 1, // Expor para a UI como base 1
+    currentPage: currentPage + 1,
     totalPages,
     goToPage,
     nextPage,
@@ -136,7 +152,6 @@ export const useConsultaRequests = () => {
     canGoPrev,
     handleUpdateStatus,
     handleDeleteRequest,
-    refetch: () =>
-      fetchRequests(currentPage, debouncedSearchTerm, statusFilter), // 8. Atualiza o refetch
+    refetch: () => fetchRequests(currentPage, debouncedSearchTerm, statusFilter),
   };
 };

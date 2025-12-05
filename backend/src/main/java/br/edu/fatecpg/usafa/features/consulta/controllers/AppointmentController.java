@@ -1,9 +1,9 @@
 package br.edu.fatecpg.usafa.features.consulta.controllers; // Ajuste o pacote
 
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaFormOptionsDTO;
-import br.edu.fatecpg.usafa.features.consulta.dtos.FormSelectOptionDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.FormOptionsDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.SelectOptionDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.User.AppointmentUserResponseDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IAppointmentService;
 import br.edu.fatecpg.usafa.models.User;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +32,11 @@ public class AppointmentController {
 
     /**
      * Endpoint para buscar o histórico de consultas confirmadas.
+     * Retorna AppointmentUserResponseDTO (Visão do Paciente).
      */
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Page<ConsultaDTO>> getConsultasPorUsuario(
+    public ResponseEntity<Page<AppointmentUserResponseDTO>> getConsultasPorUsuario(
             @PathVariable String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -66,7 +67,7 @@ public class AppointmentController {
      */
     @GetMapping("/options")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ConsultaFormOptionsDTO> getFormularioOptions() {
+    public ResponseEntity<FormOptionsDTO> getFormularioOptions() {
         return ResponseEntity.ok(consultaService.getFormOptions());
     }
 
@@ -75,7 +76,7 @@ public class AppointmentController {
      */
     @GetMapping("/horarios-disponiveis/{tipoId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<FormSelectOptionDTO>> getHorariosPorTipo(@PathVariable String tipoId) {
+    public ResponseEntity<List<SelectOptionDTO>> getHorariosPorTipo(@PathVariable String tipoId) {
         return ResponseEntity.ok(consultaService.getHorariosDisponiveisPorTipo(tipoId));
     }
 }

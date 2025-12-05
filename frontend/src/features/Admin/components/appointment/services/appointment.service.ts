@@ -1,33 +1,21 @@
-import { api } from "../../../../../shared";
-import { SolicitacaoSummary } from "../../../../Consulta/types/consulta.types";
-import { Page, AppointmentFormData, ConsultaFormOptionsResponse, FormSelectOption } from "../types/appointment.type";
+import { api } from "../../../../../shared"; // Ajuste seu import
+import type { 
+  Page, 
+  AppointmentAdminResponse, 
+  AppointmentOperation, 
+  ConsultaFormOptionsResponse, 
+  FormSelectOption 
+} from "../types/appointment.type";
 
 const BASE_URL = '/consultas';
 
 export const appointmentService = {
 
-  // --- LEITURA (PUBLIC & ADMIN) ---
-
-  /**
-   * [PUBLIC] Busca histórico de consultas de um usuário específico.
-   * Rota: GET /consultas/user/{userId}
-   */
-  getMyAppointments: async (userId: string, params: { page: number, size: number, search?: string }) => {
-    const queryParams = new URLSearchParams({
-        page: params.page.toString(),
-        size: params.size.toString()
-    });
-    
-    if (params.search) queryParams.append('search', params.search);
-    
-    // Retorna Page<ConsultaSummary>
-    const response = await api.get<Page<SolicitacaoSummary>>(`${BASE_URL}/user/${userId}?${queryParams.toString()}`);
-    return response; 
-  },
+  // --- LEITURA ---
 
   /**
    * [ADMIN] Busca TODAS as consultas do sistema.
-   * Rota sugerida: GET /consultas (Admin Controller deve implementar isso)
+   * O Controller Java precisa ter um endpoint GET /consultas (sem /user) implementado.
    */
   getAllAppointments: async (params: { page: number, size: number, search?: string }) => {
     const queryParams = new URLSearchParams({
@@ -37,43 +25,46 @@ export const appointmentService = {
 
     if (params.search) queryParams.append('search', params.search);
 
-    const response = await api.get<Page<SolicitacaoSummary>>(`${BASE_URL}?${queryParams.toString()}`);
+    // Agora retorna o tipo correto AppointmentAdminResponse
+    const response = await api.get<Page<AppointmentAdminResponse>>(`${BASE_URL}?${queryParams.toString()}`);
     return response;
   },
 
   // --- ESCRITA (ADMIN) ---
 
   /**
-   * [ADMIN] Cria um agendamento direto (sem passar por solicitação).
+   * [ADMIN] Cria um agendamento direto.
+   * Payload: AppointmentOperationDTO
    */
-  createAppointment: async (data: AppointmentFormData): Promise<void> => {
+  createAppointment: async (data: AppointmentOperation): Promise<void> => {
     await api.post(BASE_URL, data);
   },
 
   /**
    * [ADMIN] Edita um agendamento existente.
+   * Payload: AppointmentOperationDTO
    */
-  updateAppointment: async (id: string, data: AppointmentFormData): Promise<void> => {
+  updateAppointment: async (id: string, data: AppointmentOperation): Promise<void> => {
     await api.put(`${BASE_URL}/${id}`, data);
   },
 
   /**
-   * [ADMIN] Cancela/Deleta um agendamento.
+   * [ADMIN] Deleta um agendamento.
    */
   deleteAppointment: async (id: string): Promise<void> => {
     await api.delete(`${BASE_URL}/${id}`);
   },
 
-  // --- DADOS AUXILIARES (COMPARTILHADO) ---
+  // --- AUXILIARES (OPTIONS) ---
 
   getFormOptions: async (): Promise<ConsultaFormOptionsResponse> => {
-    const data = await api.get<ConsultaFormOptionsResponse>(`${BASE_URL}/options`);
-    return data;
+    const response = await api.get<ConsultaFormOptionsResponse>(`${BASE_URL}/options`);
+    return response;
   },
 
   getHorariosPorTipo: async (tipoConsultaId: string): Promise<FormSelectOption[]> => {
     if (!tipoConsultaId) return [];
-    const data = await api.get<FormSelectOption[]>(`${BASE_URL}/horarios-disponiveis/${tipoConsultaId}`);
-    return data;
+    const response = await api.get<FormSelectOption[]>(`${BASE_URL}/horarios-disponiveis/${tipoConsultaId}`);
+    return response;
   }
 };

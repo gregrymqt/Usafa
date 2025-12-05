@@ -1,12 +1,12 @@
 package br.edu.fatecpg.usafa.models;
 
-import br.edu.fatecpg.usafa.features.consulta.dtos.ConsultaRequestDTO;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 /**
  * Representa uma solicitação de consulta no banco de dados relacional.
@@ -20,6 +20,8 @@ public class SolicitacaoConsulta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private UUID publicId = UUID.randomUUID();
 
     @Column(nullable = false)
     private String sintomas;
@@ -44,19 +46,4 @@ public class SolicitacaoConsulta {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_consulta_id", nullable = false)
     private TipoConsulta tipoConsulta;
-
-    /**
-     * Construtor auxiliar para criar a entidade a partir dos dados validados.
-     */
-    public SolicitacaoConsulta(ConsultaRequestDTO request, User user, Medico medico, TipoConsulta tipo) {
-        this.sintomas = request.getSintomas();
-        this.dia = LocalDate.parse(request.getDia());
-        this.horario = LocalTime.parse(request.getHorario());
-        this.status = "PENDENTE"; // Status inicial
-
-        // Associações diretas com as outras entidades
-        this.user = user;
-        this.medico = medico;
-        this.tipoConsulta = tipo;
-    }
 }
