@@ -45,7 +45,12 @@ export const ConsultaList: React.FC<ConsultaListProps> = ({
     <section className={styles.consultaListSection}>
       <h2>Seu Histórico de Consultas</h2>
       {renderContent()}
-      <div ref={lastElementRef} className={styles.infiniteScrollSentinel} />
+      
+      {/* CORREÇÃO: O sentinela só aparece se tiver itens E tiver mais páginas */}
+      {consultas.length > 0 && hasMore && (
+         <div ref={lastElementRef} className={styles.infiniteScrollSentinel} />
+      )}
+
       {isLoading && consultas.length > 0 && (
         <div className={styles.loading}>Carregando mais...</div>
       )}

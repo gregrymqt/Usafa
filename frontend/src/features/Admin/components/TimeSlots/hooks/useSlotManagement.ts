@@ -31,7 +31,6 @@ export const useSlotManagement = (): UseSlotManagementReturn => {
       // Chama o service (que deve chamar o endpoint GET que criamos no back)
       const data: SlotResponse[] = await slotService.listarSlotsPorMedico(
         medicoId,
-        new Date().toISOString()
       );
 
       // Adapter: Converter SlotResponse (API) para Slot (Front)

@@ -28,9 +28,16 @@ const normalizeStatusClass = (status: AppointmentStatus): string => {
 };
 
 const StatusBadge: React.FC<{ status: AppointmentStatus }> = ({ status }) => {
-  return <span className={styles[`status${normalizeStatusClass(status)}`] || styles.statusDefault}>{status}</span>;
+  return (
+    <span
+      className={
+        styles[`status${normalizeStatusClass(status)}`] || styles.statusDefault
+      }
+    >
+      {status}
+    </span>
+  );
 };
-
 
 export const SolicitacaoList: React.FC<SolicitacaoListProps> = ({
   solicitacoes,
@@ -43,13 +50,15 @@ export const SolicitacaoList: React.FC<SolicitacaoListProps> = ({
   // Colunas mapeadas para AppointmentUserResponse
   const colunas: ColumnType<AppointmentUserResponse>[] = useMemo(
     () => [
-      { header: "Especialidade", accessor: "especialidade" }, 
+      { header: "Especialidade", accessor: "especialidade" },
       { header: "Médico", accessor: "medicoNome" },
-      { header: "Data Solicitada", accessor: "data" }, 
+      { header: "Data Solicitada", accessor: "data" },
       {
         header: "Status",
         accessor: "status",
-        render: (row: AppointmentUserResponse) => <StatusBadge status={row.status} />,
+        render: (row: AppointmentUserResponse) => (
+          <StatusBadge status={row.status} />
+        ),
       },
     ],
     []
@@ -72,7 +81,12 @@ export const SolicitacaoList: React.FC<SolicitacaoListProps> = ({
   return (
     <section className={styles.listSection}>
       {renderContent()}
-      <div ref={lastElementRef} style={{ height: "1px" }} />
+
+      {/* CORREÇÃO AQUI TAMBÉM */}
+      {solicitacoes.length > 0 && hasMore && (
+        <div ref={lastElementRef} style={{ height: "1px" }} />
+      )}
+
       {isLoading && solicitacoes.length > 0 && (
         <div className={styles.loadingMore}>Carregando mais...</div>
       )}

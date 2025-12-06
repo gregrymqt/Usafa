@@ -54,7 +54,9 @@ public class SecurityConfig {
                                                                 "/home/**", // <--- CORREÇÃO: Libera toda a área da Home
                                                                 "/admin/password-tokens/validate/**",
                                                                 "/admin/password-tokens/complete-creation",
-                                                                "/uploads/**")
+                                                                "/uploads/**",
+                                                                "/home/content/public/**" 
+                                                                )
                                                 .permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2

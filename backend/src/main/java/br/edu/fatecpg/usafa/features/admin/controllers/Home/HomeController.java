@@ -22,6 +22,7 @@ public class HomeController {
 
     // Endpoint PÚBLICO (Aberto)
     @GetMapping("/public")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<HomeContentDto>> getPublicContent() {
         return ResponseEntity.ok(homeService.findPublicContent());
     }

@@ -68,14 +68,6 @@ public class AppointmentController {
         }
         User user = userOptional.get();
 
-        // Segurança: Apenas Admin pode ver consultas de outros IDs
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-        if (!isAdmin && !user.getPublicId().toString().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         // Ordenação por data do slot (decrescente)
         Pageable pageable = PageRequest.of(page, size, Sort.by("horarioSlot.dataHoraInicio").descending());
 
@@ -101,6 +93,27 @@ public class AppointmentController {
                 .toUri();
 
         return ResponseEntity.created(uri).body(response);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Garante que só admin pode editar dados sensíveis
+    public ResponseEntity<AppointmentAdminResponseDTO> updateAppointment(
+            @PathVariable String id,
+            @RequestBody @Valid AppointmentOperationDTO dto
+    ) {
+        // Chama o método da service que já possui toda a regra de negócio
+        AppointmentAdminResponseDTO response = consultaService.updateAppointment(id, dto);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Garante segurança conforme comentário no seu front
+    public ResponseEntity<Void> deleteAppointment(@PathVariable String id) {
+        consultaService.deleteAppointment(id);
+        
+        // Retorna 204 No Content (Sucesso, sem corpo de resposta)
+        return ResponseEntity.noContent().build();
     }
 
     /**
