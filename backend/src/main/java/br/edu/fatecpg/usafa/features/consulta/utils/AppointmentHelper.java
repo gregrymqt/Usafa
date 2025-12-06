@@ -8,13 +8,14 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import br.edu.fatecpg.usafa.features.admin.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.admin.repositories.IMedicoRepository;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.FormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.SelectOptionDTO;
-import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
 import lombok.RequiredArgsConstructor;
+
 @Component
 @RequiredArgsConstructor
 public class AppointmentHelper {

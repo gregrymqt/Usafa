@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fatecpg.usafa.features.admin.dtos.timeSlot.AtualizarSlotDTO;
@@ -28,12 +29,15 @@ public class AdminSlotController {
 
     private final IHorarioSlotService slotService;
 
-    @GetMapping("/medico/{medicoId}")
+    @GetMapping("/medico/{medicoId}") // 
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<SlotResponseDTO>> listarSlotsPorMedico(@PathVariable String medicoId) {
-        List<HorarioSlot> slots = slotService.listarSlotsPorMedico(medicoId);
+    public ResponseEntity<List<SlotResponseDTO>> listarSlotsPorMedico(
+            @PathVariable String medicoId,
+            @RequestParam(required = false) String data // [NOVO] Lê ?data=2025-12-05
+    ) {
+        // Passamos a data (que pode ser nula) para o service
+        List<HorarioSlot> slots = slotService.listarSlotsPorMedico(medicoId, data);
 
-        // Converter Entidade -> DTO (Supondo que você tenha um mapper ou faça manual)
         List<SlotResponseDTO> dtos = slots.stream()
                 .map(slot -> SlotResponseDTO.builder()
                         .id(slot.getId())
@@ -43,6 +47,7 @@ public class AdminSlotController {
                         .status(slot.getStatus().name())
                         .build())
                 .collect(Collectors.toList());
+                
         return ResponseEntity.ok(dtos);
     }
 
@@ -50,7 +55,7 @@ public class AdminSlotController {
     @PreAuthorize("hasRole('ADMIN')") // Garante que só Admin (ou Médico) acesse
     public ResponseEntity<Void> gerarAgenda(@RequestBody GerarAgendaDTO dto) {
         slotService.gerarAgenda(dto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build(); 
     }
 
     @PutMapping("/{id}")

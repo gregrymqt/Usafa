@@ -3,8 +3,7 @@
 .container {
   background-color: $white;
   border-radius: $radius-md;
-  box-shadow: $shadow-sm;
-  overflow: hidden; 
+  box-shadow: $shadow-sm; 
   min-height: 400px;
   max-width: $container-max-width;
   margin: 0 auto; 
@@ -86,6 +85,8 @@
   padding: $spacing-lg;
   background-color: $white;
   min-height: 300px;
+  overflow-y: auto; // Adiciona scroll vertical apenas quando necessário
+  max-height: calc(100vh - 250px); // Limita a altura para funcionar bem em telas menores
 }
 
 .tabContentFadeIn {

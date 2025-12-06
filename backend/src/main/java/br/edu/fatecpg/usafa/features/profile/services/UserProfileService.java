@@ -57,22 +57,21 @@ public class UserProfileService implements IUserProfileService {
     @Override
     @Transactional
     public UserProfileResponseDTO updateUserProfile(String email, UserProfileUpdateDTO updateDTO, MultipartFile file) {
-        // 1. Busca usuário
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado para atualização."));
+                .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado."));
 
-        // 2. Atualiza dados textuais
         user.setName(updateDTO.name());
         user.setCep(updateDTO.cep());
 
-        // 3. Lógica da Foto (Padronizada)
+        // Lógica da Foto
         if (file != null && !file.isEmpty()) {
-            log.info("Processando nova foto de perfil para: {}", email);
+            // [IMPLEMENTAÇÃO] Se o usuário já tinha foto, apague o arquivo físico da anterior
+            if (user.getPicture() != null) {
+                pictureService.delete(user.getPicture().getId());
+            }
 
-            // O Service já salva no disco e cria a entrada no banco
+            // Upload da nova e substituição (O orphanRemoval apaga a velha do BD, nós apagamos do disco acima)
             Picture newPicture = pictureService.uploadAndGetPicture(file, "perfil_usuario");
-
-            // Apenas substituímos. O JPA com orphanRemoval=true apaga a anterior.
             user.setPicture(newPicture);
         }
 

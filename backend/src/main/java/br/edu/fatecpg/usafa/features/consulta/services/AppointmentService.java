@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.edu.fatecpg.usafa.features.admin.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.caching.page.PageCacheHelper;
@@ -19,7 +20,6 @@ import br.edu.fatecpg.usafa.features.consulta.dtos.User.AppointmentUserResponseD
 import br.edu.fatecpg.usafa.features.consulta.enums.ConsultaStatus;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IAppointmentService;
 import br.edu.fatecpg.usafa.features.consulta.repositories.IConsultaRepository;
-import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.consulta.utils.AppointmentConsumerHelper;
 import br.edu.fatecpg.usafa.features.consulta.utils.AppointmentHelper;
 import br.edu.fatecpg.usafa.features.consulta.utils.AppointmentMapper;

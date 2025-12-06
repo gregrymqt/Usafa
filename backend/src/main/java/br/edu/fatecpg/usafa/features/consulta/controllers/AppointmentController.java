@@ -2,11 +2,13 @@ package br.edu.fatecpg.usafa.features.consulta.controllers; // Ajuste o pacote
 
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Admin.AppointmentAdminResponseDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.AppointmentOperationDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.FormOptionsDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.Options.SelectOptionDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.User.AppointmentUserResponseDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IAppointmentService;
 import br.edu.fatecpg.usafa.models.User;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,7 +20,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,6 +80,27 @@ public class AppointmentController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("horarioSlot.dataHoraInicio").descending());
 
         return ResponseEntity.ok(consultaService.findConsultasByUser(user, pageable));
+    }
+
+    /**
+     * 1. FLUXO ADMIN: Agendamento Direto
+     * O Admin escolhe o paciente e o horário, e a consulta já nasce "AGENDADA".
+     */
+    @PostMapping("/admin/agendar") // Mudei a rota para ficar explícito
+    @PreAuthorize("hasRole('ADMIN')") // TRAVADO APENAS PARA ADMIN
+    public ResponseEntity<AppointmentAdminResponseDTO> createAppointmentAdmin(
+            @RequestBody @Valid AppointmentOperationDTO dto
+    ) {
+        // Como é Admin, passamos 'null' no segundo parâmetro.
+        // Isso força o Service a buscar o paciente pelo ID que veio no JSON (dto.patientId).
+        AppointmentAdminResponseDTO response = consultaService.createAppointment(dto, null);
+
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.getId())
+                .toUri();
+
+        return ResponseEntity.created(uri).body(response);
     }
 
     /**

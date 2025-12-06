@@ -21,6 +21,7 @@ import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.Medico;
 import br.edu.fatecpg.usafa.models.SolicitacaoConsulta;
 import br.edu.fatecpg.usafa.models.TipoConsulta;
+
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AppointmentMapper {
 

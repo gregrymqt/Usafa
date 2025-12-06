@@ -10,6 +10,11 @@
   border-radius: $radius-lg; // 16px
   border: 1px solid $border-light;
   box-shadow: $shadow-card;
+
+  // Adiciona scroll interno para telas menores
+  overflow-y: auto;
+  // Limita a altura a 80% da altura da tela, ativando o scroll se o conteúdo passar disso
+  max-height: 80vh; 
 }
 
 // Estilo global para o botão de submit que vem do componente AuthForm

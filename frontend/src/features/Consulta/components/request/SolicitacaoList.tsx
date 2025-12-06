@@ -3,7 +3,10 @@ import styles from "./SolicitacaoList.module.scss";
 import Table from "../../../../components/Tables/Tables";
 import { ColumnType } from "../../../../components/Tables/types";
 import { useInfiniteScroll } from "../../../../shared/utils/forPages.utils";
-import { AppointmentUserResponse } from "../../types/consulta.types";
+import {
+  AppointmentUserResponse,
+  AppointmentStatus,
+} from "../../types/consulta.types";
 
 interface SolicitacaoListProps {
   solicitacoes: AppointmentUserResponse[];
@@ -12,10 +15,22 @@ interface SolicitacaoListProps {
   loadMore: () => void;
 }
 
-const StatusBadge = ({ status }: { status: string }) => {
-  const statusClass = styles[`status${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}`] || styles.statusDefault;
-  return <span className={`${styles.badge} ${statusClass}`}>{status}</span>;
+const normalizeStatusClass = (status: AppointmentStatus): string => {
+  const map: Record<AppointmentStatus, string> = {
+    PENDENTE: "Pendente",
+    ACEITA: "Aceita",
+    RECUSADA: "Recusada",
+    CONFIRMADA: "Confirmada",
+    CANCELADA: "Cancelada",
+    CONCLUIDA: "Concluida",
+  };
+  return map[status] || "Default";
 };
+
+const StatusBadge: React.FC<{ status: AppointmentStatus }> = ({ status }) => {
+  return <span className={styles[`status${normalizeStatusClass(status)}`] || styles.statusDefault}>{status}</span>;
+};
+
 
 export const SolicitacaoList: React.FC<SolicitacaoListProps> = ({
   solicitacoes,

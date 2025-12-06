@@ -106,7 +106,7 @@ const HomeForm: React.FC<HomeFormProps> = ({
   ], [formData, previewUrl, onTextChange, onCheckChange, onFileSelect]); // Dependências corretas
 
   return (
-    <div className={styles.wrapper}> 
+    <div className={styles.formContainer}> 
       <AuthForm
         fields={fields}
         handleSubmit={handleSubmit}

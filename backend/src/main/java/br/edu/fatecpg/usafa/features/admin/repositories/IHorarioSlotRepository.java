@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.consulta.repositories;
+package br.edu.fatecpg.usafa.features.admin.repositories;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,13 +25,23 @@ public interface IHorarioSlotRepository extends JpaRepository<HorarioSlot, Long>
     );
 
     @Query("SELECT h FROM HorarioSlot h " +
-            "WHERE h.medico.tipoConsulta.publicId = :tipoId " +
-            "AND h.status = 'DISPONIVEL' " +
-            "AND h.dataHoraInicio > CURRENT_TIMESTAMP " +
-            "ORDER BY h.dataHoraInicio ASC")
+           "JOIN FETCH h.medico m " + 
+           "WHERE m.tipoConsulta.publicId = :tipoId " +
+           "AND h.status = 'DISPONIVEL' " +
+           "AND h.dataHoraInicio > CURRENT_TIMESTAMP " +
+           "ORDER BY h.dataHoraInicio ASC")
     List<HorarioSlot> findDisponiveisPorTipoConsulta(@Param("tipoId") String tipoId);
 
     Optional<HorarioSlot> findByPublicId(String publicId);
 
-    List<HorarioSlot> findAllByMedicoPublicIdOrderByDataHoraInicioAsc(String medicoPublicId);
+    List<HorarioSlot> findAllByMedico_IdOrderByDataHoraInicioAsc(Long medicoId);
+
+    // MUDANÇA 2: Busca com filtro de data também recebe Long
+    List<HorarioSlot> findByMedico_IdAndDataHoraInicioBetweenOrderByDataHoraInicioAsc(
+        Long medicoId, 
+        LocalDateTime inicioDia, 
+        LocalDateTime fimDia
+    );
+
 }
+    

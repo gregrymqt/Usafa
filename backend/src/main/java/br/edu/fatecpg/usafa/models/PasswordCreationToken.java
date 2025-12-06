@@ -7,6 +7,8 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Data
 @NoArgsConstructor
 @Entity
@@ -23,6 +25,7 @@ public class PasswordCreationToken {
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true) // FK única para 1-pra-1
     @ToString.Exclude // Evita erro de StackOverflow nos logs
@@ -37,5 +40,13 @@ public class PasswordCreationToken {
     public PasswordCreationToken(String token, String fullUrl) {
         this.token = token;
         this.fullUrl = fullUrl;
+    }
+    public PasswordCreationToken(Long id, String token, LocalDateTime expiryDate, User user, String fullUrl, boolean active) {
+        this.id = id;
+        this.token = token;
+        this.expiryDate = expiryDate;
+        this.user = user;
+        this.fullUrl = fullUrl;
+        this.active = active;
     }
 }

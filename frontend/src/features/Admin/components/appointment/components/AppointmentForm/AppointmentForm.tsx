@@ -114,7 +114,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         label: "Horário / Médico",
         value: horarioSlotId || "",
         onChange: (val) => setHorarioSlotId(val as string),
-        options: slotOptions,
+        options: [
+          { value: "", label: "Selecione um horário..." }, // Adiciona opção padrão
+          ...slotOptions // Espalha as opções vindas do banco
+        ],
         required: true,
         disabled: !tipoConsultaId || slotOptions.length === 0,
         placeholder: !tipoConsultaId
@@ -131,9 +134,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
         onChange: (val) => setStatus(val as string),
         options: [
           { value: "AGENDADA", label: "Agendada" },
-          { value: "CONCLUIDA", label: "Concluída" },
-          { value: "CANCELADA", label: "Cancelada" },
-          { value: "PENDENTE", label: "Pendente" },
+          { value: "DISPONIVEL", label: "Disponível" },
+          { value: "BLOQUEADO", label: "Bloqueado" },
+          { value: "FINALIZADO", label: "Finalizado" },
+          { value: "CANCELADO", label: "Cancelado" },
         ],
         required: true,
       },

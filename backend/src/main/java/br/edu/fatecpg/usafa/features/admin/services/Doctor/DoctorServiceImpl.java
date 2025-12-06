@@ -134,11 +134,14 @@ public class DoctorServiceImpl implements IDoctorService {
 
         // Atualiza Foto
         if (file != null && !file.isEmpty()) {
-            // Gera nova imagem e substitui
-            // OBS: Certifique-se que Medico tem @OneToOne(orphanRemoval=true)
-            Picture newPicture = pictureService.uploadAndGetPicture(file, "doctor_profile");
-            medico.setPicture(newPicture);
+        // [IMPLEMENTAÇÃO] Apaga a foto antiga do disco se existir
+        if (medico.getPicture() != null) {
+            pictureService.delete(medico.getPicture().getId());
         }
+
+        Picture newPicture = pictureService.uploadAndGetPicture(file, "doctor_profile");
+        medico.setPicture(newPicture);
+    }
 
         try {
             Medico updatedMedico = medicoRepository.save(medico);

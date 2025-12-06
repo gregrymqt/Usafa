@@ -10,6 +10,5 @@ public interface IHorarioSlotService {
     void gerarAgenda(GerarAgendaDTO dados);
     void atualizarSlot(Long idSlot, AtualizarSlotDTO dados);
     void excluirSlot(Long idSlot);
-    void excluirAgendaPorDia(String medicoId, String dataIso); // Bônus: Limpar o dia todo
-    List<HorarioSlot> listarSlotsPorMedico(String medicoId);
+    List<HorarioSlot> listarSlotsPorMedico(String medicoId, String dataOpcional);
 }

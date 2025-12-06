@@ -1,8 +1,10 @@
 package br.edu.fatecpg.usafa.features.admin.services.Patient;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.patient.CreatePasswordDTO;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.Password.CreatePasswordDTO;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.Password.PasswordTokenCacheDto;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPasswordCreationTokenService;
 import br.edu.fatecpg.usafa.features.admin.repositories.IPasswordCreationTokenRepository;
+import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientPasswordHelper;
 import br.edu.fatecpg.usafa.features.auth.dtos.UserResponseDTO;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
@@ -38,6 +40,7 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
     private final UserUtils userUtils;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
+    private final PatientPasswordHelper patientPasswordHelper;
 
     @Value("${app.frontend.create-password-url}")
     private String createPasswordBaseUrl;
@@ -45,31 +48,28 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
     private static final String CACHE_PREFIX = "auth:password-token:";
     private static final long TOKEN_EXPIRATION_HOURS = 24;
 
-    /**
-     * Cria e salva um novo token na tabela dedicada.
-     */
     @Transactional
     public Optional<PasswordCreationToken> createAndSaveToken(User user) {
         if (user == null || user.getPublicId() == null) {
-            log.error("Tentativa de criar token para um usuário nulo ou sem publicId.");
+            log.error("Tentativa de criar token para usuário nulo/sem publicId.");
             throw new BusinessRuleException("Usuário inválido para criação de token.");
         }
 
         final String userPublicId = user.getPublicId().toString();
 
-        // 1. Verifica se já existe um token válido no banco SQL
-        Optional<PasswordCreationToken> existingTokenOpt = tokenRepository.findByUserAndExpiryDateAfter(user,
-                LocalDateTime.now());
-
+        Optional<PasswordCreationToken> existingTokenOpt = tokenRepository.findByUserAndExpiryDateAfter(user, LocalDateTime.now());
         if (existingTokenOpt.isPresent()) {
-            log.info("Token válido já existe na tabela para: {}. Reutilizando.", userPublicId);
+            log.info("Token válido existente encontrado. Reutilizando.");
             PasswordCreationToken existingToken = existingTokenOpt.get();
-            // Reconstrói a URL (pois não é salva no banco)
             existingToken.setFullUrl(createPasswordBaseUrl + existingToken.getToken());
+            
+            // Atualiza o cache com o token existente
+            patientPasswordHelper.updateCache(existingToken, userPublicId);
+            
             return Optional.of(existingToken);
         }
 
-        log.info("Gerando novo token de criação de senha para: {}", userPublicId);
+        log.info("Gerando novo token para: {}", userPublicId);
         String newTokenString = UUID.randomUUID().toString();
         String fullUrl = createPasswordBaseUrl + newTokenString;
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(TOKEN_EXPIRATION_HOURS);
@@ -80,16 +80,14 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
                 tokenRepository.flush();
             }
 
-            // 3. Cria e Salva o novo
             PasswordCreationToken newToken = new PasswordCreationToken(newTokenString, fullUrl);
             newToken.setUser(user);
             newToken.setExpiryDate(expiryDate);
 
             PasswordCreationToken savedToken = tokenRepository.save(newToken);
 
-            // 4. Salva no Cache
-            String cacheKey = CACHE_PREFIX + userPublicId;
-            cacheService.saveWithTtl(cacheKey, savedToken, TOKEN_EXPIRATION_HOURS, TimeUnit.HOURS);
+            // Chama o método centralizado de cache
+            patientPasswordHelper.updateCache(savedToken, userPublicId);
 
             return Optional.of(savedToken);
 
@@ -99,86 +97,39 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
         }
     }
 
-    /**
-     * [NOVA LÓGICA] Define a senha do usuário e inativa o token utilizado.
-     */
-    @Transactional
-    public void createPassword(CreatePasswordDTO createPasswordDto) {
-        // 1. Busca o token no banco
-        PasswordCreationToken token = tokenRepository.findByToken(createPasswordDto.token())
-                .orElseThrow(() -> new BusinessRuleException("Token inválido ou não encontrado."));
-
-        // 2. Validações de Segurança
-        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new BusinessRuleException("Este link expirou.");
-        }
-        if (!token.isActive()) { // [LÓGICA PEDIDA] Verifica se já foi usado (está false)
-            throw new BusinessRuleException("Este link já foi utilizado.");
-        }
-
-        // 3. Define a nova senha no Usuário
-        User user = token.getUser();
-        user.setPassword(passwordEncoder.encode(createPasswordDto.password())); // Criptografa antes de salvar
-        userRepository.save(user);
-
-        // 4. Inativa o Token (active = false)
-        token.setActive(false); // [LÓGICA PEDIDA] Muda de true para false
-        tokenRepository.save(token);
-
-        log.info("Senha criada com sucesso para o usuário ID: {}", user.getId());
-    }
-
-    public UserResponseDTO validateTokenAndGetUser(String tokenId) {
-
-        // 1. Busca o Token pelo ID da tabela de tokens
-        PasswordCreationToken token = tokenRepository.findByToken(tokenId)
-                .orElseThrow(() -> new BusinessRuleException("Link inválido ou expirado."));
-
-        // 2. Verifica se expirou
-        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new BusinessRuleException("Este link expirou.");
-        }
-
-        // 3. Pega o usuário associado a esse token
-        User user = token.getUser();
-        String tokenJwt = jwtUtils.generateToken(user);
-
-        // 4. Retorna os dados que o Front precisa (Nome, Email, etc.)
-        return userUtils.buildResponseDTO(user, tokenJwt);
-    }
-
-    /**
-     * Busca o token.
-     */
     public Optional<PasswordCreationToken> findTokenByUserPublicId(String userPublicId) {
         String cacheKey = CACHE_PREFIX + userPublicId;
 
         // 1. Tenta Cache
-        PasswordCreationToken cachedToken = cacheService.get(cacheKey, PasswordCreationToken.class);
-        if (cachedToken != null) {
-            return Optional.of(cachedToken);
+        PasswordTokenCacheDto cachedDto = cacheService.get(cacheKey, PasswordTokenCacheDto.class);
+        if (cachedDto != null) {
+            log.info("Cache Hit para: {}", userPublicId);
+            return Optional.of(patientPasswordHelper.toEntity(cachedDto));
         }
 
         // 2. Tenta Banco SQL
         log.info("Cache Miss. Buscando token no SQL para: {}", userPublicId);
-        try {   
-            User user = userRepository.findByPublicId(UUID.fromString(userPublicId))
+        try {
+            // Removemos espaços em branco para evitar erro de UUID
+            UUID publicIdUuid = UUID.fromString(userPublicId.trim());
+
+            // Buscamos o USER primeiro
+            User user = userRepository.findByPublicId(publicIdUuid)
                     .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + userPublicId));
 
-            // Busca usando o novo método do Repositório
-            Optional<PasswordCreationToken> dbTokenOpt = tokenRepository.findByUser_Id(user.getId());
+            // Buscamos o TOKEN pelo ID numérico do user
+            Optional<PasswordCreationToken> dbTokenOpt = tokenRepository.findByUser_Id(user.getId()); // [cite: 22]
 
             dbTokenOpt.ifPresent(token -> {
-                // [IMPORTANTE] Reconstruir a URL, pois o banco só tem o token hash
                 token.setFullUrl(createPasswordBaseUrl + token.getToken());
-
-                // Popula Cache se válido
-                if (token.getExpiryDate().isAfter(LocalDateTime.now())) {
-                    long hours = java.time.Duration.between(LocalDateTime.now(), token.getExpiryDate()).toHours();
-                    if (hours > 0) {
-                        cacheService.saveWithTtl(cacheKey, token, hours, TimeUnit.HOURS);
-                    }
-                }
+                
+                // --- CORREÇÃO DO ERRO DE PROXY ---
+                // O token vindo do banco tem o user como "Lazy Proxy".
+                // Como já temos o objeto 'user' real carregado acima (linha 21),
+                // setamos ele no token. Assim o Helper não tenta buscar no banco fechado.
+                token.setUser(user); 
+                
+                patientPasswordHelper.updateCache(token, userPublicId);
             });
 
             return dbTokenOpt;
@@ -192,19 +143,38 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
         }
     }
 
-    /**
-     * Deleta o token (Deleta a linha da tabela).
-     */
+    @Transactional
+    public void createPassword(CreatePasswordDTO createPasswordDto) {
+        User user = userUtils.getUserByPublicId(createPasswordDto.publicId())
+            .orElseThrow(() -> new NotFoundException("Usuário não encontrado."));
+
+        PasswordCreationToken token = tokenRepository.findByUser_Id(user.getId())
+                .orElseThrow(() -> new BusinessRuleException("Link inválido ou expirado."));
+
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) throw new BusinessRuleException("Link expirado.");
+        if (!token.isActive()) throw new BusinessRuleException("Link já utilizado.");
+
+        user.setPassword(passwordEncoder.encode(createPasswordDto.newPassword()));
+        userRepository.save(user);
+
+        token.setActive(false);
+        tokenRepository.save(token);
+        
+        // Limpa o cache pois o token foi invalidado
+        // Usamos deletePattern como pedido, ou delete direto
+        deleteToken(user.getPublicId().toString()); 
+        
+        log.info("Senha criada com sucesso para user ID: {}", user.getId());
+    }
+
     @Transactional
     public void deleteToken(String userPublicId) {
         try {
-            UUID uuid = UUID.fromString(userPublicId);
+            UUID uuid = UUID.fromString(userPublicId.trim());
             User user = userRepository.findByPublicId(uuid)
-                    .orElseThrow(() -> new NotFoundException("Usuário não encontrado: " + userPublicId));
+                    .orElseThrow(() -> new NotFoundException("Usuário não encontrado."));
 
-            // [CORREÇÃO] Deleta a linha da tabela de tokens, em vez de setar null no User
             tokenRepository.deleteByUser(user);
-
             log.info("Token deletado do SQL para: {}", userPublicId);
 
         } catch (IllegalArgumentException e) {
@@ -214,7 +184,22 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
             throw new DatabaseOperationException("Falha ao deletar o token.", e);
         }
 
-        // Remove do Cache
-        cacheService.delete(CACHE_PREFIX + userPublicId);
+        // Remove do Cache usando deletePattern como solicitado
+        // O padrão busca a chave exata ou variações
+        String pattern = CACHE_PREFIX + userPublicId + "*";
+        cacheService.deletePattern(pattern);
+    }
+    
+    // Método validateTokenAndGetUser não usa cache de PublicID, busca por Token String direto no banco,
+    // então mantivemos inalterado, pois o cache é por PublicID.
+    public UserResponseDTO validateTokenAndGetUser(String tokenId) {
+        PasswordCreationToken token = tokenRepository.findByTokenWithUser(tokenId)
+                .orElseThrow(() -> new BusinessRuleException("Link inválido ou expirado."));
+        
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) throw new BusinessRuleException("Link expirado.");
+
+        User user = token.getUser();
+        String tokenJwt = jwtUtils.generateToken(user);
+        return userUtils.buildResponseDTO(user, tokenJwt);
     }
 }

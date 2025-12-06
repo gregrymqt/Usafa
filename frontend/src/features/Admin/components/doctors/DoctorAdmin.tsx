@@ -96,6 +96,9 @@ export const DoctorAdmin: React.FC<DoctorAdminProps> = ({
 
               <div className={styles.cardBody}>
                 <p>
+                  <strong>Id:</strong> <span>{doctor.id}</span>
+                </p>
+                <p>
                   <strong>CRM:</strong> <span>{doctor.crm}</span>
                 </p>
                 <p>

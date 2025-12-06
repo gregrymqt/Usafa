@@ -45,7 +45,6 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(
                                                                 "/auth/**", // Cobre Login, Register e seu
-                                                                            // LogoutController
                                                                 "/oauth2/**", // Endpoints do OAuth2
                                                                 "/login/**", // Páginas de login padrão
                                                                 "/error", // Tratamento de erros
@@ -54,6 +53,7 @@ public class SecurityConfig {
                                                                 "/api/v1/maps/**", // Sua API de mapas
                                                                 "/home/**", // <--- CORREÇÃO: Libera toda a área da Home
                                                                 "/admin/password-tokens/validate/**",
+                                                                "/admin/password-tokens/complete-creation",
                                                                 "/uploads/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())

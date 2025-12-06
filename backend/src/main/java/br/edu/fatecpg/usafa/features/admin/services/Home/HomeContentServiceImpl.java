@@ -91,33 +91,37 @@ public class HomeContentServiceImpl implements IHomeContentService {
     }
 
     @Override
-    @Transactional
-    public HomeContentDto update(Long id, HomeContentRequestDto request, MultipartFile file) {
-        HomeContent entity = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Conteúdo não encontrado."));
+@Transactional
+public HomeContentDto update(Long id, HomeContentRequestDto request, MultipartFile file) {
+    HomeContent entity = repository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Conteúdo não encontrado."));
 
-        if (request.getTitle() != null)
-            entity.setTitle(request.getTitle());
-        if (request.getDescription() != null)
-            entity.setDescription(request.getDescription());
-        if (request.getIsActive() != null)
-            entity.setIsActive(request.getIsActive());
+    if (request.getTitle() != null) {
+        entity.setTitle(request.getTitle());
+    }
+    
+    if (request.getDescription() != null) {
+        entity.setDescription(request.getDescription());
+    }
+    
+    if (request.getType() != null) {
+        // Se o tipo for String no DTO e Enum na Entity, faça a conversão:
+        entity.setType(ContentType.valueOf(request.getType()));
+    }
 
-        if (request.getType() != null && !request.getType().isEmpty()) {
-            try {
-                entity.setType(ContentType.valueOf(request.getType()));
-            } catch (IllegalArgumentException e) {
-                throw new BusinessRuleException("Tipo de conteúdo inválido.");
-            }
+    if (request.getIsActive() != null) {
+        entity.setIsActive(request.getIsActive());
+    }
+    // Atualiza Imagem
+    if (file != null && !file.isEmpty()) {
+        // [IMPLEMENTAÇÃO] Apaga a foto antiga do disco antes de trocar
+        if (entity.getPicture() != null) {
+            pictureService.delete(entity.getPicture().getId());
         }
 
-        // Atualiza Imagem
-        if (file != null && !file.isEmpty()) {
-            // Gera nova imagem e substitui.
-            // OBS: Certifique-se que HomeContent tem @OneToOne(orphanRemoval=true)
-            Picture newPicture = pictureService.uploadAndGetPicture(file, entity.getType().name());
-            entity.setPicture(newPicture);
-        }
+        Picture newPicture = pictureService.uploadAndGetPicture(file, entity.getType().name());
+        entity.setPicture(newPicture);
+    }
 
         HomeContent updated = repository.save(entity);
         cacheService.delete(CACHE_KEY_PUBLIC);
@@ -126,10 +130,15 @@ public class HomeContentServiceImpl implements IHomeContentService {
     }
 
     @Override
-    @Transactional
-    public void delete(Long id) {
-        if (!repository.existsById(id))
-            throw new NotFoundException("Conteúdo não encontrado");
+@Transactional
+public void delete(Long id) {
+    HomeContent entity = repository.findById(id)
+        .orElseThrow(() -> new NotFoundException("Conteúdo não encontrado"));
+
+    // [IMPLEMENTAÇÃO] Antes de deletar o conteúdo, apague a foto associada do disco
+    if (entity.getPicture() != null) {
+        pictureService.delete(entity.getPicture().getId());
+    }
         repository.deleteById(id);
 
         // INVALIDAÇÃO

@@ -37,7 +37,7 @@ export const appointmentService = {
    * Payload: AppointmentOperationDTO
    */
   createAppointment: async (data: AppointmentOperation): Promise<void> => {
-    await api.post(BASE_URL, data);
+    await api.post(`${BASE_URL}/admin/agendar`, data);
   },
 
   /**

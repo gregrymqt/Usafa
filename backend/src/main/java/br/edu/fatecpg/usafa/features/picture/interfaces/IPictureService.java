@@ -24,4 +24,6 @@ public interface IPictureService {
 
         // NOVO MÉTODO: Apenas salva o arquivo físico e retorna a URL
         Picture uploadAndGetPicture(MultipartFile file, String group);
+
+        
 }

@@ -43,15 +43,10 @@ export const homeService = {
 
     if (data.type !== undefined) formData.append("type", data.type);
     if (data.title !== undefined) formData.append("title", data.title);
-    if (data.description !== undefined) {
-      formData.append("description", data.description);
-    }
-    if (data.isActive !== undefined)
-      formData.append("isActive", String(data.isActive));
-
-    if (data.imageFile) {
-      formData.append("file", data.imageFile);
-    }
+    if (data.description !== undefined) formData.append("description", data.description);
+    if (data.isActive !== undefined) formData.append("isActive", String(data.isActive));
+    if (data.imageFile) formData.append("file", data.imageFile);
+    
 
     return api.putFormData<HomeContent>(`${ENDPOINT}/${id}`, formData);
   },

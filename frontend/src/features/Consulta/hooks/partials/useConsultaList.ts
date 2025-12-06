@@ -23,7 +23,7 @@ export const useConsultaList = (userId: string) => {
     if (!userId) return;
     setIsLoadingConsultas(true);
     try {
-      const response = await consultaService.getConsultasConfirmadas(userId, { page, size: 10, search });
+      const response = await consultaService.getConsultasConfirmadas({ page, size: 10, search });
       
       setConsultas(prev => isNewSearch ? response.content : [...prev, ...response.content]);
       setHasMoreConsultas(!response.last);
@@ -41,7 +41,7 @@ export const useConsultaList = (userId: string) => {
     if (!userId) return;
     setIsLoadingSolicitacoes(true);
     try {
-      const response = await consultaService.getSolicitacoesPendentes(userId, page);
+      const response = await consultaService.getSolicitacoesPendentes(page);
       
       setSolicitacoes(prev => isNewSearch ? response.content : [...prev, ...response.content]);
       setHasMoreSolicitacoes(!response.last);

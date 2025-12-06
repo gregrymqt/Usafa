@@ -1,4 +1,4 @@
-package br.edu.fatecpg.usafa.features.admin.dtos.patient;
+package br.edu.fatecpg.usafa.features.admin.dtos.patient.Password;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

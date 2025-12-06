@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.edu.fatecpg.usafa.features.admin.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Admin.AppointmentAdminResponseDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.AppointmentOperationDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IAppointmentService;
-import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.consulta.repositories.ISolicitacaoConsultaRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.SolicitacaoConsulta;
@@ -16,6 +16,7 @@ import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.webSockets.interfaces.INotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j

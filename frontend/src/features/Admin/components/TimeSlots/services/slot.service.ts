@@ -44,13 +44,14 @@ export const slotService = {
    * Rota: GET /admin/slots?medicoId=...&data=...
    */
   listarSlotsPorMedico: async (medicoId: string, dataIso: string): Promise<SlotResponse[]> => {
-      const params = new URLSearchParams({
-        medicoId: medicoId,
-        data: dataIso
-      });
+      // O backend não aceita filtro de data ainda, mas vamos mandar caso você implemente depois.
+      // O importante aqui é que o ID agora faz parte da URL (/medico/${medicoId})
       
-      // Retorna a lista crua do backend. 
-      // Dica: Se precisar usar na UI, pode ser necessário um adapter para transformar SlotResponse em Slot
-      return api.get<SlotResponse[]>(`${ENDPOINT}?${params.toString()}`);
+      const params = new URLSearchParams({
+        data: dataIso 
+      });
+
+      // CORREÇÃO AQUI: Adicionado "/medico/" e o ID na rota
+      return api.get<SlotResponse[]>(`${ENDPOINT}/medico/${medicoId}?${params.toString()}`);
   }
 };

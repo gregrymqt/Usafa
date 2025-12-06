@@ -1,11 +1,11 @@
 package br.edu.fatecpg.usafa.features.consulta.utils;
 
+import br.edu.fatecpg.usafa.features.admin.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.features.admin.repositories.ITipoConsultaRepository;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Admin.AppointmentAdminResponseDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.AppointmentOperationDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.User.AppointmentUserResponseDTO;
-import br.edu.fatecpg.usafa.features.consulta.repositories.IHorarioSlotRepository;
 import br.edu.fatecpg.usafa.models.HorarioSlot;
 import br.edu.fatecpg.usafa.models.SolicitacaoConsulta;
 import br.edu.fatecpg.usafa.models.TipoConsulta;

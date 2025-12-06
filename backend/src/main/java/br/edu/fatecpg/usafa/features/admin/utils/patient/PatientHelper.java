@@ -18,27 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PatientHelper {
 
-    private final IUserRepository userRepository;
     private final IConsultaRepository consultaRepository; // (Necessário para a validação de delete)
-
-    /**
-     * Busca um Paciente (User) pelo seu ID público (String) ou lança exceção.
-     */
-    public User findPatientByPublicId(String publicId) {
-        UUID uuid = parsePublicId(publicId);
-        return userRepository.findByPublicId(uuid) 
-                .orElseThrow(() -> new BusinessRuleException("Paciente com ID " + publicId + " não encontrado")); 
-    }
-
-    /**
-     * Valida se um paciente existe pelo seu ID público (String).
-     */
-    public void validatePatientExists(String publicId) {
-        UUID uuid = parsePublicId(publicId);
-        if (!userRepository.existsByPublicId(uuid)) { // (Método novo no IUserRepository)
-            throw new BusinessRuleException("Paciente com ID " + publicId + " não encontrado"); 
-        }
-    }
 
     /**
      * Converte a String de data/hora ISO do DTO para o LocalDate da entidade.

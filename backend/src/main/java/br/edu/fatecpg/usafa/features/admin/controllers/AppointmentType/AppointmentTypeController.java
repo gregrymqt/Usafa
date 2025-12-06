@@ -45,4 +45,5 @@ public class AppointmentTypeController {
     public void delete(@PathVariable String publicId) {
         appointmentTypeService.delete(publicId);
     }
+    
 }

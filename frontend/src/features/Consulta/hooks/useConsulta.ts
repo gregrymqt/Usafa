@@ -69,7 +69,6 @@ export const useConsulta = (userId: string) => {
 
     // --- Formulário ---
     formOptions: { 
-        medicos: [], 
         tipos: form.tiposOptions,
         horarios: form.horariosOptions
     },

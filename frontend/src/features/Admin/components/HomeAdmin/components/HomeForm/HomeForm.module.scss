@@ -7,6 +7,11 @@
   padding: 1rem;
   background-color: $white;
   border-radius: $radius-lg;
+
+  // Adiciona scroll interno para telas menores
+  overflow-y: auto;
+  // Limita a altura a 75% da altura da tela, ativando o scroll se o conteúdo passar disso
+  max-height: 75vh;
   
   // Mobile First: sem largura fixa, ocupa 100%
   width: 100%; 

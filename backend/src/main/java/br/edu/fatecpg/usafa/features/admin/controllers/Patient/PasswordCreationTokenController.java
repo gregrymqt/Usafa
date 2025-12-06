@@ -1,11 +1,12 @@
 package br.edu.fatecpg.usafa.features.admin.controllers.Patient;
 
-import br.edu.fatecpg.usafa.features.admin.dtos.patient.CreatePasswordDTO;
-import br.edu.fatecpg.usafa.features.admin.dtos.patient.PasswordCreationTokenRequestDto;
-import br.edu.fatecpg.usafa.features.admin.dtos.patient.PasswordCreationTokenResponseDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.Password.CreatePasswordDTO;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.Password.PasswordCreationTokenRequestDto;
+import br.edu.fatecpg.usafa.features.admin.dtos.patient.Password.PasswordCreationTokenResponseDto;
 import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPasswordCreationTokenService;
 import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientHelper;
 import br.edu.fatecpg.usafa.features.auth.dtos.UserResponseDTO;
+import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.models.PasswordCreationToken;
 import br.edu.fatecpg.usafa.models.User;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import jakarta.validation.Valid;
 public class PasswordCreationTokenController {
 
     private final IPasswordCreationTokenService tokenService;
-    private final PatientHelper patientHelper; // Reutilizando o helper para buscar o usuário
+    private final UserUtils userUtils;
 
     /**
      * Gera um novo token e link de criação de senha para um usuário.
@@ -40,11 +41,11 @@ public class PasswordCreationTokenController {
     @PostMapping("/generate")
     public ResponseEntity<PasswordCreationTokenResponseDto> generateToken(@Valid @RequestBody PasswordCreationTokenRequestDto requestDto) {
         // 1. Encontra o usuário pelo ID público para passar ao serviço
-        User user = patientHelper.findPatientByPublicId(requestDto.getUserPublicId());
+        Optional<User> optionalUser = userUtils.getUserByPublicId(requestDto.getUserPublicId());
+
 
         // 2. Chama o serviço para criar o token
-        Optional<PasswordCreationToken> token = tokenService.createAndSaveToken(user);
-
+        Optional<PasswordCreationToken> token = tokenService.createAndSaveToken(optionalUser.get());
         // 3. Mapeia a entidade para o DTO de resposta
         PasswordCreationTokenResponseDto response = PasswordCreationTokenResponseDto.builder()
                 .url(token.get().getFullUrl())

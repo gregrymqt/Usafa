@@ -21,6 +21,14 @@ export interface ConsultaRequest {
   // status: não precisa mandar na criação pelo usuário
 }
 
+export type AppointmentStatus =
+  | "PENDENTE"
+  | "ACEITA"
+  | "RECUSADA"
+  | "CONFIRMADA"
+  | "CANCELADA"
+  | "CONCLUIDA";
+
 // --- DTO de Resposta (AppointmentUserResponseDTO) ---
 // Renomeei para ficar claro que é a visão do usuário
 export interface AppointmentUserResponse {
@@ -29,7 +37,7 @@ export interface AppointmentUserResponse {
   especialidade: string;   // Corrigido de appointmentTypeName
   data: string;            // Corrigido de dia
   horario: string;
-  status: string;
+  status: AppointmentStatus;
   sintomas?: string;
 }
 

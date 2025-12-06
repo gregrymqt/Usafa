@@ -17,7 +17,7 @@ export const consultaService = {
 
   // --- 1. CONSULTAS CONFIRMADAS (AppointmentController) ---
   // Retorna Page<AppointmentUserResponseDTO> do Java
-  getConsultasConfirmadas: async (userId: string, params: { page: number, size: number, search?: string }) => {
+  getConsultasConfirmadas: async (params: { page: number, size: number, search?: string }) => {
     const queryParams = new URLSearchParams({
         page: params.page.toString(),
         size: params.size.toString()
@@ -26,15 +26,14 @@ export const consultaService = {
     if (params.search) queryParams.append('search', params.search);
     
     // O backend retorna AppointmentUserResponseDTO
-    const response = await api.get<Page<AppointmentUserResponse>>(`${CONSULTAS_BASE_URL}/user/${userId}?${queryParams.toString()}`);
+    const response = await api.get<Page<AppointmentUserResponse>>(`${CONSULTAS_BASE_URL}/user/?${queryParams.toString()}`);
     return response; // Geralmente axios retorna .data, verifique seu api.service
   },
 
   // --- 2. SOLICITAÇÕES / REQUESTS (AppointmentRequestController) ---
   // Retorna Page<AppointmentUserResponseDTO> quando é USER
-  getSolicitacoesPendentes: async (userId: string, page: number) => {
+  getSolicitacoesPendentes: async (page: number) => {
     const queryParams = new URLSearchParams({
-      userId: userId, 
       page: page.toString(),
       size: '10'
     });

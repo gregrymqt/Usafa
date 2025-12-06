@@ -8,6 +8,8 @@ import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import br.edu.fatecpg.usafa.models.Picture;
 import br.edu.fatecpg.usafa.shared.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.dao.DataAccessException;
 
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PictureService implements IPictureService {
 
@@ -28,7 +31,6 @@ public class PictureService implements IPictureService {
     @Transactional
     public PictureDto create(PictureDto pictureDto) {
         try {
-            // Lógica para criar os diretórios
             if (pictureDto.getGroup() != null && !pictureDto.getGroup().isBlank()) {
                 pictureHelper.createGroupDirectory(pictureDto.getGroup());
             }
@@ -36,7 +38,7 @@ public class PictureService implements IPictureService {
             Picture picture = Picture.builder()
                     .title(pictureDto.getTitle())
                     .url(pictureDto.getUrl())
-                    .group(pictureDto.getGroup()) // CORREÇÃO: Usando o campo 'group' do DTO
+                    .group(pictureDto.getGroup())
                     .build();
 
             Picture savedPicture = pictureRepository.save(picture);
@@ -97,10 +99,10 @@ public class PictureService implements IPictureService {
         try {
             Picture existingPicture = pictureRepository.findById(id)
                     .orElseThrow(() -> new NotFoundException("Picture not found with id: " + id));
-
+            
             existingPicture.setTitle(pictureDto.getTitle());
             existingPicture.setUrl(pictureDto.getUrl());
-            existingPicture.setGroup(pictureDto.getGroup()); // CORREÇÃO
+            existingPicture.setGroup(pictureDto.getGroup());
 
             Picture updatedPicture = pictureRepository.save(existingPicture);
             return pictureHelper.toDto(updatedPicture);
@@ -109,37 +111,37 @@ public class PictureService implements IPictureService {
         }
     }
 
+    @Override
     @Transactional
     public void delete(Long id) {
         try {
-            if (!pictureRepository.existsById(id)) {
-                throw new NotFoundException("Picture not found with id: " + id);
-            }
+            Picture picture = pictureRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Picture not found with id: " + id));
+
+            // [CORREÇÃO] 1. Apaga o arquivo físico do disco antes de deletar do banco
+            if (picture != null && picture.getUrl() != null) {
+            // Agora chama o método que implementamos no Helper
+            pictureHelper.deleteFile(picture.getUrl());
+            log.info("Arquivo físico deletado (se existia): {}", picture.getUrl());
+        }
+
+            // 2. Apaga o registro do banco
             pictureRepository.deleteById(id);
         } catch (DataAccessException e) {
             throw new DatabaseOperationException("Failed to delete picture with id: " + id, e);
         }
     }
 
-    /**
-     * Realiza o upload de um arquivo, salva a entidade Picture no banco de dados
-     * e retorna a entidade persistida.
-     *
-     * @param file O arquivo a ser salvo.
-     * @param group O grupo ao qual o arquivo pertence.
-     * @return A entidade Picture que foi criada e salva.
-     */
     @Override
     @Transactional
     public Picture uploadAndGetPicture(MultipartFile file, String group) {
         try {
-            // 1. Salva o arquivo no sistema de arquivos e obtém a URL.
             String fileUrl = pictureHelper.saveFile(file, group);
-
-            // 2. Cria a entidade Picture com os dados do arquivo.
-            Picture picture = Picture.builder().title(file.getOriginalFilename()).url(fileUrl).group(group).build();
-
-            // 3. Salva a entidade no banco de dados e a retorna.
+            Picture picture = Picture.builder()
+                .title(file.getOriginalFilename())
+                .url(fileUrl)
+                .group(group)
+                .build();
             return pictureRepository.save(picture);
         } catch (IOException | DataAccessException e) {
             throw new DatabaseOperationException("Failed to upload file and create picture record for group: " + group, e);

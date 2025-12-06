@@ -104,11 +104,11 @@ public class AuthController {
                 cacheService.saveWithTtl("blocklist:" + jti, "blocked", remainingSeconds, TimeUnit.SECONDS);
             }
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.noContent().build(); 
 
-        } catch (Exception e) {
-            // Se o token já for inválido (expirado, etc), apenas retorne OK
-            return ResponseEntity.ok().build();
-        }
+    } catch (Exception e) {
+        // MUDANÇA AQUI TAMBÉM
+        return ResponseEntity.noContent().build();
+    }
     }
 }

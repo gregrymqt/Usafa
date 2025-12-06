@@ -3,6 +3,7 @@ package br.edu.fatecpg.usafa.features.admin.services.Patient;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import br.edu.fatecpg.usafa.features.admin.interfaces.Patient.IPatientService;
 import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientHelper;
 import br.edu.fatecpg.usafa.features.admin.utils.patient.PatientMapper;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
+import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
 import br.edu.fatecpg.usafa.features.caching.page.PageCacheHelper;
 import br.edu.fatecpg.usafa.models.User;
@@ -38,6 +40,7 @@ public class PatientServiceImpl implements IPatientService {
     private final PatientHelper helper;
     private final IPasswordCreationTokenService passwordCreationTokenService;
     private final PageCacheHelper pageCacheHelper;
+    private final UserUtils userUtils;
 
     private static final String CACHE_KEY_ALL_PATIENTS = "patients:all";
 
@@ -142,13 +145,13 @@ public class PatientServiceImpl implements IPatientService {
     @Transactional
     public PatientResponseDto updatePatient(String id, PatientRequestDto patientDto) {
         log.info("Atualizando paciente ID: {}", id);
-        User user = helper.findPatientByPublicId(id);
+        Optional<User> optionalUser = userUtils.getUserByPublicId(id);
         LocalDate birthDate = helper.parseBirthDate(patientDto.getBirthDate());
 
-        mapper.updateEntity(patientDto, user, birthDate);
+        mapper.updateEntity(patientDto, optionalUser.get(), birthDate);
 
         try {
-            User updatedUser = userRepository.save(user);
+            User updatedUser = userRepository.save(optionalUser.get());
             invalidatePatientCaches();
             return mapper.toDto(updatedUser);
         } catch (DataAccessException e) {
@@ -160,11 +163,11 @@ public class PatientServiceImpl implements IPatientService {
     @Transactional
     public void deletePatient(String id) {
         log.info("Deletando paciente ID: {}", id);
-        User user = helper.findPatientByPublicId(id);
-        helper.validatePatientHasNoAppointments(user);
+        Optional<User> optionalUser = userUtils.getUserByPublicId(id);
+        helper.validatePatientHasNoAppointments(optionalUser.get());
 
         try {
-            userRepository.deleteByPublicId(user.getPublicId());
+            userRepository.deleteByPublicId(optionalUser.get().getPublicId());
             invalidatePatientCaches();
         } catch (DataAccessException e) {
             throw new DatabaseOperationException("Erro ao deletar paciente", e);
