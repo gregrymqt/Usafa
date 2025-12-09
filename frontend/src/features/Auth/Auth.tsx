@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
-  const { isLoading, error, handleLogin, handleGoogleLogin } = useLogin();
+  const { isLoading, error, handleLogin } = useLogin();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); 
@@ -70,9 +70,6 @@ const Login: React.FC = () => {
           <span>ou</span>
         </div>
 
-        <button onClick={handleGoogleLogin} className={styles.googleButton} disabled={isLoading}>
-          <span className={styles.googleIcon}>G</span> Entrar com Google
-        </button>
         <p className={styles.loginLink}>
           Caso não tenha uma conta?{' '}
           <Link to="/register"><strong>Cadastre-se</strong></Link> 

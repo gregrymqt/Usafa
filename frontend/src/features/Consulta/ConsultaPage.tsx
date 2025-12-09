@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./ConsultaPage.module.scss";
 import { ConsultaSummarys } from "./components/modal/ConsultaSummary";
 import { ListaConsultasPartial } from "./PartialViews/Lista/ListaConsultasPartial";
 import { useAuth } from "../Auth/hooks/useAuth";
 import { useConsulta } from "./hooks/useConsulta";
-import { AppointmentForm } from "./components/form/formConsulta";
+import { AppointmentForm } from "./components/form/ConsultaForm";
 import { ConsultaRequest } from "./types/consulta.types";
 
 const ConsultaPage: React.FC = () => {
   const { user } = useAuth();
-  
+
   // Hook Principal
   const {
     // Listas
@@ -21,7 +21,7 @@ const ConsultaPage: React.FC = () => {
     isLoadingSolicitacoes,
     hasMoreSolicitacoes,
     loadMoreSolicitacoes,
-    
+
     // Form States
     tiposOptions,
     opcoesHorarios,
@@ -34,21 +34,27 @@ const ConsultaPage: React.FC = () => {
     // Feedback
     error,
     confirmedConsulta,
-    closeConfirmationModal
-  } = useConsulta(user?.publicId || ""); 
+    closeConfirmationModal,
+  } = useConsulta(user?.publicId || "");
 
   const [showForm, setShowForm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Wrapper para o submit que adiciona feedback visual local
   const onFormSubmitWrapper = async (data: ConsultaRequest) => {
-      await handleSubmitConsulta(data);
-      if (!error) { // Se o hook não setou erro
-          setShowSuccess(true);
-          setShowForm(false);
-          setTimeout(() => setShowSuccess(false), 5000);
-      }
-  }
+    await handleSubmitConsulta(data);
+    // Remova toda a lógica de setShowSuccess daqui!
+  };
+
+  useEffect(() => {
+    if (confirmedConsulta) {
+      setShowSuccess(true);
+      setShowForm(false);
+
+      const timer = setTimeout(() => setShowSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [confirmedConsulta]);
 
   return (
     <div className={styles.pageContainer}>
@@ -62,18 +68,20 @@ const ConsultaPage: React.FC = () => {
         </button>
       </header>
 
-      <section className={`${styles.formSection} ${showForm ? styles.open : ""}`}>
+      <section
+        className={`${styles.formSection} ${showForm ? styles.open : ""}`}
+      >
         {/* Renderizando o Form Component diretamente com props do Hook */}
-        <AppointmentForm 
-            userId={user?.publicId || ""}
-            tiposOptions={tiposOptions}
-            horariosOptions={opcoesHorarios}
-            isLoadingHorarios={isLoadingHorarios}
-            isSubmitting={isSubmitting}
-            onTipoChange={buscarHorarios}
-            onSlotChange={handleSlotChange}
-            onSubmit={onFormSubmitWrapper}
-            onCancel={() => setShowForm(false)}
+        <AppointmentForm
+          userId={user?.publicId || ""}
+          tiposOptions={tiposOptions}
+          horariosOptions={opcoesHorarios}
+          isLoadingHorarios={isLoadingHorarios}
+          isSubmitting={isSubmitting}
+          onTipoChange={buscarHorarios}
+          onSlotChange={handleSlotChange}
+          onSubmit={onFormSubmitWrapper}
+          onCancel={() => setShowForm(false)}
         />
       </section>
 

@@ -32,6 +32,7 @@ import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
 import br.edu.fatecpg.usafa.shared.exceptions.NotFoundException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -146,60 +147,83 @@ public class AppointmentService implements IAppointmentService {
     @Override
     @Transactional
     public AppointmentAdminResponseDTO updateAppointment(String id, AppointmentOperationDTO operationDTO) {
+        // 1. Busca a consulta existente
         Consulta consulta = consultaRepository.findByPublicId(id)
                 .orElseThrow(() -> new NotFoundException("Consulta não encontrada"));
 
         User oldUser = consulta.getUser();
 
-        String patientIdTarget = operationDTO.getPatientId() != null ? operationDTO.getPatientId()
-                : oldUser.getPublicId().toString();
-        User newUser = consumerHelper.findUserOrThrow(patientIdTarget);
+        // 2. Atualiza dados básicos (Sintomas)
+        // Se o front mandar vazio, mantém o que estava.
+        if (operationDTO.getSintomas() != null) {
+            consulta.setSintomas(operationDTO.getSintomas());
+        }
 
-        TipoConsulta tipo = tipoConsultaRepository.findByPublicId(operationDTO.getTipoConsultaId())
-                .orElseThrow(() -> new BusinessRuleException("Tipo inválido."));
+        // 3. Lógica de Status (Aqui estava o erro do log)
+        if (operationDTO.getStatus() != null && !operationDTO.getStatus().isEmpty()) {
+            try {
+                // Converte a String do front (ex: "FINALIZADA") para o Enum
+                ConsultaStatus novoStatus = ConsultaStatus.valueOf(operationDTO.getStatus());
+                consulta.setStatus(novoStatus);
 
-        HorarioSlot currentSlot = consulta.getHorarioSlot();
-        if (!currentSlot.getPublicId().equals(operationDTO.getHorarioSlotId())) {
+                // LÓGICA EXTRA: Se cancelou, libera o slot?
+                // Se o status for CANCELADA, o slot volta a ficar DISPONIVEL
+                if (novoStatus == ConsultaStatus.CANCELADA) {
+                    HorarioSlot slotAtual = consulta.getHorarioSlot();
+                    if (slotAtual != null) {
+                        slotAtual.setStatus(StatusHorario.DISPONIVEL);
+                        slotAtual.setConsulta(null);
+                        horarioSlotRepository.save(slotAtual);
+
+                        // Desvincula da consulta para histórico
+                        consulta.setHorarioSlot(null);
+                    }
+                }
+
+            } catch (IllegalArgumentException e) {
+                // Isso captura o erro "FINALIZADO" se não estiver no Enum
+                throw new BusinessRuleException("Status inválido: " + operationDTO.getStatus() +
+                        ". Valores aceitos: " + Arrays.toString(ConsultaStatus.values()));
+            }
+        }
+
+        // 4. Lógica de Troca de Slot (Só executa se o slot tiver mudado E a consulta
+        // não foi cancelada)
+        if (operationDTO.getHorarioSlotId() != null
+                && consulta.getHorarioSlot() != null // garante que não está cancelada
+                && !consulta.getHorarioSlot().getPublicId().equals(operationDTO.getHorarioSlotId())) {
+
+            HorarioSlot currentSlot = consulta.getHorarioSlot();
+
+            // Busca o NOVO slot desejado
             HorarioSlot newSlot = horarioSlotRepository.findByPublicId(operationDTO.getHorarioSlotId())
                     .orElseThrow(() -> new BusinessRuleException("Novo horário não encontrado."));
 
+            // Valida se o novo está livre
             if (newSlot.getStatus() != StatusHorario.DISPONIVEL) {
-                throw new BusinessRuleException("Novo horário indisponível.");
-            }
-            if (!newSlot.getMedico().getTipoConsulta().getId().equals(tipo.getId())) {
-                throw new BusinessRuleException("Médico incompatível com a especialidade.");
+                throw new BusinessRuleException("O novo horário escolhido já está ocupado.");
             }
 
+            // A. Libera o slot antigo
             currentSlot.setStatus(StatusHorario.DISPONIVEL);
             currentSlot.setConsulta(null);
+            horarioSlotRepository.saveAndFlush(currentSlot); // Flush evita erro de concorrência
 
+            // B. Ocupa o novo slot
             newSlot.setStatus(StatusHorario.AGENDADO);
+            newSlot.setConsulta(consulta); // Vincula bidirectional se necessário
+            horarioSlotRepository.save(newSlot);
 
+            // C. Atualiza a consulta
             consulta.setHorarioSlot(newSlot);
             consulta.setMedico(newSlot.getMedico());
-
-            horarioSlotRepository.save(currentSlot);
-            horarioSlotRepository.save(newSlot);
         }
 
-        consulta.setUser(newUser);
-        consulta.setTipoConsulta(tipo);
-        consulta.setSintomas(operationDTO.getSintomas());
-
-        if (operationDTO.getStatus() != null) {
-            try {
-                consulta.setStatus(ConsultaStatus.valueOf(operationDTO.getStatus()));
-            } catch (IllegalArgumentException e) {
-                // ignore
-            }
-        }
-
+        // 5. Salva tudo
         Consulta updated = consultaRepository.save(consulta);
 
+        // 6. Limpa Cache
         clearUserAndAdminCaches(oldUser.getPublicId().toString());
-        if (!oldUser.equals(newUser)) {
-            clearUserAndAdminCaches(newUser.getPublicId().toString());
-        }
 
         return appointmentMapper.toAdminDto(updated);
     }

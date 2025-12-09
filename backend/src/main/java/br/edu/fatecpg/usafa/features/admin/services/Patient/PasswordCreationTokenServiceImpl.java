@@ -9,7 +9,9 @@ import br.edu.fatecpg.usafa.features.auth.dtos.UserResponseDTO;
 import br.edu.fatecpg.usafa.features.auth.repositories.IUserRepository;
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.caching.ICacheService;
+import br.edu.fatecpg.usafa.features.roles.repositories.IRoleRepository;
 import br.edu.fatecpg.usafa.models.PasswordCreationToken;
+import br.edu.fatecpg.usafa.models.Role;
 import br.edu.fatecpg.usafa.models.User;
 import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import br.edu.fatecpg.usafa.shared.exceptions.DatabaseOperationException;
@@ -22,10 +24,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +47,7 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final PatientPasswordHelper patientPasswordHelper;
+    private final IRoleRepository roleRepository;
 
     @Value("${app.frontend.create-password-url}")
     private String createPasswordBaseUrl;
@@ -170,6 +177,10 @@ public class PasswordCreationTokenServiceImpl implements IPasswordCreationTokenS
             throw new BusinessRuleException("Link já utilizado.");
 
         user.setPassword(passwordEncoder.encode(createPasswordDto.newPassword()));
+        Role defaultRole = roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new BusinessRuleException("Erro interno: Role padrão não configurada."));
+        user.setRoles(new HashSet<>(Set.of(defaultRole)));;
+
         userRepository.save(user);
 
         token.setActive(false);

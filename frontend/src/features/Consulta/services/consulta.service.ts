@@ -43,9 +43,11 @@ export const consultaService = {
   },
 
   // Envia AppointmentOperationDTO
-  requestConsulta: async (payload: ConsultaRequest): Promise<void> => {
-    await api.post(REQUESTS_BASE_URL, payload);
-  },
+  requestConsulta: async (payload: ConsultaRequest): Promise<AppointmentUserResponse> => {
+    // Agora esperamos um retorno com dados (data), não void
+    const response = await api.post<AppointmentUserResponse>('/requests', payload);
+    return response; 
+},
 
   // --- 3. OPTIONS (AppointmentController - Allow) ---
   

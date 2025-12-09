@@ -4,10 +4,17 @@ import br.edu.fatecpg.usafa.features.admin.dtos.appointment.UpdateAppointmentDTO
 import br.edu.fatecpg.usafa.features.auth.utilis.UserUtils;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Admin.AppointmentAdminResponseDTO;
 import br.edu.fatecpg.usafa.features.consulta.dtos.Allow.AppointmentOperationDTO;
+import br.edu.fatecpg.usafa.features.consulta.dtos.User.AppointmentUserResponseDTO;
 import br.edu.fatecpg.usafa.features.consulta.interfaces.IAppointmentRequestService;
+import br.edu.fatecpg.usafa.models.SolicitacaoConsulta;
 import br.edu.fatecpg.usafa.models.User;
+import br.edu.fatecpg.usafa.shared.exceptions.BusinessRuleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collections;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,8 +36,6 @@ public class AppointmentRequestController {
 
     private final IAppointmentRequestService requestService;
     private final UserUtils userUtils;
-    private final RedisTemplate<String, Object> redisTemplate;
-    private static final String CONSULTA_QUEUE_NAME = "fila:consultas:request";
 
     /**
      * [USER] Cria uma nova solicitação (Envia para Fila Redis).
@@ -38,28 +43,24 @@ public class AppointmentRequestController {
      */
     @PostMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> criarSolicitacao(
+    public ResponseEntity<AppointmentUserResponseDTO> criarSolicitacao(
             @Validated @RequestBody AppointmentOperationDTO requestDTO,
             Authentication authentication) {
-        
+
         User user = userUtils.getUserFromAuthentication(authentication)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        // Garante que o ID do paciente é o do usuário logado
         requestDTO.setPatientId(user.getPublicId().toString());
 
         try {
-            // Publica no Redis para processamento assíncrono
-            // Importante: O DTO deve ser Serializável ou o RedisTemplate configurado com Jackson
-            redisTemplate.convertAndSend(CONSULTA_QUEUE_NAME, requestDTO);
-            log.info("Solicitação enviada para fila. Usuário: {}", user.getPublicId());
-            return ResponseEntity.accepted().body("Solicitação recebida. Aguarde a confirmação.");
-            
-        } catch (Exception e) {
-            log.error("Erro ao publicar no Redis", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar solicitação.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(requestService.criarSolicitacaoSincrona(requestDTO, user));
+        } catch (BusinessRuleException e) {
+            // Se der erro de regra (ex: slot ocupado), retorna 400 mas tenta manter estrutura de erro
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+
 
     /**
      * [USER & ADMIN] Lista solicitações.
@@ -82,8 +83,10 @@ public class AppointmentRequestController {
         if (isAdmin) {
             // Admin vê tudo ou filtra, e recebe o DTO completo (AdminResponseDTO)
             // O filtro de userId pode ser passado se vier na requisição
-            // Nota: Se userId vier nulo, o service deve tratar (ou removê-lo se o método admin não filtrar por user específico na sua regra atual)
-            // Na interface atual: getAllRequestsAdmin(status, pageable) -> Filtra por status.
+            // Nota: Se userId vier nulo, o service deve tratar (ou removê-lo se o método
+            // admin não filtrar por user específico na sua regra atual)
+            // Na interface atual: getAllRequestsAdmin(status, pageable) -> Filtra por
+            // status.
             return ResponseEntity.ok(requestService.getAllRequestsAdmin(status, pageable));
         } else {
             // User vê apenas as suas e recebe DTO simples (UserResponseDTO)

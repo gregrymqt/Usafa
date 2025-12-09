@@ -35,12 +35,8 @@ export const SlotManagementIndex: React.FC = () => {
 
     setIsLoadingData(true);
     try {
-      // Se sua API precisa de data, mantenha. Se for listar tudo, pode remover o argumento data.
-      // Vou assumir que sua API busca tudo do médico ou filtra no back.
-      const hoje = new Date().toISOString().split("T")[0];
       const response = await slotService.listarSlotsPorMedico(
         currentMedicoId,
-        hoje
       );
 
       const rawData = response as unknown as SlotResponse[];

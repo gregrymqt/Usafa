@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppointmentForm } from '../../components/form/formConsulta'; // Ajuste o caminho se necessário
+import { AppointmentForm } from '../../components/form/ConsultaForm'; // Ajuste o caminho se necessário
 import styles from './_AgendarConsulta.module.scss';
 import { useConsultaForm } from '../../hooks/partials/useConsultaForm';
 import { ConsultaRequest } from '../../types/consulta.types';
